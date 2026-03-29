@@ -105,10 +105,33 @@ Import deduplication: if UUID already exists → prompt user to replace.
 - Surface (cards): `Colors.white`
 - Tag category colors: diet=green, protein=red, mealType=amber, style=blue, attribute=purple
 
-## Pending (future sessions)
+## Status
 
-- [ ] Export/Import UI (Phase 4) — `share_plus` + `file_picker` + conflict dialog
-- [ ] Real icons for tags (replace colored-dot placeholder in `TagChip`)
-- [ ] Splash screen animation polish
-- [ ] Hero transitions (browse tile image → detail image)
-- [ ] Image resize before base64 export (use `image ^4.2.0` package, already in pubspec)
+All screens and core logic are written and `flutter analyze` is clean. **The app has not been run on device yet** — first `flutter run` is the next step to validate everything end to end.
+
+## Known Issues / Fragile Code to Revisit
+
+- **Image path check in `edit_screen.dart`** (`_imagePath!.contains('recipea_images')`) is a string-based heuristic to detect whether a picked image has already been copied to the docs directory. Should be replaced with a proper `path_provider` comparison once tested.
+- **Tag filter sync in `browse_screen.dart`** — when the tag selector sheet closes, the callback loops through `toAdd`/`toRemove` sets calling `toggle()` once per tag, causing multiple rapid state updates. Works correctly but could be cleaner. Fix: add a `setAll(Set<String>)` method to `TagFilterNotifier`.
+- **`detail_screen.dart` recipe lookup** uses `.cast<Recipe?>().firstWhere(...)` on the full list every rebuild. Fine for small collections; consider a `recipeByIdProvider(id)` family provider if the list grows large.
+
+## Todo — Next Sessions
+
+### Immediate (first session)
+- [ ] First `flutter run` smoke test on Android/iOS emulator
+- [ ] Test full flow: create recipe → browse → filter by tag → view detail → edit → delete
+- [ ] Fix any runtime issues discovered above
+
+### Phase 4 — Export / Import UI
+The repository logic is fully implemented (`exportToJson`, `importFromJson`, `forceImport`). Just needs UI wiring:
+- [ ] "Export recipe" in `DetailScreen` AppBar overflow menu → `share_plus` `Share.shareXFiles`
+- [ ] "Export all" option in `MainMenuScreen`
+- [ ] "Import recipes" in `MainMenuScreen` → `file_picker` → conflict `AlertDialog` (uses `ImportResult.conflicts`)
+- [ ] Image resizing before base64 export — `image ^4.2.0` package already in pubspec; resize to 1200px max before `base64Encode`
+
+### Polish
+- [ ] Add `setAll(Set<String>)` to `TagFilterNotifier` to fix multi-toggle on browse screen
+- [ ] Hero transitions on recipe image (browse tile → detail): wrap `Image.file` in both with `Hero(tag: 'recipe-image-${recipe.id}')`
+- [ ] Splash screen animation polish (currently a simple fade-in)
+- [ ] Custom tag icons — replace the colored-dot `Container` in `lib/widgets/tag_chip.dart` with real SVG/icon assets when ready. The `TagDefinition` class and `TagCategory` enum are the right place to add icon data.
+- [ ] `intl` date formatting on detail screen (show `updatedAt` as "Updated Mar 29, 2026")
