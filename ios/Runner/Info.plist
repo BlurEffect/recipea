@@ -47,6 +47,10 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Recipea needs access to your photos to add recipe images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Recipea needs camera access to photograph your dishes.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
