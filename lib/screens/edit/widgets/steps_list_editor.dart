@@ -127,12 +127,17 @@ class _StepsListEditorState extends State<StepsListEditor> {
                       constraints: const BoxConstraints(),
                     ),
                   ),
-                // Drag handle (provided by ReorderableListView)
-                ReorderableDragStartListener(
-                  index: i,
-                  child: const Padding(
-                    padding: EdgeInsets.only(top: 8, left: 4),
-                    child: Icon(Icons.drag_handle, color: AppColors.divider),
+                // Drag handle — unfocus first to avoid LeaderLayer/FollowerLayer
+                // paint-order exception when a TextField is active during drag.
+                Listener(
+                  onPointerDown: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  child: ReorderableDragStartListener(
+                    index: i,
+                    child: const Padding(
+                      padding: EdgeInsets.only(top: 8, left: 4),
+                      child: Icon(Icons.drag_handle, color: AppColors.divider),
+                    ),
                   ),
                 ),
               ],

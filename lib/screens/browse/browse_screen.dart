@@ -26,12 +26,24 @@ class BrowseScreen extends ConsumerWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.go('/recipes/new/edit'),
-            tooltip: 'Create recipe',
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Coming soon')),
+              );
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'export_all', child: Text('Export all')),
+              PopupMenuItem(value: 'import', child: Text('Import recipes')),
+            ],
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go('/recipes/new/edit'),
+        tooltip: 'Create recipe',
+        child: const Icon(Icons.add),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,18 +53,8 @@ class BrowseScreen extends ConsumerWidget {
             onAddTags: () => showTagSelectorSheet(
               context: context,
               selectedIds: activeTags,
-              onChanged: (ids) {
-                final notifier = ref.read(tagFilterProvider.notifier);
-                // Sync the full selection with what the sheet returns
-                final toAdd = ids.difference(activeTags);
-                final toRemove = activeTags.difference(ids);
-                for (final id in toAdd) {
-                  notifier.toggle(id);
-                }
-                for (final id in toRemove) {
-                  notifier.toggle(id);
-                }
-              },
+              onChanged: (ids) =>
+                  ref.read(tagFilterProvider.notifier).setAll(ids),
             ),
             onRemoveTag: (id) => ref.read(tagFilterProvider.notifier).toggle(id),
             onClear: () => ref.read(tagFilterProvider.notifier).clear(),
@@ -68,7 +70,7 @@ class BrowseScreen extends ConsumerWidget {
                         ? 'No recipes yet'
                         : 'No recipes match these tags',
                     subMessage: activeTags.isEmpty
-                        ? 'Tap + to add your first recipe'
+                        ? 'Tap the + button to add your first recipe'
                         : 'Try removing some filters',
                     action: activeTags.isNotEmpty
                         ? TextButton(

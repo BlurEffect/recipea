@@ -50,6 +50,8 @@ class TagFilterNotifier extends StateNotifier<Set<String>> {
     state = next;
   }
 
+  void setAll(Set<String> ids) => state = Set<String>.from(ids);
+
   void clear() => state = {};
 }
 

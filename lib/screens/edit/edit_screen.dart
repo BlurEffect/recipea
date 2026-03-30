@@ -130,7 +130,12 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !_isNew,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _isNew) context.go('/recipes');
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
@@ -260,7 +265,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
     Future.delayed(const Duration(milliseconds: 2000), () {
-      if (mounted) context.go('/menu');
+      if (mounted) context.go('/recipes');
     });
   }
 
