@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -75,7 +76,15 @@ class RecipeRepository {
       if (recipe.imagePath != null) {
         try {
           final bytes = await File(recipe.imagePath!).readAsBytes();
-          map['imageData'] = base64Encode(bytes);
+          final decoded = img.decodeImage(bytes);
+          if (decoded != null) {
+            final resized = decoded.width > 1200
+                ? img.copyResize(decoded, width: 1200)
+                : decoded;
+            map['imageData'] = base64Encode(img.encodeJpg(resized, quality: 85));
+          } else {
+            map['imageData'] = base64Encode(bytes);
+          }
         } catch (_) {}
       }
       jsonList.add(map);
@@ -87,6 +96,7 @@ class RecipeRepository {
     final List<dynamic> list = jsonDecode(jsonString) as List<dynamic>;
     int imported = 0;
     final List<String> conflicts = [];
+    final List<String> conflictIds = [];
 
     for (final item in list) {
       final map = Map<String, dynamic>.from(item as Map);
@@ -95,6 +105,7 @@ class RecipeRepository {
 
       if (_box.containsKey(id)) {
         conflicts.add(title);
+        conflictIds.add(id);
         continue;
       }
 
@@ -118,7 +129,7 @@ class RecipeRepository {
       imported++;
     }
 
-    return ImportResult(imported: imported, conflicts: conflicts);
+    return ImportResult(imported: imported, conflicts: conflicts, conflictIds: conflictIds);
   }
 
   Future<void> forceImport(String jsonString, List<String> ids) async {
@@ -148,6 +159,11 @@ class RecipeRepository {
 class ImportResult {
   final int imported;
   final List<String> conflicts;
+  final List<String> conflictIds;
 
-  const ImportResult({required this.imported, required this.conflicts});
+  const ImportResult({
+    required this.imported,
+    required this.conflicts,
+    required this.conflictIds,
+  });
 }

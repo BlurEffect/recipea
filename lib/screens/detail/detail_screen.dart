@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
 import '../../models/recipe.dart';
@@ -187,7 +189,26 @@ class _RecipeAppBar extends ConsumerWidget {
         ),
         PopupMenuButton<String>(
           onSelected: (value) async {
-            if (value == 'delete') {
+            if (value == 'export') {
+              try {
+                final repo = ref.read(recipeRepositoryProvider);
+                final json = await repo.exportToJson([recipe.id]);
+                final dir = await getTemporaryDirectory();
+                final file = File('${dir.path}/recipea_export.json');
+                await file.writeAsString(json);
+                if (context.mounted) {
+                  await Share.shareXFiles(
+                    [XFile(file.path, mimeType: 'application/json')],
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            } else if (value == 'delete') {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (_) => AlertDialog(
@@ -215,6 +236,7 @@ class _RecipeAppBar extends ConsumerWidget {
             }
           },
           itemBuilder: (_) => const [
+            PopupMenuItem(value: 'export', child: Text('Export recipe')),
             PopupMenuItem(
               value: 'delete',
               child: Text('Delete', style: TextStyle(color: AppColors.error)),

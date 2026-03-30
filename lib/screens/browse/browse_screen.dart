@@ -1,9 +1,15 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
 import '../../providers/recipe_providers.dart';
+import '../../repositories/recipe_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/tag_chip.dart';
@@ -28,10 +34,12 @@ class BrowseScreen extends ConsumerWidget {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon')),
-              );
+            onSelected: (value) async {
+              if (value == 'export_all') {
+                await _exportAll(context, ref);
+              } else if (value == 'import') {
+                await _importRecipes(context, ref);
+              }
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'export_all', child: Text('Export all')),
@@ -95,6 +103,106 @@ class BrowseScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
+  try {
+    final repo = ref.read(recipeRepositoryProvider);
+    final json = await repo.exportToJson([]);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/recipea_export_all.json');
+    await file.writeAsString(json);
+    if (context.mounted) {
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/json')],
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
+    }
+  }
+}
+
+Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
+  final picked = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['json'],
+  );
+  if (picked == null) return;
+  final path = picked.files.single.path;
+  if (path == null) return;
+
+  String jsonString;
+  ImportResult result;
+  try {
+    jsonString = await File(path).readAsString();
+    result = await ref.read(recipeRepositoryProvider).importFromJson(jsonString);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Import failed: $e')),
+      );
+    }
+    return;
+  }
+
+  int totalImported = result.imported;
+
+  if (result.conflicts.isNotEmpty && context.mounted) {
+    final replace = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Duplicate recipes'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${result.conflicts.length} recipe(s) already exist:',
+            ),
+            const SizedBox(height: 8),
+            ...result.conflicts.map(
+              (t) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text('• $t',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text('Replace them with the imported versions?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Skip'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    );
+    if (replace == true && context.mounted) {
+      await ref
+          .read(recipeRepositoryProvider)
+          .forceImport(jsonString, result.conflictIds);
+      totalImported += result.conflicts.length;
+    }
+  }
+
+  ref.read(recipeListProvider.notifier).refresh();
+
+  if (context.mounted) {
+    final msg = totalImported == 0
+        ? 'Nothing new to import'
+        : 'Imported $totalImported recipe(s)';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
 
