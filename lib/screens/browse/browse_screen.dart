@@ -22,7 +22,7 @@ class BrowseScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recipes = ref.watch(filteredRecipesProvider);
-    final activeTags = ref.watch(tagFilterProvider);
+    final filter = ref.watch(tagFilterProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -57,30 +57,33 @@ class BrowseScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _TagFilterBar(
-            activeTags: activeTags,
+            filter: filter,
             onAddTags: () => showTagSelectorSheet(
               context: context,
-              selectedIds: activeTags,
-              onChanged: (ids) =>
-                  ref.read(tagFilterProvider.notifier).setAll(ids),
+              currentFilter: filter,
+              onChanged: (f) =>
+                  ref.read(tagFilterProvider.notifier).setBoth(f),
             ),
-            onRemoveTag: (id) => ref.read(tagFilterProvider.notifier).toggle(id),
+            onRemoveIncluded: (id) =>
+                ref.read(tagFilterProvider.notifier).toggleIncluded(id),
+            onRemoveExcluded: (id) =>
+                ref.read(tagFilterProvider.notifier).toggleExcluded(id),
             onClear: () => ref.read(tagFilterProvider.notifier).clear(),
           ),
           const Divider(height: 1),
           Expanded(
             child: recipes.isEmpty
                 ? EmptyState(
-                    icon: activeTags.isEmpty
+                    icon: filter.isEmpty
                         ? Icons.menu_book_outlined
                         : Icons.search_off,
-                    message: activeTags.isEmpty
+                    message: filter.isEmpty
                         ? 'No recipes yet'
-                        : 'No recipes match these tags',
-                    subMessage: activeTags.isEmpty
+                        : 'No recipes match these filters',
+                    subMessage: filter.isEmpty
                         ? 'Tap the + button to add your first recipe'
                         : 'Try removing some filters',
-                    action: activeTags.isNotEmpty
+                    action: filter.isNotEmpty
                         ? TextButton(
                             onPressed: () =>
                                 ref.read(tagFilterProvider.notifier).clear(),
@@ -207,15 +210,17 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
 }
 
 class _TagFilterBar extends StatelessWidget {
-  final Set<String> activeTags;
+  final TagFilterState filter;
   final VoidCallback onAddTags;
-  final void Function(String) onRemoveTag;
+  final void Function(String) onRemoveIncluded;
+  final void Function(String) onRemoveExcluded;
   final VoidCallback onClear;
 
   const _TagFilterBar({
-    required this.activeTags,
+    required this.filter,
     required this.onAddTags,
-    required this.onRemoveTag,
+    required this.onRemoveIncluded,
+    required this.onRemoveExcluded,
     required this.onClear,
   });
 
@@ -227,7 +232,7 @@ class _TagFilterBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: activeTags.isEmpty
+            child: filter.isEmpty
                 ? GestureDetector(
                     onTap: onAddTags,
                     child: const Row(
@@ -245,7 +250,7 @@ class _TagFilterBar extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        for (final id in activeTags)
+                        for (final id in filter.included)
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: Builder(builder: (context) {
@@ -255,7 +260,21 @@ class _TagFilterBar extends StatelessWidget {
                                 tag: tag,
                                 isSelected: true,
                                 showRemove: true,
-                                onTap: () => onRemoveTag(id),
+                                onTap: () => onRemoveIncluded(id),
+                              );
+                            }),
+                          ),
+                        for (final id in filter.excluded)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Builder(builder: (context) {
+                              final tag = tagById(id);
+                              if (tag == null) return const SizedBox.shrink();
+                              return TagChip(
+                                tag: tag,
+                                isExcluded: true,
+                                showRemove: true,
+                                onTap: () => onRemoveExcluded(id),
                               );
                             }),
                           ),

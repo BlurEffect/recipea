@@ -210,8 +210,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 TextButton.icon(
                   onPressed: () => showTagSelectorSheet(
                     context: context,
-                    selectedIds: _selectedTagIds,
-                    onChanged: (ids) => setState(() => _selectedTagIds = ids),
+                    currentFilter: TagFilterState(included: _selectedTagIds),
+                    onChanged: (f) =>
+                        setState(() => _selectedTagIds = f.included),
                   ),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Add tags'),

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../data/tag_definitions.dart';
+import '../providers/recipe_providers.dart';
 import '../theme/app_colors.dart';
 import 'tag_chip.dart';
 
 /// Shows a bottom sheet that lets the user pick tags.
-/// [selectedIds] — currently selected tag IDs
+/// [currentFilter] — current included/excluded tag state
 /// [onChanged] — called whenever selection changes
 void showTagSelectorSheet({
   required BuildContext context,
-  required Set<String> selectedIds,
-  required void Function(Set<String>) onChanged,
+  required TagFilterState currentFilter,
+  required void Function(TagFilterState) onChanged,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -20,18 +21,18 @@ void showTagSelectorSheet({
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (_) => _TagSelectorSheet(
-      selectedIds: selectedIds,
+      currentFilter: currentFilter,
       onChanged: onChanged,
     ),
   );
 }
 
 class _TagSelectorSheet extends StatefulWidget {
-  final Set<String> selectedIds;
-  final void Function(Set<String>) onChanged;
+  final TagFilterState currentFilter;
+  final void Function(TagFilterState) onChanged;
 
   const _TagSelectorSheet({
-    required this.selectedIds,
+    required this.currentFilter,
     required this.onChanged,
   });
 
@@ -40,13 +41,15 @@ class _TagSelectorSheet extends StatefulWidget {
 }
 
 class _TagSelectorSheetState extends State<_TagSelectorSheet> {
-  late Set<String> _selected;
+  late Set<String> _included;
+  late Set<String> _excluded;
   String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _selected = {...widget.selectedIds};
+    _included = {...widget.currentFilter.included};
+    _excluded = {...widget.currentFilter.excluded};
   }
 
   List<TagDefinition> get _filtered {
@@ -59,13 +62,22 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
 
   void _toggle(String id) {
     setState(() {
-      if (_selected.contains(id)) {
-        _selected.remove(id);
+      if (_included.contains(id)) {
+        // included → excluded
+        _included.remove(id);
+        _excluded.add(id);
+      } else if (_excluded.contains(id)) {
+        // excluded → neutral
+        _excluded.remove(id);
       } else {
-        _selected.add(id);
+        // neutral → included
+        _included.add(id);
       }
     });
-    widget.onChanged({..._selected});
+    widget.onChanged(TagFilterState(
+      included: {..._included},
+      excluded: {..._excluded},
+    ));
   }
 
   @override
@@ -74,6 +86,8 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
     for (final tag in _filtered) {
       grouped.putIfAbsent(tag.category, () => []).add(tag);
     }
+
+    final hasSelection = _included.isNotEmpty || _excluded.isNotEmpty;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -98,20 +112,37 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Select Tags',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Select Tags',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Tap once to include · tap twice to exclude',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
-                  if (_selected.isNotEmpty)
+                  if (hasSelection)
                     TextButton(
                       onPressed: () {
-                        setState(() => _selected.clear());
-                        widget.onChanged({});
+                        setState(() {
+                          _included.clear();
+                          _excluded.clear();
+                        });
+                        widget.onChanged(const TagFilterState());
                       },
                       child: const Text('Clear all'),
                     ),
@@ -156,7 +187,8 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
                       children: entry.value.map((tag) {
                         return TagChip(
                           tag: tag,
-                          isSelected: _selected.contains(tag.id),
+                          isSelected: _included.contains(tag.id),
+                          isExcluded: _excluded.contains(tag.id),
                           onTap: () => _toggle(tag.id),
                         );
                       }).toList(),

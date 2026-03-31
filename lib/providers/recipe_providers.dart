@@ -37,25 +37,77 @@ final recipeListProvider =
 
 // ── Tag filter ────────────────────────────────────────────────────────────────
 
-class TagFilterNotifier extends StateNotifier<Set<String>> {
-  TagFilterNotifier() : super({});
+class TagFilterState {
+  final Set<String> included;
+  final Set<String> excluded;
 
-  void toggle(String tagId) {
-    final next = Set<String>.from(state);
-    if (next.contains(tagId)) {
-      next.remove(tagId);
-    } else {
-      next.add(tagId);
-    }
-    state = next;
-  }
+  const TagFilterState({
+    this.included = const {},
+    this.excluded = const {},
+  });
 
-  void setAll(Set<String> ids) => state = Set<String>.from(ids);
+  bool get isEmpty => included.isEmpty && excluded.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
-  void clear() => state = {};
+  TagFilterState copyWith({
+    Set<String>? included,
+    Set<String>? excluded,
+  }) =>
+      TagFilterState(
+        included: included ?? this.included,
+        excluded: excluded ?? this.excluded,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is TagFilterState &&
+      _setEquals(included, other.included) &&
+      _setEquals(excluded, other.excluded);
+
+  @override
+  int get hashCode => Object.hash(
+        Object.hashAllUnordered(included),
+        Object.hashAllUnordered(excluded),
+      );
 }
 
-final tagFilterProvider = StateNotifierProvider<TagFilterNotifier, Set<String>>(
+bool _setEquals(Set<String> a, Set<String> b) =>
+    a.length == b.length && a.containsAll(b);
+
+class TagFilterNotifier extends StateNotifier<TagFilterState> {
+  TagFilterNotifier() : super(const TagFilterState());
+
+  void toggleIncluded(String tagId) {
+    final nextIncluded = Set<String>.from(state.included);
+    final nextExcluded = Set<String>.from(state.excluded);
+    if (nextIncluded.contains(tagId)) {
+      nextIncluded.remove(tagId);
+    } else {
+      nextIncluded.add(tagId);
+      nextExcluded.remove(tagId);
+    }
+    state = TagFilterState(included: nextIncluded, excluded: nextExcluded);
+  }
+
+  void toggleExcluded(String tagId) {
+    final nextIncluded = Set<String>.from(state.included);
+    final nextExcluded = Set<String>.from(state.excluded);
+    if (nextExcluded.contains(tagId)) {
+      nextExcluded.remove(tagId);
+    } else {
+      nextExcluded.add(tagId);
+      nextIncluded.remove(tagId);
+    }
+    state = TagFilterState(included: nextIncluded, excluded: nextExcluded);
+  }
+
+  void setBoth(TagFilterState filter) => state = filter;
+
+  void clear() => state = const TagFilterState();
+}
+
+final tagFilterProvider =
+    StateNotifierProvider<TagFilterNotifier, TagFilterState>(
   (_) => TagFilterNotifier(),
 );
 
@@ -63,11 +115,19 @@ final tagFilterProvider = StateNotifierProvider<TagFilterNotifier, Set<String>>(
 
 final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
   final recipes = ref.watch(recipeListProvider);
-  final activeTags = ref.watch(tagFilterProvider);
-  if (activeTags.isEmpty) return recipes;
-  return recipes
-      .where((r) => activeTags.every((t) => r.tagIds.contains(t)))
-      .toList();
+  final filter = ref.watch(tagFilterProvider);
+  if (filter.isEmpty) return recipes;
+  return recipes.where((r) {
+    if (filter.included.isNotEmpty &&
+        !filter.included.every((t) => r.tagIds.contains(t))) {
+      return false;
+    }
+    if (filter.excluded.isNotEmpty &&
+        filter.excluded.any((t) => r.tagIds.contains(t))) {
+      return false;
+    }
+    return true;
+  }).toList();
 });
 
 // ── New recipe ID generator ───────────────────────────────────────────────────

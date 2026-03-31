@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 class TagChip extends StatelessWidget {
   final TagDefinition tag;
   final bool isSelected;
+  final bool isExcluded;
   final bool showRemove;
   final VoidCallback? onTap;
 
@@ -12,6 +13,7 @@ class TagChip extends StatelessWidget {
     super.key,
     required this.tag,
     this.isSelected = false,
+    this.isExcluded = false,
     this.showRemove = false,
     this.onTap,
   });
@@ -19,9 +21,24 @@ class TagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = tag.category.color;
-    final bgColor = isSelected ? color.withValues(alpha: 0.15) : AppColors.surface;
-    final borderColor = isSelected ? color : AppColors.divider;
-    final textColor = isSelected ? color : AppColors.textSecondary;
+
+    final Color bgColor;
+    final Color borderColor;
+    final Color textColor;
+
+    if (isExcluded) {
+      bgColor = const Color(0xFFFFEBEE);
+      borderColor = color;
+      textColor = color;
+    } else if (isSelected) {
+      bgColor = AppColors.surface;
+      borderColor = color;
+      textColor = color;
+    } else {
+      bgColor = AppColors.surface;
+      borderColor = AppColors.divider;
+      textColor = AppColors.textSecondary;
+    }
 
     return GestureDetector(
       onTap: onTap,
