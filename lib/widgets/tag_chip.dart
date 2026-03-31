@@ -9,6 +9,10 @@ class TagChip extends StatelessWidget {
   final bool showRemove;
   final VoidCallback? onTap;
 
+  /// Called when the remove (×) icon is tapped.
+  /// If null and showRemove is true, tapping the icon calls [onTap] instead.
+  final VoidCallback? onRemove;
+
   const TagChip({
     super.key,
     required this.tag,
@@ -16,6 +20,7 @@ class TagChip extends StatelessWidget {
     this.isExcluded = false,
     this.showRemove = false,
     this.onTap,
+    this.onRemove,
   });
 
   @override
@@ -43,7 +48,12 @@ class TagChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.only(
+          left: 10,
+          top: 6,
+          bottom: 6,
+          right: showRemove ? 6 : 10,
+        ),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
@@ -72,7 +82,14 @@ class TagChip extends StatelessWidget {
             ),
             if (showRemove) ...[
               const SizedBox(width: 4),
-              Icon(Icons.close, size: 14, color: textColor),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onRemove ?? onTap,
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(Icons.close, size: 14, color: textColor),
+                ),
+              ),
             ],
           ],
         ),

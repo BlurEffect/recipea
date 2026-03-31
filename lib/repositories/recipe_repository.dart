@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/hive_boxes.dart';
+import '../data/tag_definitions.dart';
 import '../models/recipe.dart';
 
 class RecipeRepository {
@@ -65,7 +66,10 @@ class RecipeRepository {
 
   // ── Export / Import ───────────────────────────────────────────────────────
 
-  Future<String> exportToJson(List<String> ids) async {
+  Future<String> exportToJson(
+    List<String> ids,
+    List<TagDefinition> customTags,
+  ) async {
     final recipes = ids.isEmpty
         ? getAll()
         : ids.map((id) => getById(id)).whereType<Recipe>().toList();
@@ -89,16 +93,23 @@ class RecipeRepository {
       }
       jsonList.add(map);
     }
-    return jsonEncode(jsonList);
+
+    return jsonEncode({
+      'version': 1,
+      'customTags': customTags
+          .map((t) => {'id': t.id, 'label': t.label, 'category': t.category.name})
+          .toList(),
+      'recipes': jsonList,
+    });
   }
 
   Future<ImportResult> importFromJson(String jsonString) async {
-    final List<dynamic> list = jsonDecode(jsonString) as List<dynamic>;
+    final parsed = _parseImportJson(jsonString);
     int imported = 0;
     final List<String> conflicts = [];
     final List<String> conflictIds = [];
 
-    for (final item in list) {
+    for (final item in parsed.recipes) {
       final map = Map<String, dynamic>.from(item as Map);
       final id = map['id'] as String;
       final title = map['title'] as String;
@@ -109,7 +120,6 @@ class RecipeRepository {
         continue;
       }
 
-      // Decode image if present
       final imageData = map.remove('imageData') as String?;
       String? imagePath;
       if (imageData != null) {
@@ -129,12 +139,17 @@ class RecipeRepository {
       imported++;
     }
 
-    return ImportResult(imported: imported, conflicts: conflicts, conflictIds: conflictIds);
+    return ImportResult(
+      imported: imported,
+      conflicts: conflicts,
+      conflictIds: conflictIds,
+      customTags: parsed.customTags,
+    );
   }
 
   Future<void> forceImport(String jsonString, List<String> ids) async {
-    final List<dynamic> list = jsonDecode(jsonString) as List<dynamic>;
-    for (final item in list) {
+    final parsed = _parseImportJson(jsonString);
+    for (final item in parsed.recipes) {
       final map = Map<String, dynamic>.from(item as Map);
       if (!ids.contains(map['id'])) continue;
 
@@ -154,16 +169,37 @@ class RecipeRepository {
       await save(Recipe.fromJson(map));
     }
   }
+
+  // ── Parse helper ──────────────────────────────────────────────────────────
+
+  static ({List<dynamic> recipes, List<Map<String, dynamic>> customTags})
+      _parseImportJson(String jsonString) {
+    final decoded = jsonDecode(jsonString);
+    if (decoded is List) {
+      // Legacy bare-array format — no custom tags
+      return (recipes: decoded, customTags: []);
+    }
+    final map = decoded as Map<String, dynamic>;
+    final customTagsRaw = map['customTags'] as List<dynamic>? ?? [];
+    return (
+      recipes: map['recipes'] as List<dynamic>,
+      customTags: customTagsRaw
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList(),
+    );
+  }
 }
 
 class ImportResult {
   final int imported;
   final List<String> conflicts;
   final List<String> conflictIds;
+  final List<Map<String, dynamic>> customTags;
 
   const ImportResult({
     required this.imported,
     required this.conflicts,
     required this.conflictIds,
+    this.customTags = const [],
   });
 }

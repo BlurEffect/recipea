@@ -40,11 +40,13 @@ class TagDefinition {
   final String id;
   final String label;
   final TagCategory category;
+  final bool isCustom;
 
   const TagDefinition({
     required this.id,
     required this.label,
     required this.category,
+    this.isCustom = false,
   });
 }
 
@@ -99,6 +101,14 @@ const List<TagDefinition> tagDefinitions = [
 TagDefinition? tagById(String id) {
   try {
     return tagDefinitions.firstWhere((t) => t.id == id);
+  } catch (_) {
+    return null;
+  }
+}
+
+TagDefinition? tagByIdAll(String id, List<TagDefinition> allTags) {
+  try {
+    return allTags.firstWhere((t) => t.id == id);
   } catch (_) {
     return null;
   }

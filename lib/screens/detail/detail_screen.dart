@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
 import '../../models/recipe.dart';
+import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/tag_chip.dart';
@@ -23,6 +24,8 @@ class DetailScreen extends ConsumerWidget {
         .watch(recipeListProvider)
         .cast<Recipe?>()
         .firstWhere((r) => r?.id == recipeId, orElse: () => null);
+
+    final allTags = ref.watch(allTagsProvider);
 
     if (recipe == null) {
       return Scaffold(
@@ -58,7 +61,7 @@ class DetailScreen extends ConsumerWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: recipe.tagIds
-                          .map(tagById)
+                          .map((id) => tagByIdAll(id, allTags))
                           .whereType<TagDefinition>()
                           .map((t) => TagChip(tag: t, isSelected: true))
                           .toList(),
@@ -192,7 +195,8 @@ class _RecipeAppBar extends ConsumerWidget {
             if (value == 'export') {
               try {
                 final repo = ref.read(recipeRepositoryProvider);
-                final json = await repo.exportToJson([recipe.id]);
+                final customTags = ref.read(customTagsProvider);
+                final json = await repo.exportToJson([recipe.id], customTags);
                 final dir = await getTemporaryDirectory();
                 final file = File('${dir.path}/recipea_export.json');
                 await file.writeAsString(json);

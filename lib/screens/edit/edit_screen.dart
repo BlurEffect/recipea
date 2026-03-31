@@ -6,6 +6,7 @@ import '../../data/tag_definitions.dart';
 import '../../models/ingredient.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_step.dart';
+import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/tag_chip.dart';
@@ -130,6 +131,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final allTags = ref.watch(allTagsProvider);
     return PopScope(
       canPop: !_isNew,
       onPopInvokedWithResult: (didPop, _) {
@@ -211,8 +213,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   onPressed: () => showTagSelectorSheet(
                     context: context,
                     currentFilter: TagFilterState(included: _selectedTagIds),
-                    onChanged: (f) =>
-                        setState(() => _selectedTagIds = f.included),
+                    onChanged: (f) => setState(() => _selectedTagIds = f.included),
                   ),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Add tags'),
@@ -234,7 +235,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: _selectedTagIds
-                    .map(tagById)
+                    .map((id) => tagByIdAll(id, allTags))
                     .whereType<TagDefinition>()
                     .map((tag) => TagChip(
                           tag: tag,

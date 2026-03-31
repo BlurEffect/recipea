@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/tag_definitions.dart';
+import '../providers/custom_tag_providers.dart';
 import '../providers/recipe_providers.dart';
 import '../theme/app_colors.dart';
 import 'tag_chip.dart';
@@ -27,7 +30,7 @@ void showTagSelectorSheet({
   );
 }
 
-class _TagSelectorSheet extends StatefulWidget {
+class _TagSelectorSheet extends ConsumerStatefulWidget {
   final TagFilterState currentFilter;
   final void Function(TagFilterState) onChanged;
 
@@ -37,10 +40,10 @@ class _TagSelectorSheet extends StatefulWidget {
   });
 
   @override
-  State<_TagSelectorSheet> createState() => _TagSelectorSheetState();
+  ConsumerState<_TagSelectorSheet> createState() => _TagSelectorSheetState();
 }
 
-class _TagSelectorSheetState extends State<_TagSelectorSheet> {
+class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
   late Set<String> _included;
   late Set<String> _excluded;
   String _query = '';
@@ -52,25 +55,14 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
     _excluded = {...widget.currentFilter.excluded};
   }
 
-  List<TagDefinition> get _filtered {
-    if (_query.isEmpty) return tagDefinitions;
-    final q = _query.toLowerCase();
-    return tagDefinitions
-        .where((t) => t.label.toLowerCase().contains(q))
-        .toList();
-  }
-
   void _toggle(String id) {
     setState(() {
       if (_included.contains(id)) {
-        // included → excluded
         _included.remove(id);
         _excluded.add(id);
       } else if (_excluded.contains(id)) {
-        // excluded → neutral
         _excluded.remove(id);
       } else {
-        // neutral → included
         _included.add(id);
       }
     });
@@ -80,10 +72,111 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
     ));
   }
 
+  void _showCreateDialog(BuildContext dialogContext) {
+    final controller = TextEditingController();
+    TagCategory selectedCategory = TagCategory.diet;
+
+    showDialog<void>(
+      context: dialogContext,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('New Tag'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLength: 30,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(hintText: 'Tag name'),
+              ),
+              const SizedBox(height: 4),
+              DropdownButtonFormField<TagCategory>(
+                initialValue: selectedCategory,
+                items: TagCategory.values
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c.displayName),
+                        ))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => selectedCategory = v!),
+                decoration: const InputDecoration(labelText: 'Category'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final label = controller.text.trim();
+                if (label.isEmpty) return;
+                final tag = TagDefinition(
+                  id: const Uuid().v4(),
+                  label: label,
+                  category: selectedCategory,
+                  isCustom: true,
+                );
+                ref.read(customTagsProvider.notifier).save(tag);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Create'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext sheetContext, TagDefinition tag) {
+    showDialog<void>(
+      context: sheetContext,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete tag?'),
+        content: Text("'${tag.label}' will be removed from the tag list."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(customTagsProvider.notifier).delete(tag.id);
+              // Remove from active filter sets if present
+              if (_included.contains(tag.id) || _excluded.contains(tag.id)) {
+                setState(() {
+                  _included.remove(tag.id);
+                  _excluded.remove(tag.id);
+                });
+                widget.onChanged(TagFilterState(
+                  included: {..._included},
+                  excluded: {..._excluded},
+                ));
+              }
+              Navigator.pop(ctx);
+            },
+            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Watch allTagsProvider so the sheet rebuilds when custom tags change
+    final allTags = ref.watch(allTagsProvider);
+
     final grouped = <TagCategory, List<TagDefinition>>{};
-    for (final tag in _filtered) {
+    final filtered = _query.isEmpty
+        ? allTags
+        : allTags
+            .where((t) => t.label.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
+    for (final tag in filtered) {
       grouped.putIfAbsent(tag.category, () => []).add(tag);
     }
 
@@ -94,7 +187,7 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
-      builder: (context, scrollController) {
+      builder: (sheetContext, scrollController) {
         return Column(
           children: [
             // Handle
@@ -189,9 +282,26 @@ class _TagSelectorSheetState extends State<_TagSelectorSheet> {
                           tag: tag,
                           isSelected: _included.contains(tag.id),
                           isExcluded: _excluded.contains(tag.id),
+                          showRemove: tag.isCustom,
                           onTap: () => _toggle(tag.id),
+                          onRemove: tag.isCustom
+                              ? () => _confirmDelete(sheetContext, tag)
+                              : null,
                         );
                       }).toList(),
+                    ),
+                  ],
+                  if (_query.isEmpty) ...[
+                    const SizedBox(height: 20),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () => _showCreateDialog(sheetContext),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('New tag'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                        ),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 24),

@@ -9,18 +9,20 @@ import '../../../widgets/tag_chip.dart';
 class RecipeListTile extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
+  final List<TagDefinition> allTags;
 
   const RecipeListTile({
     super.key,
     required this.recipe,
     required this.onTap,
+    required this.allTags,
   });
 
   @override
   Widget build(BuildContext context) {
     final firstTags = recipe.tagIds
         .take(3)
-        .map(tagById)
+        .map((id) => tagByIdAll(id, allTags))
         .whereType<TagDefinition>()
         .toList();
 

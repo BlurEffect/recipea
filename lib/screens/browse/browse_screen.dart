@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
+import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../repositories/recipe_repository.dart';
 import '../../theme/app_colors.dart';
@@ -23,6 +24,7 @@ class BrowseScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recipes = ref.watch(filteredRecipesProvider);
     final filter = ref.watch(tagFilterProvider);
+    final allTags = ref.watch(allTagsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -58,6 +60,7 @@ class BrowseScreen extends ConsumerWidget {
         children: [
           _TagFilterBar(
             filter: filter,
+            allTags: allTags,
             onAddTags: () => showTagSelectorSheet(
               context: context,
               currentFilter: filter,
@@ -98,6 +101,7 @@ class BrowseScreen extends ConsumerWidget {
                       final recipe = recipes[index];
                       return RecipeListTile(
                         recipe: recipe,
+                        allTags: allTags,
                         onTap: () => context.go('/recipes/${recipe.id}'),
                       );
                     },
@@ -112,7 +116,8 @@ class BrowseScreen extends ConsumerWidget {
 Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
   try {
     final repo = ref.read(recipeRepositoryProvider);
-    final json = await repo.exportToJson([]);
+    final customTags = ref.read(customTagsProvider);
+    final json = await repo.exportToJson([], customTags);
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/recipea_export_all.json');
     await file.writeAsString(json);
@@ -199,6 +204,11 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
     }
   }
 
+  if (result.customTags.isNotEmpty) {
+    ref.read(customTagRepositoryProvider).mergeAll(result.customTags);
+    ref.read(customTagsProvider.notifier).refresh();
+  }
+
   ref.read(recipeListProvider.notifier).refresh();
 
   if (context.mounted) {
@@ -211,6 +221,7 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
 
 class _TagFilterBar extends StatelessWidget {
   final TagFilterState filter;
+  final List<TagDefinition> allTags;
   final VoidCallback onAddTags;
   final void Function(String) onRemoveIncluded;
   final void Function(String) onRemoveExcluded;
@@ -218,6 +229,7 @@ class _TagFilterBar extends StatelessWidget {
 
   const _TagFilterBar({
     required this.filter,
+    required this.allTags,
     required this.onAddTags,
     required this.onRemoveIncluded,
     required this.onRemoveExcluded,
@@ -254,7 +266,7 @@ class _TagFilterBar extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: Builder(builder: (context) {
-                              final tag = tagById(id);
+                              final tag = tagByIdAll(id, allTags);
                               if (tag == null) return const SizedBox.shrink();
                               return TagChip(
                                 tag: tag,
@@ -268,7 +280,7 @@ class _TagFilterBar extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: Builder(builder: (context) {
-                              final tag = tagById(id);
+                              final tag = tagByIdAll(id, allTags);
                               if (tag == null) return const SizedBox.shrink();
                               return TagChip(
                                 tag: tag,
