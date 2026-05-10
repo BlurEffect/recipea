@@ -8,7 +8,7 @@ A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with
 |---|---|
 | Storage | `hive_flutter ^1.1.0` — `Box<String>` with JSON encoding, no codegen |
 | State | `flutter_riverpod ^2.6.1` — StateNotifier providers |
-| Navigation | `go_router ^14.6.2` — 5 named routes |
+| Navigation | `go_router ^14.6.2` — 7 named routes |
 | Images | `image_picker`, `path_provider` — local filesystem, path stored in Hive |
 | Export/Import | `share_plus`, `file_picker` — JSON with base64 images |
 | IDs | `uuid ^4.5.1` — v4 UUIDs |
@@ -20,6 +20,8 @@ A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with
 /recipes            BrowseScreen  (home)
 /recipes/:id        DetailScreen
 /recipes/:id/edit   EditScreen  (id == "new" for create)
+/meal-plan          MealPlanScreen
+/shopping-list      ShoppingListScreen
 ```
 
 ## File Structure
@@ -41,15 +43,58 @@ lib/
   providers/
     recipe_providers.dart   recipeList, tagFilter, filteredRecipes
   widgets/
-    tag_chip.dart           Shared chip (colored dot placeholder icon)
-    empty_state.dart        Placeholder when list is empty
-    tag_selector_sheet.dart Bottom sheet for tag picking (shared browse+edit)
+    tag_chip.dart             Shared chip (colored dot placeholder icon)
+    empty_state.dart          Placeholder when list is empty
+    tag_selector_sheet.dart   Bottom sheet for tag picking (shared browse+edit)
+    app_bottom_nav_bar.dart   Persistent bottom nav (Recipes / Meal Plan / Shopping)
+    add_to_meal_plan_sheet.dart  Bottom sheet to assign a recipe to a meal plan day
   screens/
-    splash/ browse/ detail/ edit/
+    splash/ browse/ detail/ edit/ meal_plan/ shopping_list/
   theme/
     app_colors.dart         Color tokens
     app_theme.dart          ThemeData factory
 ```
+
+## Navigation
+
+Bottom navigation bar (3 tabs) is added directly to `BrowseScreen`, `MealPlanScreen`, and `ShoppingListScreen` via `AppBottomNavBar(currentIndex: N)`. Detail and Edit screens are full-screen with no nav bar. No ShellRoute used — plain `GoRoute` entries.
+
+## Meal Plan
+
+**Requirements:** 7-day rolling window (today → today+6). Each day has a flexible, user-defined number of unnamed meal slots. The user adds slots with "+ Add meal" and removes them with ×. There are no fixed Breakfast/Lunch/Dinner categories.
+
+**Model** (`lib/models/meal_plan.dart`):
+```dart
+class MealPlan {
+  final Map<String, List<String?>> daySlots;
+  // key: "yyyy-MM-dd", value: ordered list of recipeIds (null = empty slot)
+}
+```
+Key operations: `addSlot(date)`, `removeSlot(date, index)`, `setSlotRecipe(date, index, recipeId?)`, `addRecipeToDay(date, recipeId)`.
+
+**Storage:** Single Hive box `HiveBoxes.mealPlan` (`'meal_plan'`). Two string keys inside:
+- `'plan'` → JSON-encoded `MealPlan`
+- `'shopping_list'` → JSON-encoded `ShoppingList`
+
+Repository: `lib/repositories/meal_plan_repository.dart`. `loadPlan()` has a try/catch that discards incompatible stored data and starts fresh.
+
+**Providers** (`lib/providers/meal_plan_providers.dart`):
+- `mealPlanProvider` — `StateNotifier<MealPlan>`, persists every mutation
+- `mealPlanRecipesProvider` — derived; unique recipes currently assigned in the plan
+- `shoppingListProvider` — `StateNotifier<ShoppingList>`, `generate(recipes)` + `toggle(index)`
+
+**Assigning from detail screen:** Three-dot menu → "Add to Meal Plan" → `AddToMealPlanSheet` (pick a day → appends a new slot with the recipe).
+
+## Shopping List
+
+**Model** (`lib/models/shopping_item.dart`): `ShoppingItem` (name, amount, checked) + `ShoppingList` (items, generatedAt).
+
+**Generation:** Triggered by the refresh button on `ShoppingListScreen`. Collects all ingredients from `mealPlanRecipesProvider`, groups by normalised ingredient name, and accumulates amounts:
+- Same numeric unit → sum (e.g. "2 cups + 1 cup = 3 cups")
+- Fractions supported ("1/2")
+- Unit mismatch or non-numeric → joined with ` + `
+
+**Persistence:** Ticked items survive navigation. Regenerating resets all ticks (new `ShoppingList` with `generatedAt` timestamp; `ValueKey(generatedAt)` on the `ListView` forces a full rebuild).
 
 ## Storage Pattern
 
@@ -106,7 +151,7 @@ Import deduplication: if UUID already exists → prompt user to replace.
 
 ## Status
 
-Core app is complete and tested on device. `flutter analyze` is clean.
+Core app + meal plan v1 complete and tested on device. `flutter analyze` is clean.
 
 ## Known Issues / Fragile Code to Revisit
 

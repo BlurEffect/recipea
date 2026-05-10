@@ -10,5 +10,6 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox<String>(HiveBoxes.recipes);
   await Hive.openBox<String>(HiveBoxes.customTags);
+  await Hive.openBox<String>(HiveBoxes.mealPlan);
   runApp(const ProviderScope(child: RecipeaApp()));
 }

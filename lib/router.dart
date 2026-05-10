@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'screens/browse/browse_screen.dart';
 import 'screens/detail/detail_screen.dart';
 import 'screens/edit/edit_screen.dart';
+import 'screens/meal_plan/meal_plan_screen.dart';
+import 'screens/shopping_list/shopping_list_screen.dart';
 import 'screens/splash/splash_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -31,6 +33,14 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '/meal-plan',
+      builder: (context, state) => const MealPlanScreen(),
+    ),
+    GoRoute(
+      path: '/shopping-list',
+      builder: (context, state) => const ShoppingListScreen(),
     ),
   ],
 );

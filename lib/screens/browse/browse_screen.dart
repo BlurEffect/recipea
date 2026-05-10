@@ -12,6 +12,7 @@ import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../repositories/recipe_repository.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/tag_chip.dart';
 import '../../widgets/tag_selector_sheet.dart';
@@ -50,6 +51,7 @@ class BrowseScreen extends ConsumerWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go('/recipes/new/edit'),
         tooltip: 'Create recipe',

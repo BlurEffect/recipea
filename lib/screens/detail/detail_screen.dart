@@ -11,6 +11,7 @@ import '../../models/recipe.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/add_to_meal_plan_sheet.dart';
 import '../../widgets/tag_chip.dart';
 
 class DetailScreen extends ConsumerWidget {
@@ -192,7 +193,21 @@ class _RecipeAppBar extends ConsumerWidget {
         ),
         PopupMenuButton<String>(
           onSelected: (value) async {
-            if (value == 'export') {
+            if (value == 'add_to_plan') {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: AppColors.surface,
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (_) => AddToMealPlanSheet(
+                  recipeId: recipe.id,
+                  recipeTitle: recipe.title,
+                ),
+              );
+            } else if (value == 'export') {
               try {
                 final repo = ref.read(recipeRepositoryProvider);
                 final customTags = ref.read(customTagsProvider);
@@ -240,6 +255,10 @@ class _RecipeAppBar extends ConsumerWidget {
             }
           },
           itemBuilder: (_) => const [
+            PopupMenuItem(
+              value: 'add_to_plan',
+              child: Text('Add to Meal Plan'),
+            ),
             PopupMenuItem(value: 'export', child: Text('Export recipe')),
             PopupMenuItem(
               value: 'delete',
