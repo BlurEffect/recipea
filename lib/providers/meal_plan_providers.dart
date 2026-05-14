@@ -36,6 +36,9 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
   void addRecipeToDay(DateTime date, String recipeId) =>
       _save(state.addRecipeToDay(date, recipeId));
 
+  void toggleDayExcluded(DateTime date) =>
+      _save(state.toggleExcludedDate(date));
+
   void clear() => _save(MealPlan.empty());
 }
 
@@ -43,10 +46,20 @@ final mealPlanProvider = StateNotifierProvider<MealPlanNotifier, MealPlan>(
   (ref) => MealPlanNotifier(ref.read(mealPlanRepositoryProvider)),
 );
 
-/// All unique recipes currently assigned anywhere in the active meal plan.
+/// All recipe slot assignments within the current 7-day rolling window,
+/// including duplicates (same recipe on multiple days counts multiple times).
 final mealPlanRecipesProvider = Provider<List<Recipe>>((ref) {
-  final ids = ref.watch(mealPlanProvider).assignedRecipeIds;
-  return ref.watch(recipeListProvider).where((r) => ids.contains(r.id)).toList();
+  final plan = ref.watch(mealPlanProvider);
+  final today = DateTime.now();
+  final allIds = List.generate(7, (i) => today.add(Duration(days: i)))
+      .where((d) => plan.isDayIncluded(d))
+      .expand((d) => plan.getSlotsForDay(d))
+      .whereType<String>()
+      .toList();
+  final recipeMap = {
+    for (final r in ref.watch(recipeListProvider)) r.id: r,
+  };
+  return allIds.map((id) => recipeMap[id]).whereType<Recipe>().toList();
 });
 
 // ---------------------------------------------------------------------------
@@ -84,20 +97,37 @@ final shoppingListProvider =
 // ---------------------------------------------------------------------------
 
 List<ShoppingItem> _buildShoppingItems(List<Recipe> recipes) {
-  final Map<String, List<String>> grouped = {};
+  final Map<String, Map<String, double>> numeric = {};
+  final Map<String, List<String>> raw = {};
+
   for (final recipe in recipes) {
     for (final ing in recipe.ingredients) {
-      final key = ing.name.trim().toLowerCase();
-      grouped.putIfAbsent(key, () => []).add(ing.amount.trim());
+      final name = ing.name.trim().toLowerCase();
+      final amount = ing.amount.trim();
+      final parsed = _parseAmount(amount);
+      if (parsed != null) {
+        final unitMap = numeric.putIfAbsent(name, () => <String, double>{});
+        unitMap[parsed.$2] = (unitMap[parsed.$2] ?? 0.0) + parsed.$1;
+      } else {
+        raw.putIfAbsent(name, () => <String>[]).add(amount);
+      }
     }
   }
 
-  final items = grouped.entries.map((entry) {
-    return ShoppingItem(
-      name: _toTitleCase(entry.key),
-      amount: _accumulateAmounts(entry.value),
-    );
-  }).toList();
+  final items = <ShoppingItem>[];
+  for (final numEntry in numeric.entries) {
+    for (final unitEntry in numEntry.value.entries) {
+      items.add(ShoppingItem(
+        name: _toTitleCase(numEntry.key),
+        amount: _formatValue(unitEntry.value, unitEntry.key),
+      ));
+    }
+  }
+  for (final rawEntry in raw.entries) {
+    for (final amt in rawEntry.value) {
+      items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: amt));
+    }
+  }
 
   items.sort((a, b) => a.name.compareTo(b.name));
   return items;
@@ -106,24 +136,11 @@ List<ShoppingItem> _buildShoppingItems(List<Recipe> recipes) {
 String _toTitleCase(String s) =>
     s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-/// Sums amounts that share the same unit and are numeric (including fractions).
-/// Falls back to joining with ' + ' when units differ or parsing fails.
-String _accumulateAmounts(List<String> amounts) {
-  if (amounts.length == 1) return amounts.first;
-
-  final parsed = amounts.map(_parseAmount).toList();
-  if (parsed.every((p) => p != null)) {
-    final units = parsed.map((p) => p!.$2).toSet();
-    if (units.length == 1) {
-      final total = parsed.fold<double>(0, (sum, p) => sum + p!.$1);
-      final unit = units.first;
-      final totalStr = total == total.truncateToDouble()
-          ? total.toInt().toString()
-          : total.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-      return unit.isEmpty ? totalStr : '$totalStr $unit';
-    }
-  }
-  return amounts.join(' + ');
+String _formatValue(double value, String unit) {
+  final s = value == value.truncateToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+  return unit.isEmpty ? s : '$s $unit';
 }
 
 /// Parses "2 cups" → (2.0, "cups"), "1/2" → (0.5, ""), "100g" → (100.0, "g").

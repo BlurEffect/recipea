@@ -33,9 +33,23 @@ class MealPlanScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Meal Plan',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Text(
+              'Meal Plan',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Check days to include in shopping list',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
         actions: [
           PopupMenuButton<String>(
@@ -112,17 +126,32 @@ class MealPlanScreen extends ConsumerWidget {
                     children: [
                       // Day header
                       Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                        child: Text(
-                          header,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isToday
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
-                          ),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                header,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isToday
+                                      ? AppColors.primary
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            Checkbox(
+                              value: plan.isDayIncluded(day),
+                              onChanged: (_) => ref
+                                  .read(mealPlanProvider.notifier)
+                                  .toggleDayExcluded(day),
+                              activeColor: AppColors.primary,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
                         ),
                       ),
                       if (slots.isNotEmpty) const Divider(height: 1),
