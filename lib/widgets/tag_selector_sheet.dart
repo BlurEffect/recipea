@@ -137,40 +137,6 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
     );
   }
 
-  void _confirmDelete(BuildContext sheetContext, TagDefinition tag) {
-    showDialog<void>(
-      context: sheetContext,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete tag?'),
-        content: Text("'${tag.label}' will be removed from the tag list."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(customTagsProvider.notifier).delete(tag.id);
-              // Remove from active filter sets if present
-              if (_included.contains(tag.id) || _excluded.contains(tag.id)) {
-                setState(() {
-                  _included.remove(tag.id);
-                  _excluded.remove(tag.id);
-                });
-                widget.onChanged(TagFilterState(
-                  included: {..._included},
-                  excluded: {..._excluded},
-                ));
-              }
-              Navigator.pop(ctx);
-            },
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final allTags = ref.watch(allTagsProvider);
@@ -289,11 +255,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           tag: tag,
                           isSelected: _included.contains(tag.id),
                           isExcluded: _excluded.contains(tag.id),
-                          showRemove: tag.isCustom,
                           onTap: () => _toggle(tag.id),
-                          onRemove: tag.isCustom
-                              ? () => _confirmDelete(sheetContext, tag)
-                              : null,
                         );
                       }).toList(),
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/seed_data.dart';
+import '../data/tag_definitions.dart';
 import '../models/category_definition.dart';
 import '../providers/category_providers.dart';
 import '../providers/custom_tag_providers.dart';
@@ -30,11 +31,12 @@ class _CategoryManagerSheet extends ConsumerStatefulWidget {
 }
 
 class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
-  void _showEditDialog({CategoryDefinition? existing}) {
+  // ── Category CRUD ──────────────────────────────────────────────────────────
+
+  void _showEditCategoryDialog({CategoryDefinition? existing}) {
     final isNew = existing == null;
     final controller = TextEditingController(text: existing?.name ?? '');
-    Color selectedColor =
-        existing?.color ?? categoryColorPalette.first;
+    Color selectedColor = existing?.color ?? categoryColorPalette.first;
 
     showDialog<void>(
       context: context,
@@ -76,13 +78,11 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                         color: color,
                         shape: BoxShape.circle,
                         border: isSelected
-                            ? Border.all(
-                                color: AppColors.textPrimary, width: 2.5)
+                            ? Border.all(color: AppColors.textPrimary, width: 2.5)
                             : null,
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check,
-                              size: 16, color: Colors.white)
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
                           : null,
                     ),
                   );
@@ -99,12 +99,11 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               onPressed: () {
                 final name = controller.text.trim();
                 if (name.isEmpty) return;
-                final category = CategoryDefinition(
-                  id: existing?.id ?? const Uuid().v4(),
-                  name: name,
-                  color: selectedColor,
-                );
-                ref.read(categoryProvider.notifier).save(category);
+                ref.read(categoryProvider.notifier).save(CategoryDefinition(
+                      id: existing?.id ?? const Uuid().v4(),
+                      name: name,
+                      color: selectedColor,
+                    ));
                 Navigator.pop(ctx);
               },
               child: Text(isNew ? 'Create' : 'Save'),
@@ -115,22 +114,21 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
     );
   }
 
-  void _confirmDelete(CategoryDefinition category) {
+  void _confirmDeleteCategory(CategoryDefinition category) {
     final allTags = ref.read(allTagsProvider);
-    final tagsInCategory =
-        allTags.where((t) => t.category == category.id).toList();
+    final tagsInCategory = allTags.where((t) => t.category == category.id).toList();
     final tagIds = tagsInCategory.map((t) => t.id).toSet();
-    final allRecipes = ref.read(recipeListProvider);
-    final affectedRecipes =
-        allRecipes.where((r) => r.tagIds.any(tagIds.contains)).toList();
+    final affectedRecipes = ref
+        .read(recipeListProvider)
+        .where((r) => r.tagIds.any(tagIds.contains))
+        .toList();
 
     final tagCount = tagsInCategory.length;
     final recipeCount = affectedRecipes.length;
 
     String message = "'${category.name}' will be permanently deleted.";
     if (tagCount > 0) {
-      message +=
-          '\n\nThis will also delete $tagCount tag${tagCount == 1 ? '' : 's'}';
+      message += '\n\nThis will also delete $tagCount tag${tagCount == 1 ? '' : 's'}';
       if (recipeCount > 0) {
         message +=
             ' and remove them from $recipeCount recipe${recipeCount == 1 ? '' : 's'}';
@@ -151,8 +149,8 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await _cascadeDelete(category, tagsInCategory, tagIds,
-                  affectedRecipes);
+              await _cascadeDeleteCategory(
+                  category, tagsInCategory, tagIds, affectedRecipes);
             },
             child: Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
@@ -161,38 +159,86 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
     );
   }
 
-  Future<void> _cascadeDelete(
+  Future<void> _cascadeDeleteCategory(
     CategoryDefinition category,
     List tagsInCategory,
     Set<String> tagIds,
     List affectedRecipes,
   ) async {
-    // 1. Delete all tags in the category
     final tagNotifier = ref.read(customTagsProvider.notifier);
     for (final tag in tagsInCategory) {
       await ref.read(customTagRepositoryProvider).delete(tag.id);
     }
     tagNotifier.refresh();
 
-    // 2. Strip deleted tag IDs from affected recipes
     final recipeNotifier = ref.read(recipeListProvider.notifier);
     for (final recipe in affectedRecipes) {
-      final updated = recipe.copyWith(
+      await recipeNotifier.save(recipe.copyWith(
         tagIds: recipe.tagIds.where((id) => !tagIds.contains(id)).toList(),
-      );
-      await recipeNotifier.save(updated);
+      ));
     }
 
-    // 3. Delete the category itself
     await ref.read(categoryProvider.notifier).delete(category.id);
   }
+
+  // ── Tag CRUD ───────────────────────────────────────────────────────────────
+
+  void _confirmDeleteTag(TagDefinition tag) {
+    final affectedRecipes = ref
+        .read(recipeListProvider)
+        .where((r) => r.tagIds.contains(tag.id))
+        .toList();
+    final recipeCount = affectedRecipes.length;
+
+    String message = "'${tag.label}' will be permanently deleted.";
+    if (recipeCount > 0) {
+      message +=
+          '\n\nIt will be removed from $recipeCount recipe${recipeCount == 1 ? '' : 's'}.';
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete tag?'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await _deleteSingleTag(tag, affectedRecipes);
+            },
+            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteSingleTag(TagDefinition tag, List affectedRecipes) async {
+    await ref.read(customTagRepositoryProvider).delete(tag.id);
+    ref.read(customTagsProvider.notifier).refresh();
+
+    final recipeNotifier = ref.read(recipeListProvider.notifier);
+    for (final recipe in affectedRecipes) {
+      await recipeNotifier.save(recipe.copyWith(
+        tagIds: recipe.tagIds.where((id) => id != tag.id).toList(),
+      ));
+    }
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(categoryProvider);
+    final allTags = ref.watch(allTagsProvider);
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
+      initialChildSize: 0.7,
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
@@ -217,16 +263,13 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                 children: [
                   const Text(
                     'Manage Categories',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.add),
                     tooltip: 'Add category',
-                    onPressed: _showEditDialog,
+                    onPressed: _showEditCategoryDialog,
                   ),
                 ],
               ),
@@ -245,33 +288,15 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                       itemCount: categories.length,
                       itemBuilder: (_, index) {
                         final cat = categories[index];
-                        return ListTile(
-                          leading: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: cat.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          title: Text(cat.name),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 20),
-                                tooltip: 'Edit',
-                                onPressed: () =>
-                                    _showEditDialog(existing: cat),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete_outline,
-                                    size: 20, color: AppColors.error),
-                                tooltip: 'Delete',
-                                onPressed: () => _confirmDelete(cat),
-                              ),
-                            ],
-                          ),
+                        final tagsInCat = allTags
+                            .where((t) => t.category == cat.id)
+                            .toList();
+                        return _CategorySection(
+                          category: cat,
+                          tags: tagsInCat,
+                          onEdit: () => _showEditCategoryDialog(existing: cat),
+                          onDelete: () => _confirmDeleteCategory(cat),
+                          onDeleteTag: _confirmDeleteTag,
                         );
                       },
                     ),
@@ -279,6 +304,103 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
           ],
         );
       },
+    );
+  }
+}
+
+class _CategorySection extends StatelessWidget {
+  final CategoryDefinition category;
+  final List<TagDefinition> tags;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final void Function(TagDefinition) onDeleteTag;
+
+  const _CategorySection({
+    required this.category,
+    required this.tags,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onDeleteTag,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Category header row
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: category.color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                category.name,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Edit',
+              visualDensity: VisualDensity.compact,
+              onPressed: onEdit,
+            ),
+            IconButton(
+              icon: Icon(Icons.delete_outline,
+                  size: 18, color: AppColors.error),
+              tooltip: 'Delete category',
+              visualDensity: VisualDensity.compact,
+              onPressed: onDelete,
+            ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        // Tags
+        if (tags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: tags.map((tag) {
+                return InputChip(
+                  label: Text(
+                    tag.label,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  onDeleted: () => onDeleteTag(tag),
+                  deleteIconColor: AppColors.textSecondary,
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: AppColors.surface,
+                  side: const BorderSide(color: AppColors.divider),
+                );
+              }).toList(),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
+            child: Text(
+              'No tags',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        const Divider(height: 1),
+      ],
     );
   }
 }
