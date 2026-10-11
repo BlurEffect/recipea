@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/tag_definitions.dart';
+import '../models/category_definition.dart';
+import '../providers/category_providers.dart';
 import '../providers/custom_tag_providers.dart';
 import '../providers/recipe_providers.dart';
 import '../theme/app_colors.dart';
+import 'category_manager_sheet.dart';
 import 'tag_chip.dart';
 
 /// Shows a bottom sheet that lets the user pick tags.
@@ -73,8 +76,11 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
   }
 
   void _showCreateDialog(BuildContext dialogContext) {
+    final categories = ref.read(categoryProvider);
+    if (categories.isEmpty) return;
+
     final controller = TextEditingController();
-    TagCategory selectedCategory = TagCategory.diet;
+    CategoryDefinition selectedCategory = categories.first;
 
     showDialog<void>(
       context: dialogContext,
@@ -92,12 +98,12 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                 decoration: const InputDecoration(hintText: 'Tag name'),
               ),
               const SizedBox(height: 4),
-              DropdownButtonFormField<TagCategory>(
+              DropdownButtonFormField<CategoryDefinition>(
                 initialValue: selectedCategory,
-                items: TagCategory.values
+                items: categories
                     .map((c) => DropdownMenuItem(
                           value: c,
-                          child: Text(c.displayName),
+                          child: Text(c.name),
                         ))
                     .toList(),
                 onChanged: (v) => setDialogState(() => selectedCategory = v!),
@@ -117,7 +123,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                 final tag = TagDefinition(
                   id: const Uuid().v4(),
                   label: label,
-                  category: selectedCategory,
+                  category: selectedCategory.id,
                   isCustom: true,
                 );
                 ref.read(customTagsProvider.notifier).save(tag);
@@ -167,10 +173,11 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch allTagsProvider so the sheet rebuilds when custom tags change
     final allTags = ref.watch(allTagsProvider);
+    final categoryMap = ref.watch(categoryMapProvider);
 
-    final grouped = <TagCategory, List<TagDefinition>>{};
+    // Group tags by category ID, preserving category order
+    final grouped = <String, List<TagDefinition>>{};
     final filtered = _query.isEmpty
         ? allTags
         : allTags
@@ -265,7 +272,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                     Padding(
                       padding: const EdgeInsets.only(top: 16, bottom: 8),
                       child: Text(
-                        entry.key.displayName,
+                        categoryMap[entry.key]?.name ?? entry.key,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -293,15 +300,29 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                   ],
                   if (_query.isEmpty) ...[
                     const SizedBox(height: 20),
-                    Center(
-                      child: TextButton.icon(
-                        onPressed: () => _showCreateDialog(sheetContext),
-                        icon: const Icon(Icons.add, size: 16),
-                        label: const Text('New tag'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => _showCreateDialog(sheetContext),
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('New tag'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          onPressed: () => showCategoryManagerSheet(
+                            context: sheetContext,
+                          ),
+                          icon: const Icon(Icons.category_outlined, size: 16),
+                          label: const Text('Manage categories'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   const SizedBox(height: 24),

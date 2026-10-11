@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
 import '../../models/recipe.dart';
+import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
@@ -210,8 +211,9 @@ class _RecipeAppBar extends ConsumerWidget {
             } else if (value == 'export') {
               try {
                 final repo = ref.read(recipeRepositoryProvider);
-                final customTags = ref.read(customTagsProvider);
-                final json = await repo.exportToJson([recipe.id], customTags);
+                final allTags = ref.read(allTagsProvider);
+                final allCategories = ref.read(categoryProvider);
+                final json = await repo.exportToJson([recipe.id], allTags, allCategories);
                 final dir = await getTemporaryDirectory();
                 final file = File('${dir.path}/recipea_export.json');
                 await file.writeAsString(json);

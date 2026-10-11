@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../data/tag_definitions.dart';
+import '../providers/category_providers.dart';
 import '../theme/app_colors.dart';
 
-class TagChip extends StatelessWidget {
+class TagChip extends ConsumerWidget {
   final TagDefinition tag;
   final bool isSelected;
   final bool isExcluded;
@@ -24,8 +27,9 @@ class TagChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final color = tag.category.color;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final color = ref.watch(categoryMapProvider)[tag.category]?.color
+        ?? Colors.grey;
 
     final Color bgColor;
     final Color borderColor;

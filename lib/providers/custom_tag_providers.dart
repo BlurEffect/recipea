@@ -30,9 +30,7 @@ final customTagsProvider =
   (ref) => CustomTagNotifier(ref.watch(customTagRepositoryProvider)),
 );
 
-/// Merged tag list: predefined first, then custom.
-/// All screens should watch this instead of using tagDefinitions directly.
+/// All tags (seeded + user-created) — everything is stored in Hive.
 final allTagsProvider = Provider<List<TagDefinition>>((ref) {
-  final custom = ref.watch(customTagsProvider);
-  return [...tagDefinitions, ...custom];
+  return ref.watch(customTagsProvider);
 });

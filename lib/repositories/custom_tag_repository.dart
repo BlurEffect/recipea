@@ -22,6 +22,15 @@ class CustomTagRepository {
     await _box.delete(id);
   }
 
+  /// Seeds tags only when the box is empty (first launch).
+  Future<void> seedIfEmpty(List<TagDefinition> defaults) async {
+    if (_box.isEmpty) {
+      for (final t in defaults) {
+        await _box.put(t.id, jsonEncode(_toJson(t)));
+      }
+    }
+  }
+
   /// Merges imported tags: silently skips any ID that already exists locally.
   void mergeAll(List<Map<String, dynamic>> tagJsonList) {
     for (final map in tagJsonList) {
@@ -36,14 +45,15 @@ class CustomTagRepository {
     return TagDefinition(
       id: json['id'] as String,
       label: json['label'] as String,
-      category: TagCategory.values.byName(json['category'] as String),
-      isCustom: true,
+      category: json['category'] as String,
+      isCustom: json['isCustom'] as bool? ?? true,
     );
   }
 
   static Map<String, dynamic> _toJson(TagDefinition tag) => {
         'id': tag.id,
         'label': tag.label,
-        'category': tag.category.name,
+        'category': tag.category,
+        'isCustom': tag.isCustom,
       };
 }

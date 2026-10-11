@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
+import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../repositories/recipe_repository.dart';
@@ -118,8 +119,9 @@ class BrowseScreen extends ConsumerWidget {
 Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
   try {
     final repo = ref.read(recipeRepositoryProvider);
-    final customTags = ref.read(customTagsProvider);
-    final json = await repo.exportToJson([], customTags);
+    final allTags = ref.read(allTagsProvider);
+    final allCategories = ref.read(categoryProvider);
+    final json = await repo.exportToJson([], allTags, allCategories);
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/recipea_export_all.json');
     await file.writeAsString(json);
@@ -206,6 +208,10 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
     }
   }
 
+  if (result.categories.isNotEmpty) {
+    await ref.read(categoryRepositoryProvider).mergeAll(result.categories);
+    ref.read(categoryProvider.notifier).refresh();
+  }
   if (result.customTags.isNotEmpty) {
     ref.read(customTagRepositoryProvider).mergeAll(result.customTags);
     ref.read(customTagsProvider.notifier).refresh();
