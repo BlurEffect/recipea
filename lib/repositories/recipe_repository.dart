@@ -10,6 +10,7 @@ import '../data/hive_boxes.dart';
 import '../data/tag_definitions.dart';
 import '../models/category_definition.dart';
 import '../models/recipe.dart';
+import '../utils/recipe_graph.dart';
 
 class RecipeRepository {
   static const _uuid = Uuid();
@@ -72,9 +73,17 @@ class RecipeRepository {
     List<TagDefinition> allTags,
     List<CategoryDefinition> allCategories,
   ) async {
-    final recipes = ids.isEmpty
-        ? getAll()
+    final allStored = getAll();
+    final baseRecipes = ids.isEmpty
+        ? allStored
         : ids.map((id) => getById(id)).whereType<Recipe>().toList();
+
+    // Expand composite recipes to include all transitively linked components.
+    final expandedIds = <String>{};
+    for (final r in baseRecipes) {
+      expandedIds.addAll(allLinkedRecipeIds(r, allStored));
+    }
+    final recipes = allStored.where((r) => expandedIds.contains(r.id)).toList();
 
     final List<Map<String, dynamic>> jsonList = [];
     for (final recipe in recipes) {

@@ -70,6 +70,20 @@ final List<TagDefinition> seedTags = [
 // ── Color palette for the category editor ────────────────────────────────────
 // Shown as a grid when creating or editing a category.
 
+// ── Component recipe color palette ───────────────────────────────────────────
+// Light pastel backgrounds for color-coding step blocks in composite recipes.
+// 'self' (the overarching recipe's own steps) always uses white/default.
+// Colors cycle: componentColors[index % componentColors.length]
+
+const List<Color> componentColors = [
+  Color(0xFFBBDEFB), // light blue
+  Color(0xFFC8E6C9), // light green
+  Color(0xFFFFE0B2), // light orange
+  Color(0xFFE1BEE7), // light purple
+  Color(0xFFB2EBF2), // light cyan
+  Color(0xFFFFCDD2), // light red
+];
+
 const List<Color> categoryColorPalette = [
   Color(0xFF43A047), // green  (Diet default)
   Color(0xFFE53935), // red    (Protein default)

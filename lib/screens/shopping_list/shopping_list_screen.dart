@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/meal_plan_providers.dart';
+import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
@@ -19,6 +20,7 @@ class ShoppingListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final shoppingList = ref.watch(shoppingListProvider);
     final planRecipes = ref.watch(mealPlanRecipesProvider);
+    final allRecipes = ref.watch(recipeListProvider);
     final items = shoppingList.items;
 
     String? generatedLabel;
@@ -55,7 +57,7 @@ class ShoppingListScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             tooltip: 'Regenerate from meal plan',
             onPressed: () {
-              ref.read(shoppingListProvider.notifier).generate(planRecipes);
+              ref.read(shoppingListProvider.notifier).generate(planRecipes, allRecipes);
             },
           ),
         ],

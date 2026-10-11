@@ -11,6 +11,18 @@ class Recipe {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Ordered list of component entries for composite recipes.
+  /// Each entry is either a linked recipe ID or the sentinel 'self'
+  /// ('self' = this recipe's own content block).
+  /// Empty list = standalone recipe.
+  /// Example: ['self', 'potato-salad-uuid', 'steak-uuid']
+  final List<String> componentOrder;
+
+  /// Explicit cross-component step ordering for composite recipes.
+  /// Each entry is a RecipeStep.id from any component (including 'self' steps).
+  /// Empty = use block order derived from componentOrder.
+  final List<String> compositeStepOrder;
+
   const Recipe({
     required this.id,
     required this.title,
@@ -20,7 +32,14 @@ class Recipe {
     required this.steps,
     required this.createdAt,
     required this.updatedAt,
+    this.componentOrder = const [],
+    this.compositeStepOrder = const [],
   });
+
+  bool get isComposite => componentOrder.isNotEmpty;
+
+  List<String> get linkedRecipeIds =>
+      componentOrder.where((id) => id != 'self').toList();
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -31,6 +50,8 @@ class Recipe {
         'steps': steps.map((e) => e.toJson()).toList(),
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
+        'componentOrder': componentOrder,
+        'compositeStepOrder': compositeStepOrder,
       };
 
   factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
@@ -39,13 +60,19 @@ class Recipe {
         imagePath: json['imagePath'] as String?,
         tagIds: List<String>.from(json['tagIds'] as List),
         ingredients: (json['ingredients'] as List)
-            .map((e) => Ingredient.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map((e) =>
+                Ingredient.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
         steps: (json['steps'] as List)
-            .map((e) => RecipeStep.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map((e) =>
+                RecipeStep.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
         createdAt: DateTime.parse(json['createdAt'] as String),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
+        componentOrder:
+            List<String>.from(json['componentOrder'] as List? ?? []),
+        compositeStepOrder:
+            List<String>.from(json['compositeStepOrder'] as List? ?? []),
       );
 
   Recipe copyWith({
@@ -57,16 +84,21 @@ class Recipe {
     List<RecipeStep>? steps,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<String>? componentOrder,
+    List<String>? compositeStepOrder,
   }) =>
       Recipe(
         id: id ?? this.id,
         title: title ?? this.title,
-        imagePath: imagePath == _sentinel ? this.imagePath : imagePath as String?,
+        imagePath:
+            imagePath == _sentinel ? this.imagePath : imagePath as String?,
         tagIds: tagIds ?? this.tagIds,
         ingredients: ingredients ?? this.ingredients,
         steps: steps ?? this.steps,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
+        componentOrder: componentOrder ?? this.componentOrder,
+        compositeStepOrder: compositeStepOrder ?? this.compositeStepOrder,
       );
 }
 

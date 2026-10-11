@@ -28,24 +28,38 @@ A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with
 
 ```
 lib/
-  main.dart               Hive init, ProviderScope
+  main.dart               Hive init, ProviderScope, seeds categories + tags
   app.dart                MaterialApp.router
   router.dart             GoRouter definition
   data/
-    tag_definitions.dart  Static tag pool (TagDefinition, TagCategory)
+    tag_definitions.dart  TagDefinition model (category is now a String ID)
     hive_boxes.dart       Box name constants
+    seed_data.dart        Default categories, tags, componentColors palette
   models/
     recipe.dart           Recipe — toJson/fromJson/copyWith
     ingredient.dart       Ingredient
-    recipe_step.dart      RecipeStep
+    recipe_step.dart      RecipeStep (has stable UUID id field)
+    category_definition.dart  CategoryDefinition (id, name, color)
+    meal_plan.dart        MealPlan, toggleExcludedDate
+    shopping_item.dart    ShoppingItem, ShoppingList
   repositories/
-    recipe_repository.dart  CRUD + export/import + image helpers
+    recipe_repository.dart      CRUD + export/import + image helpers
+    meal_plan_repository.dart   MealPlan + ShoppingList persistence
+    category_repository.dart    CategoryDefinition CRUD + seedIfEmpty
+    custom_tag_repository.dart  TagDefinition CRUD + seedIfEmpty
   providers/
-    recipe_providers.dart   recipeList, tagFilter, filteredRecipes
+    recipe_providers.dart       recipeList, tagFilter, filteredRecipes
+    meal_plan_providers.dart    mealPlan, mealPlanRecipes, shoppingList
+    category_providers.dart     categoryProvider, categoryMapProvider
+    custom_tag_providers.dart   customTagsProvider, allTagsProvider
+  utils/
+    recipe_graph.dart     wouldCreateCycle, allIngredients, allTagIds,
+                          resolveStepOrder, validateStepOrder, allLinkedRecipeIds
   widgets/
-    tag_chip.dart             Shared chip (colored dot placeholder icon)
+    tag_chip.dart             Shared chip — color from categoryMapProvider
     empty_state.dart          Placeholder when list is empty
     tag_selector_sheet.dart   Bottom sheet for tag picking (shared browse+edit)
+    category_manager_sheet.dart  CRUD sheet for categories and their tags
     app_bottom_nav_bar.dart   Persistent bottom nav (Recipes / Meal Plan / Shopping)
     add_to_meal_plan_sheet.dart  Bottom sheet to assign a recipe to a meal plan day
   screens/
@@ -105,17 +119,26 @@ Recipe.fromJson(jsonDecode(box.get(id)!));
 ```
 No TypeAdapters or build_runner needed.
 
-## Tag System
+## Tag & Category System
 
-Tags are a **static predefined pool** — users assign them, not create them.
-Defined in `lib/data/tag_definitions.dart` as `const List<TagDefinition>`.
+Tags and categories are **fully user-editable** and stored in Hive.
 
-Categories: `diet` | `protein` | `mealType` | `style` | `attribute`
+- `HiveBoxes.categories` (`'categories'`) — `Box<String>` of `CategoryDefinition` JSON
+- `HiveBoxes.customTags` (`'custom_tags'`) — `Box<String>` of `TagDefinition` JSON
 
-Each category has a placeholder color (small colored dot in the chip).
-**Real icons are planned — replace the dot in `TagChip` when ready.**
+Both boxes are seeded on first launch from `lib/data/seed_data.dart` via `seedIfEmpty()`. Seed data defines 5 default categories (diet, protein, mealType, style, attribute) and 34 default tags — edit that file to change the shipped defaults.
 
-### Full Tag Pool
+`TagDefinition.category` is a plain `String` (category ID), not an enum.
+
+**UI:**
+- `tag_selector_sheet.dart` — pick tags to assign; "Manage categories" button opens the manager
+- `category_manager_sheet.dart` — create/rename/recolor/delete categories; delete tags per category with recipe-count confirmation
+
+**`TagChip`** reads its color from `categoryMapProvider` (O(1) map lookup by category ID).
+
+**Real icons are planned — replace the colored-dot `Container` in `TagChip` with SVG/icon assets when ready.**
+
+### Default Tag Pool (from `seed_data.dart`)
 
 | Category | Tags |
 |---|---|
@@ -127,18 +150,35 @@ Each category has a placeholder color (small colored dot in the chip).
 
 ## Export/Import JSON Schema
 
+**Version 2 envelope** (current):
+```json
+{
+  "version": 2,
+  "categories": [{ "id": "diet", "name": "Diet", "color": 4283276354 }],
+  "customTags": [{ "id": "pasta", "label": "Pasta", "category": "style", "isCustom": false }],
+  "recipes": [ ...recipe objects... ]
+}
+```
+
+**Per-recipe object:**
 ```json
 {
   "id": "uuid-v4",
   "title": "Recipe Title",
   "tagIds": ["pasta", "dinner"],
   "ingredients": [{ "name": "flour", "amount": "2 cups" }],
-  "steps": [{ "order": 0, "instruction": "Mix ingredients." }],
+  "steps": [{ "id": "uuid-v4", "order": 0, "instruction": "Mix ingredients." }],
   "createdAt": "ISO-8601",
   "updatedAt": "ISO-8601",
+  "componentOrder": ["self", "linked-recipe-uuid"],
+  "compositeStepOrder": ["step-uuid-1", "step-uuid-2"],
   "imageData": "<base64-jpeg-optional>"
 }
 ```
+
+Legacy bare-array format (version 1) is still accepted on import.
+
+Composite recipes auto-bundle all transitively linked component recipes at export time.
 
 Import deduplication: if UUID already exists → prompt user to replace.
 
@@ -147,11 +187,34 @@ Import deduplication: if UUID already exists → prompt user to replace.
 - Primary green: `Color(0xFF2E7D32)`
 - Background: `Color(0xFFF7F6F2)` (warm off-white)
 - Surface (cards): `Colors.white`
-- Tag category colors: diet=green, protein=red, mealType=amber, style=blue, attribute=purple
+- Tag category colors: user-configurable, stored in Hive, seeded from `seed_data.dart`
+- Component colors (composite recipe step blocks): `componentColors` list in `seed_data.dart` — 6 pastel colors cycling by component index
+
+## Composite Recipes
+
+A recipe can link other recipes as ordered **components**. The composite recipe shows combined ingredients (with a Separate / Combined toggle), color-coded interleaved steps from all components, and aggregated unique tags.
+
+**Data model additions to `Recipe`:**
+- `componentOrder: List<String>` — ordered list of component IDs + `'self'` sentinel. Empty = standalone.
+- `compositeStepOrder: List<String>` — explicit cross-component step IDs. Empty = block order fallback.
+- `isComposite` getter, `linkedRecipeIds` getter
+
+**`RecipeStep` now has a stable `id: String` (UUID)** — auto-generated from old data on first load.
+
+**Utilities in `lib/utils/recipe_graph.dart`:**
+- `wouldCreateCycle` — BFS cycle detection for component picker
+- `allIngredients` / `allTagIds` — recursive collection across linked components
+- `resolveStepOrder` — resolves explicit or block-fallback step ordering
+- `validateStepOrder` — enforces within-linked-component step order constraint (own steps are free)
+- `allLinkedRecipeIds` — transitive ID set for export bundling
+
+**Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar.
+
+**Detail screen:** Component chips header, Separate/Combined ingredient toggle, color-coded step tiles with "from [Recipe]" labels.
 
 ## Status
 
-Core app + meal plan v1 complete and tested on device. `flutter analyze` is clean.
+Core app + meal plan + composite recipes complete. `flutter analyze` is clean.
 
 ## Known Issues / Fragile Code to Revisit
 
@@ -162,7 +225,7 @@ Core app + meal plan v1 complete and tested on device. `flutter analyze` is clea
 
 - [ ] Hero transitions on recipe image (browse tile → detail): wrap `Image.file` in both with `Hero(tag: 'recipe-image-${recipe.id}')`
 - [ ] Splash screen animation polish (currently a simple fade-in)
-- [ ] Custom tag icons — replace the colored-dot `Container` in `lib/widgets/tag_chip.dart` with real SVG/icon assets when ready. The `TagDefinition` class and `TagCategory` enum are the right place to add icon data.
+- [ ] Custom tag icons — replace the colored-dot `Container` in `lib/widgets/tag_chip.dart` with real SVG/icon assets when ready. `TagDefinition` is the right place to add icon data.
 - [ ] `intl` date formatting on detail screen (show `updatedAt` as "Updated Mar 29, 2026")
 
 ## Version 2.0 — Google Drive Sync

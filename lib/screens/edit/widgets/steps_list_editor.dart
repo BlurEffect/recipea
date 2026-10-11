@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../models/recipe_step.dart';
 import '../../../theme/app_colors.dart';
 
@@ -18,6 +20,7 @@ class StepsListEditor extends StatefulWidget {
 
 class _StepsListEditorState extends State<StepsListEditor> {
   late List<TextEditingController> _controllers;
+  late List<String> _ids; // stable UUIDs per step row
 
   @override
   void initState() {
@@ -25,6 +28,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
     _controllers = widget.steps
         .map((s) => TextEditingController(text: s.instruction))
         .toList();
+    _ids = widget.steps.map((s) => s.id).toList();
     if (_controllers.isEmpty) _addStep();
   }
 
@@ -37,13 +41,17 @@ class _StepsListEditorState extends State<StepsListEditor> {
   }
 
   void _addStep() {
-    setState(() => _controllers.add(TextEditingController()));
+    setState(() {
+      _controllers.add(TextEditingController());
+      _ids.add(const Uuid().v4());
+    });
   }
 
   void _removeStep(int index) {
     setState(() {
       _controllers[index].dispose();
       _controllers.removeAt(index);
+      _ids.removeAt(index);
     });
     _notify();
   }
@@ -53,7 +61,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
     for (int i = 0; i < _controllers.length; i++) {
       final text = _controllers[i].text.trim();
       if (text.isNotEmpty) {
-        steps.add(RecipeStep(order: i, instruction: text));
+        steps.add(RecipeStep(id: _ids[i], order: i, instruction: text));
       }
     }
     widget.onChanged(steps);
@@ -72,12 +80,14 @@ class _StepsListEditorState extends State<StepsListEditor> {
               if (newIndex > oldIndex) newIndex--;
               final item = _controllers.removeAt(oldIndex);
               _controllers.insert(newIndex, item);
+              final id = _ids.removeAt(oldIndex);
+              _ids.insert(newIndex, id);
             });
             _notify();
           },
           itemBuilder: (context, i) {
             return Row(
-              key: ValueKey(i),
+              key: ValueKey(_ids[i]),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Step number

@@ -4,6 +4,7 @@ import '../models/meal_plan.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../repositories/meal_plan_repository.dart';
+import '../utils/recipe_graph.dart';
 import 'recipe_providers.dart';
 
 final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
@@ -71,9 +72,9 @@ class ShoppingListNotifier extends StateNotifier<ShoppingList> {
 
   final MealPlanRepository _repo;
 
-  void generate(List<Recipe> recipes) {
+  void generate(List<Recipe> planRecipes, List<Recipe> allRecipes) {
     state = ShoppingList(
-      items: _buildShoppingItems(recipes),
+      items: _buildShoppingItems(planRecipes, allRecipes),
       generatedAt: DateTime.now(),
     );
     _repo.saveShoppingList(state);
@@ -96,12 +97,13 @@ final shoppingListProvider =
 // Ingredient accumulation
 // ---------------------------------------------------------------------------
 
-List<ShoppingItem> _buildShoppingItems(List<Recipe> recipes) {
+List<ShoppingItem> _buildShoppingItems(
+    List<Recipe> recipes, List<Recipe> allRecipes) {
   final Map<String, Map<String, double>> numeric = {};
   final Map<String, List<String>> raw = {};
 
   for (final recipe in recipes) {
-    for (final ing in recipe.ingredients) {
+    for (final ing in allIngredients(recipe, allRecipes)) {
       final name = ing.name.trim().toLowerCase();
       final amount = ing.amount.trim();
       final parsed = _parseAmount(amount);
