@@ -48,10 +48,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       );
     }
 
-    // Resolve tags — combined from all components if composite
-    final tagIds = recipe.isComposite
-        ? allTagIds(recipe, allRecipes)
-        : recipe.tagIds;
+    // Always use allTagIds — for standalone it returns recipe.tagIds unchanged;
+    // for composite it adds linked component tags (deduped, own tags first).
+    final tagIds = allTagIds(recipe, allRecipes);
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -481,6 +481,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                           ))
                       .toList(),
                 ),
+              // Read-only tags from linked component recipes
+              if (_isComposite) ..._buildLinkedTagChips(allTags, recipeMap),
               const SizedBox(height: 24),
               // Ingredients
               const _FieldLabel(text: 'Ingredients'),
@@ -505,6 +507,39 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         ),
       ),
     );
+  }
+
+  // ── Linked component tag chips (read-only) ────────────────────────────────
+
+  List<Widget> _buildLinkedTagChips(
+      List<TagDefinition> allTags, Map<String, Recipe> recipeMap) {
+    final linkedTagIds = <String>[];
+    for (final id in _componentOrder) {
+      if (id == 'self') continue;
+      final comp = recipeMap[id];
+      if (comp == null) continue;
+      for (final tagId in comp.tagIds) {
+        if (!_selectedTagIds.contains(tagId) && !linkedTagIds.contains(tagId)) {
+          linkedTagIds.add(tagId);
+        }
+      }
+    }
+    if (linkedTagIds.isEmpty) return const [];
+    final chips = linkedTagIds
+        .map((id) => tagByIdAll(id, allTags))
+        .whereType<TagDefinition>()
+        .map((tag) => TagChip(tag: tag, isSelected: true))
+        .toList();
+    if (chips.isEmpty) return const [];
+    return [
+      const SizedBox(height: 8),
+      const Text(
+        'From components',
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      ),
+      const SizedBox(height: 6),
+      Wrap(spacing: 8, runSpacing: 8, children: chips),
+    ];
   }
 
   // ── Components section ────────────────────────────────────────────────────
