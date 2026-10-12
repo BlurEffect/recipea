@@ -491,6 +491,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 ingredients: _ingredients,
                 onChanged: (list) => setState(() => _ingredients = list),
               ),
+              // Read-only ingredients from linked component recipes
+              if (_isComposite) ..._buildLinkedIngredients(recipeMap),
               const SizedBox(height: 24),
               // Steps
               const _FieldLabel(text: 'Steps'),
@@ -540,6 +542,67 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       const SizedBox(height: 6),
       Wrap(spacing: 8, runSpacing: 8, children: chips),
     ];
+  }
+
+  // ── Linked component ingredients (read-only) ──────────────────────────────
+
+  List<Widget> _buildLinkedIngredients(Map<String, Recipe> recipeMap) {
+    final widgets = <Widget>[];
+    int colorIndex = 0;
+    for (final id in _componentOrder) {
+      if (id == 'self') continue;
+      final comp = recipeMap[id];
+      if (comp == null || comp.ingredients.isEmpty) {
+        colorIndex++;
+        continue;
+      }
+      final color = componentColors[colorIndex % componentColors.length];
+      colorIndex++;
+      widgets.add(const SizedBox(height: 12));
+      widgets.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            comp.title,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+      widgets.add(const SizedBox(height: 8));
+      for (final ing in comp.ingredients) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    ing.amount,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    ing.name,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+    return widgets;
   }
 
   // ── Components section ────────────────────────────────────────────────────
