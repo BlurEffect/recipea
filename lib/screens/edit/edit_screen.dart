@@ -142,16 +142,70 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       return;
     }
 
+    String query = '';
+
     final selected = await showDialog<Recipe>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Add component recipe'),
-        children: available
-            .map((r) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(ctx, r),
-                  child: Text(r.title),
-                ))
-            .toList(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) {
+          final filtered = query.isEmpty
+              ? available
+              : available
+                  .where((r) =>
+                      r.title.toLowerCase().contains(query.toLowerCase()))
+                  .toList();
+
+          return AlertDialog(
+            title: const Text('Add component recipe'),
+            contentPadding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: TextField(
+                      autofocus: true,
+                      onChanged: (v) => setLocalState(() => query = v),
+                      decoration: const InputDecoration(
+                        hintText: 'Search…',
+                        prefixIcon: Icon(Icons.search, size: 20),
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Flexible(
+                    child: filtered.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(
+                              'No recipes match',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: filtered.length,
+                            itemBuilder: (_, i) => ListTile(
+                              title: Text(filtered[i].title),
+                              onTap: () => Navigator.pop(ctx, filtered[i]),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+            ],
+          );
+        },
       ),
     );
 
