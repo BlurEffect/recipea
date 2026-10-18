@@ -111,13 +111,28 @@ final tagFilterProvider =
   (_) => TagFilterNotifier(),
 );
 
+// ── Name search ───────────────────────────────────────────────────────────────
+
+final recipeSearchProvider = StateProvider<String>((_) => '');
+
 // ── Filtered recipes (derived) ────────────────────────────────────────────────
 
 final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
   final recipes = ref.watch(recipeListProvider);
   final filter = ref.watch(tagFilterProvider);
-  if (filter.isEmpty) return recipes;
-  return recipes.where((r) {
+  final query = ref.watch(recipeSearchProvider).trim().toLowerCase();
+
+  var result = recipes;
+
+  if (query.isNotEmpty) {
+    result = result
+        .where((r) => r.title.toLowerCase().contains(query))
+        .toList();
+  }
+
+  if (filter.isEmpty) return result;
+
+  return result.where((r) {
     if (filter.included.isNotEmpty &&
         !filter.included.every((t) => r.tagIds.contains(t))) {
       return false;

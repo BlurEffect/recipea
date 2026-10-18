@@ -19,14 +19,85 @@ import '../../widgets/tag_chip.dart';
 import '../../widgets/tag_selector_sheet.dart';
 import 'widgets/recipe_list_tile.dart';
 
-class BrowseScreen extends ConsumerWidget {
+class BrowseScreen extends ConsumerStatefulWidget {
   const BrowseScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BrowseScreen> createState() => _BrowseScreenState();
+}
+
+class _BrowseScreenState extends ConsumerState<BrowseScreen> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    // Reset search when screen is removed from the tree.
+    ref.read(recipeSearchProvider.notifier).state = '';
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(recipeSearchProvider.notifier).state = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recipes = ref.watch(filteredRecipesProvider);
     final filter = ref.watch(tagFilterProvider);
+    final query = ref.watch(recipeSearchProvider);
     final allTags = ref.watch(allTagsProvider);
+
+    final anyFilter = filter.isNotEmpty || query.isNotEmpty;
+
+    Widget emptyState;
+    if (!anyFilter) {
+      emptyState = const EmptyState(
+        icon: Icons.menu_book_outlined,
+        message: 'No recipes yet',
+        subMessage: 'Tap the + button to add your first recipe',
+      );
+    } else if (query.isNotEmpty && filter.isEmpty) {
+      emptyState = EmptyState(
+        icon: Icons.search_off,
+        message: 'No recipes match "$query"',
+        subMessage: 'Try a different search term',
+        action: TextButton(
+          onPressed: _clearSearch,
+          child: const Text('Clear search'),
+        ),
+      );
+    } else if (query.isEmpty && filter.isNotEmpty) {
+      emptyState = EmptyState(
+        icon: Icons.search_off,
+        message: 'No recipes match these filters',
+        subMessage: 'Try removing some filters',
+        action: TextButton(
+          onPressed: () => ref.read(tagFilterProvider.notifier).clear(),
+          child: const Text('Clear filters'),
+        ),
+      );
+    } else {
+      emptyState = EmptyState(
+        icon: Icons.search_off,
+        message: 'No recipes found',
+        subMessage: 'Try clearing the search or filters',
+        action: TextButton(
+          onPressed: () {
+            _clearSearch();
+            ref.read(tagFilterProvider.notifier).clear();
+          },
+          child: const Text('Clear all'),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -61,6 +132,13 @@ class BrowseScreen extends ConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _SearchField(
+            controller: _searchController,
+            query: query,
+            onChanged: (value) =>
+                ref.read(recipeSearchProvider.notifier).state = value,
+            onClear: _clearSearch,
+          ),
           _TagFilterBar(
             filter: filter,
             allTags: allTags,
@@ -79,24 +157,7 @@ class BrowseScreen extends ConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: recipes.isEmpty
-                ? EmptyState(
-                    icon: filter.isEmpty
-                        ? Icons.menu_book_outlined
-                        : Icons.search_off,
-                    message: filter.isEmpty
-                        ? 'No recipes yet'
-                        : 'No recipes match these filters',
-                    subMessage: filter.isEmpty
-                        ? 'Tap the + button to add your first recipe'
-                        : 'Try removing some filters',
-                    action: filter.isNotEmpty
-                        ? TextButton(
-                            onPressed: () =>
-                                ref.read(tagFilterProvider.notifier).clear(),
-                            child: const Text('Clear filters'),
-                          )
-                        : null,
-                  )
+                ? emptyState
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: recipes.length,
@@ -224,6 +285,67 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
         ? 'Nothing new to import'
         : 'Imported $totalImported recipe(s)';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final String query;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _SearchField({
+    required this.controller,
+    required this.query,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        autofocus: false,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search recipes…',
+          hintStyle:
+              const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+          suffixIcon: query.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  color: AppColors.textSecondary,
+                  onPressed: onClear,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                )
+              : null,
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          filled: true,
+          fillColor: AppColors.background,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                const BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+        ),
+      ),
+    );
   }
 }
 
