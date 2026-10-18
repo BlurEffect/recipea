@@ -826,7 +826,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             Expanded(
               child: TextField(
                 controller: controller,
-                onChanged: (_) => setState(() => _syncOwnSteps()),
                 maxLines: null,
                 decoration: InputDecoration(
                   hintText: 'Step ${index + 1}...',
