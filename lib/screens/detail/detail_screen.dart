@@ -135,9 +135,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         chips.add(Chip(
           avatar: const Icon(Icons.warning_amber_rounded,
               size: 16, color: Colors.orange),
-          label: Text(
-            '$id (not found)',
-            style: const TextStyle(fontSize: 12, color: Colors.orange),
+          label: const Text(
+            'Deleted component',
+            style: TextStyle(fontSize: 12, color: Colors.orange),
           ),
           backgroundColor: Colors.orange.shade50,
           side: BorderSide(color: Colors.orange.shade200),
