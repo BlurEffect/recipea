@@ -384,6 +384,17 @@ class _RecipeAppBar extends ConsumerWidget {
                   );
                 }
               }
+            } else if (value == 'duplicate') {
+              final newId = generateRecipeId();
+              final now = DateTime.now();
+              final copy = recipe.copyWith(
+                id: newId,
+                title: '${recipe.title} Copy',
+                createdAt: now,
+                updatedAt: now,
+              );
+              await ref.read(recipeListProvider.notifier).save(copy);
+              if (context.mounted) context.go('/recipes/$newId/edit');
             } else if (value == 'delete') {
               final confirmed = await showDialog<bool>(
                 context: context,
@@ -418,6 +429,7 @@ class _RecipeAppBar extends ConsumerWidget {
               child: Text('Add to Meal Plan'),
             ),
             PopupMenuItem(value: 'export', child: Text('Export recipe')),
+            PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
             PopupMenuItem(
               value: 'delete',
               child: Text('Delete', style: TextStyle(color: AppColors.error)),
