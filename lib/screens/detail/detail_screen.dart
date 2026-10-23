@@ -165,7 +165,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ));
       } else {
-        chips.add(Chip(
+        chips.add(ActionChip(
           avatar: Container(
             width: 10,
             height: 10,
@@ -182,6 +182,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   .withValues(alpha: 0.4)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          onPressed: () => context.go('/recipes/${linked.id}'),
         ));
       }
     }

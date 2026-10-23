@@ -193,6 +193,14 @@ class _UnitDropdown extends StatelessWidget {
             value: null,
             child: Text('–', style: TextStyle(fontSize: 14)),
           ),
+          // If the stored unit isn't in the standard list (e.g. migrated from
+          // free-text "cups" → not matching canonical "cup"), include it so the
+          // dropdown can display it without asserting.
+          if (value != null && !ingredientUnits.contains(value))
+            DropdownMenuItem<String?>(
+              value: value,
+              child: Text(value!, style: const TextStyle(fontSize: 14)),
+            ),
           ...ingredientUnits.map(
             (u) => DropdownMenuItem<String?>(
               value: u,
