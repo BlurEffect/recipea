@@ -161,25 +161,27 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           ),
           backgroundColor: Colors.orange.shade50,
           side: BorderSide(color: Colors.orange.shade200),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ));
       } else {
+        final color = componentColors[i % componentColors.length];
         chips.add(ActionChip(
           avatar: Container(
             width: 10,
             height: 10,
             decoration: BoxDecoration(
-              color: componentColors[i % componentColors.length],
+              color: color,
               shape: BoxShape.circle,
             ),
           ),
           label: Text(linked.title, style: const TextStyle(fontSize: 12)),
-          backgroundColor: componentColors[i % componentColors.length]
-              .withValues(alpha: 0.15),
-          side: BorderSide(
-              color: componentColors[i % componentColors.length]
-                  .withValues(alpha: 0.4)),
+          backgroundColor: color.withValues(alpha: 0.12),
+          side: BorderSide(color: color.withValues(alpha: 0.6)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           onPressed: () => context.go('/recipes/${linked.id}'),

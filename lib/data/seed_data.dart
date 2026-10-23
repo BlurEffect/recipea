@@ -86,12 +86,12 @@ const List<String> ingredientUnits = [
 ];
 
 const List<Color> componentColors = [
-  Color(0xFFBBDEFB), // light blue
-  Color(0xFFC8E6C9), // light green
-  Color(0xFFFFE0B2), // light orange
-  Color(0xFFE1BEE7), // light purple
-  Color(0xFFB2EBF2), // light cyan
-  Color(0xFFFFCDD2), // light red
+  Color(0xFF1976D2), // blue
+  Color(0xFF388E3C), // green
+  Color(0xFFF57C00), // orange
+  Color(0xFF7B1FA2), // purple
+  Color(0xFF0097A7), // cyan
+  Color(0xFFD32F2F), // red
 ];
 
 const List<Color> categoryColorPalette = [
