@@ -29,6 +29,8 @@ class DetailScreen extends ConsumerStatefulWidget {
 
 class _DetailScreenState extends ConsumerState<DetailScreen> {
   bool _showCombinedIngredients = false;
+  int _targetServings = 1;
+  int? _lastRecipeServings;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         body: const Center(child: Text('Recipe not found')),
       );
     }
+
+    // Sync serving counter when recipe's base servings changes (e.g. after edit).
+    if (recipe.servings != _lastRecipeServings) {
+      _targetServings = recipe.servings ?? 1;
+      _lastRecipeServings = recipe.servings;
+    }
+    final scaleFactor = (recipe.servings != null && recipe.servings! > 0)
+        ? _targetServings / recipe.servings!
+        : 1.0;
 
     // Always use allTagIds — for standalone it returns recipe.tagIds unchanged;
     // for composite it adds linked component tags (deduped, own tags first).
@@ -91,13 +102,26 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
+                  // Serving scaler (shown when recipe has a servings count)
+                  if (recipe.servings != null) ...[
+                    _ServingScaler(
+                      target: _targetServings,
+                      onDecrement: _targetServings > 1
+                          ? () => setState(() => _targetServings--)
+                          : null,
+                      onIncrement: () => setState(() => _targetServings++),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   // Ingredients
                   if (recipe.isComposite)
-                    _buildCompositeIngredients(recipe, allRecipes, recipeMap)
+                    _buildCompositeIngredients(recipe, allRecipes, recipeMap,
+                        scaleFactor: scaleFactor)
                   else if (recipe.ingredients.isNotEmpty) ...[
                     _SectionHeader(title: 'Ingredients'),
                     const SizedBox(height: 12),
-                    ..._ingredientRows(recipe.ingredients),
+                    ..._ingredientRows(recipe.ingredients,
+                        scaleFactor: scaleFactor),
                     const SizedBox(height: 24),
                   ],
                   // Steps
@@ -171,7 +195,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   // ── Composite ingredients ──────────────────────────────────────────────────
 
   Widget _buildCompositeIngredients(
-      Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
+      Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap,
+      {double scaleFactor = 1.0}) {
     final hasIngredients = allIngredients(recipe, allRecipes).isNotEmpty;
     if (!hasIngredients) return const SizedBox.shrink();
 
@@ -200,16 +225,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         ),
         const SizedBox(height: 12),
         if (_showCombinedIngredients)
-          ..._ingredientRows(allIngredients(recipe, allRecipes))
+          ..._ingredientRows(allIngredients(recipe, allRecipes),
+              scaleFactor: scaleFactor)
         else
-          _buildSeparateIngredients(recipe, allRecipes, recipeMap),
+          _buildSeparateIngredients(recipe, allRecipes, recipeMap,
+              scaleFactor: scaleFactor),
         const SizedBox(height: 24),
       ],
     );
   }
 
   Widget _buildSeparateIngredients(
-      Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
+      Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap,
+      {double scaleFactor = 1.0}) {
     final linkedIds = recipe.linkedRecipeIds;
     final blocks = <Widget>[];
 
@@ -220,6 +248,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           title: 'This recipe',
           ingredients: recipe.ingredients,
           color: null,
+          scaleFactor: scaleFactor,
         ));
       } else {
         final linked = recipeMap[entry];
@@ -232,6 +261,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           color: colorIdx >= 0
               ? componentColors[colorIdx % componentColors.length]
               : null,
+          scaleFactor: scaleFactor,
         ));
       }
     }
@@ -282,46 +312,60 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   // ── Shared helper ─────────────────────────────────────────────────────────
 
-  List<Widget> _ingredientRows(List<Ingredient> ingredients) {
+  List<Widget> _ingredientRows(List<Ingredient> ingredients,
+      {double scaleFactor = 1.0}) {
     return ingredients
-        .map((ing) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 7),
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
+        .map((ing) {
+          final amountStr = _buildAmountStr(ing, scaleFactor);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 7),
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: AppColors.textPrimary,
-                        ),
-                        children: [
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
+                      children: [
+                        if (amountStr.isNotEmpty)
                           TextSpan(
-                            text: '${ing.amount}  ',
+                            text: '$amountStr  ',
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: AppColors.primary,
                             ),
                           ),
-                          TextSpan(text: ing.name),
-                        ],
-                      ),
+                        TextSpan(text: ing.name),
+                        if (ing.note != null && ing.note!.isNotEmpty)
+                          TextSpan(
+                            text: '  (${ing.note})',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ))
+                ),
+              ],
+            ),
+          );
+        })
         .toList();
   }
 }
@@ -615,11 +659,13 @@ class _IngredientBlock extends StatelessWidget {
   final String title;
   final List<Ingredient> ingredients;
   final Color? color;
+  final double scaleFactor;
 
   const _IngredientBlock({
     required this.title,
     required this.ingredients,
     required this.color,
+    this.scaleFactor = 1.0,
   });
 
   @override
@@ -652,46 +698,133 @@ class _IngredientBlock extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ...ingredients.map((ing) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 7),
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: color ?? AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
+        ...ingredients.map((ing) {
+          final amountStr = _buildAmountStr(ing, scaleFactor);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 7),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: color ?? AppColors.primary,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: AppColors.textPrimary,
-                        ),
-                        children: [
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
+                      children: [
+                        if (amountStr.isNotEmpty)
                           TextSpan(
-                            text: '${ing.amount}  ',
+                            text: '$amountStr  ',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: color ?? AppColors.primary,
                             ),
                           ),
-                          TextSpan(text: ing.name),
-                        ],
-                      ),
+                        TextSpan(text: ing.name),
+                        if (ing.note != null && ing.note!.isNotEmpty)
+                          TextSpan(
+                            text: '  (${ing.note})',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          );
+        }),
         const SizedBox(height: 16),
       ],
     );
   }
+}
+
+// ── Serving scaler widget ─────────────────────────────────────────────────────
+
+class _ServingScaler extends StatelessWidget {
+  final int target;
+  final VoidCallback? onDecrement;
+  final VoidCallback onIncrement;
+
+  const _ServingScaler({
+    required this.target,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Serves',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          icon: const Icon(Icons.remove_circle_outline),
+          iconSize: 22,
+          color: onDecrement != null ? AppColors.primary : AppColors.divider,
+          onPressed: onDecrement,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          '$target',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline),
+          iconSize: 22,
+          color: AppColors.primary,
+          onPressed: onIncrement,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Top-level helpers ─────────────────────────────────────────────────────────
+
+String _fmtQty(double v) {
+  if (v == v.truncateToDouble()) return v.toInt().toString();
+  return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+}
+
+String _buildAmountStr(Ingredient ing, double scaleFactor) {
+  if (ing.quantity != null) {
+    final scaled = ing.quantity! * scaleFactor;
+    final qtyStr = _fmtQty(scaled);
+    return ing.unit != null ? '$qtyStr ${ing.unit}' : qtyStr;
+  }
+  return '';
 }

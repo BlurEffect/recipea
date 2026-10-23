@@ -105,13 +105,15 @@ List<ShoppingItem> _buildShoppingItems(
   for (final recipe in recipes) {
     for (final ing in allIngredients(recipe, allRecipes)) {
       final name = ing.name.trim().toLowerCase();
-      final amount = ing.amount.trim();
-      final parsed = _parseAmount(amount);
-      if (parsed != null) {
+      if (ing.quantity != null) {
+        final unit = (ing.unit ?? '').toLowerCase();
         final unitMap = numeric.putIfAbsent(name, () => <String, double>{});
-        unitMap[parsed.$2] = (unitMap[parsed.$2] ?? 0.0) + parsed.$1;
+        unitMap[unit] = (unitMap[unit] ?? 0.0) + ing.quantity!;
+      } else if (ing.note != null && ing.note!.isNotEmpty) {
+        raw.putIfAbsent(name, () => <String>[]).add(ing.note!);
       } else {
-        raw.putIfAbsent(name, () => <String>[]).add(amount);
+        // quantity-less, note-less ingredient (name only) — list it once without amount
+        raw.putIfAbsent(name, () => <String>[]);
       }
     }
   }
@@ -126,8 +128,12 @@ List<ShoppingItem> _buildShoppingItems(
     }
   }
   for (final rawEntry in raw.entries) {
-    for (final amt in rawEntry.value) {
-      items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: amt));
+    if (rawEntry.value.isEmpty) {
+      items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: ''));
+    } else {
+      for (final amt in rawEntry.value) {
+        items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: amt));
+      }
     }
   }
 
@@ -143,28 +149,4 @@ String _formatValue(double value, String unit) {
       ? value.toInt().toString()
       : value.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
   return unit.isEmpty ? s : '$s $unit';
-}
-
-/// Parses "2 cups" → (2.0, "cups"), "1/2" → (0.5, ""), "100g" → (100.0, "g").
-/// Returns null if the string doesn't start with a recognisable number.
-(double, String)? _parseAmount(String amount) {
-  final match =
-      RegExp(r'^(\d+(?:\.\d+)?(?:/\d+)?)\s*(.*)$').firstMatch(amount.trim());
-  if (match == null) return null;
-
-  final numStr = match.group(1)!;
-  final unit = match.group(2)!.trim().toLowerCase();
-
-  double? value;
-  if (numStr.contains('/')) {
-    final parts = numStr.split('/');
-    final n = double.tryParse(parts[0]);
-    final d = double.tryParse(parts[1]);
-    if (n != null && d != null && d != 0) value = n / d;
-  } else {
-    value = double.tryParse(numStr);
-  }
-
-  if (value == null) return null;
-  return (value, unit);
 }

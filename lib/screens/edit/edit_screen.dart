@@ -29,6 +29,7 @@ class EditScreen extends ConsumerStatefulWidget {
 
 class _EditScreenState extends ConsumerState<EditScreen> {
   final _titleController = TextEditingController();
+  final _servingsController = TextEditingController();
   String? _imagePath;
   String? _existingImagePath;
   Set<String> _selectedTagIds = {};
@@ -55,6 +56,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           .firstWhere((r) => r?.id == widget.recipeId, orElse: () => null);
       if (recipe != null) {
         _titleController.text = recipe.title;
+        _servingsController.text = recipe.servings?.toString() ?? '';
         _imagePath = recipe.imagePath;
         _selectedTagIds = {...recipe.tagIds};
         _ingredients = List.from(recipe.ingredients);
@@ -74,6 +76,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _servingsController.dispose();
     for (final c in _ownStepControllerMap.values) {
       c.dispose();
     }
@@ -359,6 +362,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       }
 
       final now = DateTime.now();
+      final servings = int.tryParse(_servingsController.text.trim());
       final recipe = _isNew
           ? Recipe(
               id: generateRecipeId(),
@@ -371,6 +375,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               updatedAt: now,
               componentOrder: _componentOrder,
               compositeStepOrder: _compositeStepOrder,
+              servings: servings,
             )
           : ref
               .read(recipeListProvider)
@@ -384,6 +389,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 updatedAt: now,
                 componentOrder: _componentOrder,
                 compositeStepOrder: _compositeStepOrder,
+                servings: servings,
               );
 
       await ref.read(recipeListProvider.notifier).save(recipe);
@@ -486,6 +492,26 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   fontWeight: FontWeight.w500,
                 ),
                 textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              // Servings
+              Row(
+                children: [
+                  const _FieldLabel(text: 'Servings'),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 70,
+                    child: TextField(
+                      controller: _servingsController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: '–',
+                        isDense: true,
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               // Components
@@ -628,6 +654,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       );
       widgets.add(const SizedBox(height: 8));
       for (final ing in comp.ingredients) {
+        final amountStr = ing.quantity != null
+            ? '${_fmtQty(ing.quantity!)}${ing.unit != null ? ' ${ing.unit}' : ''}'
+            : (ing.note ?? '');
         widgets.add(
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
@@ -636,7 +665,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 SizedBox(
                   width: 90,
                   child: Text(
-                    ing.amount,
+                    amountStr,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
@@ -951,6 +980,11 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       );
     }
   }
+}
+
+String _fmtQty(double v) {
+  if (v == v.truncateToDouble()) return v.toInt().toString();
+  return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 }
 
 class _FieldLabel extends StatelessWidget {

@@ -75,6 +75,16 @@ final List<TagDefinition> seedTags = [
 // 'self' (the overarching recipe's own steps) always uses white/default.
 // Colors cycle: componentColors[index % componentColors.length]
 
+// ── Ingredient units ─────────────────────────────────────────────────────────
+// Metric-first list shown in the unit picker when editing ingredients.
+
+const List<String> ingredientUnits = [
+  'g', 'kg', 'ml', 'l',
+  'tsp', 'tbsp', 'cup',
+  'oz', 'lb',
+  'piece', 'slice', 'clove', 'bunch', 'pinch',
+];
+
 const List<Color> componentColors = [
   Color(0xFFBBDEFB), // light blue
   Color(0xFFC8E6C9), // light green
