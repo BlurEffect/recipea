@@ -99,42 +99,41 @@ final shoppingListProvider =
 
 List<ShoppingItem> _buildShoppingItems(
     List<Recipe> recipes, List<Recipe> allRecipes) {
-  final Map<String, Map<String, double>> numeric = {};
-  final Map<String, List<String>> raw = {};
+  // Key: (name, unit, note) — ingredients with different notes stay separate.
+  final Map<(String, String, String), double> numeric = {};
+  // Key: (name, note) — note-only ingredients, deduplicated.
+  final Set<(String, String)> noteOnly = {};
 
   for (final recipe in recipes) {
     for (final ing in allIngredients(recipe, allRecipes)) {
       final name = ing.name.trim().toLowerCase();
+      final note = (ing.note ?? '').trim();
       if (ing.quantity != null) {
         final unit = (ing.unit ?? '').toLowerCase();
-        final unitMap = numeric.putIfAbsent(name, () => <String, double>{});
-        unitMap[unit] = (unitMap[unit] ?? 0.0) + ing.quantity!;
-      } else if (ing.note != null && ing.note!.isNotEmpty) {
-        raw.putIfAbsent(name, () => <String>[]).add(ing.note!);
+        final key = (name, unit, note);
+        numeric[key] = (numeric[key] ?? 0.0) + ing.quantity!;
       } else {
-        // quantity-less, note-less ingredient (name only) — list it once without amount
-        raw.putIfAbsent(name, () => <String>[]);
+        noteOnly.add((name, note));
       }
     }
   }
 
   final items = <ShoppingItem>[];
-  for (final numEntry in numeric.entries) {
-    for (final unitEntry in numEntry.value.entries) {
-      items.add(ShoppingItem(
-        name: _toTitleCase(numEntry.key),
-        amount: _formatValue(unitEntry.value, unitEntry.key),
-      ));
-    }
+
+  for (final entry in numeric.entries) {
+    final (name, unit, note) = entry.key;
+    final amountStr = _formatValue(entry.value, unit);
+    items.add(ShoppingItem(
+      name: _toTitleCase(name),
+      amount: note.isNotEmpty ? '$amountStr ($note)' : amountStr,
+    ));
   }
-  for (final rawEntry in raw.entries) {
-    if (rawEntry.value.isEmpty) {
-      items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: ''));
-    } else {
-      for (final amt in rawEntry.value) {
-        items.add(ShoppingItem(name: _toTitleCase(rawEntry.key), amount: amt));
-      }
-    }
+
+  for (final (name, note) in noteOnly) {
+    items.add(ShoppingItem(
+      name: _toTitleCase(name),
+      amount: note,
+    ));
   }
 
   items.sort((a, b) => a.name.compareTo(b.name));

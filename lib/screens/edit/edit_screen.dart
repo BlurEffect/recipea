@@ -56,7 +56,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           .firstWhere((r) => r?.id == widget.recipeId, orElse: () => null);
       if (recipe != null) {
         _titleController.text = recipe.title;
-        _servingsController.text = recipe.servings?.toString() ?? '';
+        _servingsController.text = recipe.servings.toString();
         _imagePath = recipe.imagePath;
         _selectedTagIds = {...recipe.tagIds};
         _ingredients = List.from(recipe.ingredients);
@@ -132,6 +132,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
     final available = allRecipes
         .where((r) => r.id != selfId)
+        .where((r) => !r.isComposite)
         .where((r) => !alreadyLinked.contains(r.id))
         .where((r) => !wouldCreateCycle(selfId, r.id, allRecipes))
         .toList()
@@ -362,7 +363,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       }
 
       final now = DateTime.now();
-      final servings = int.tryParse(_servingsController.text.trim());
+      final servings = int.tryParse(_servingsController.text.trim()) ?? 1;
       final recipe = _isNew
           ? Recipe(
               id: generateRecipeId(),
@@ -505,7 +506,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       controller: _servingsController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        hintText: '–',
+                        hintText: '1',
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 14),

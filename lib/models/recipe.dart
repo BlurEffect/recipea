@@ -24,8 +24,7 @@ class Recipe {
   final List<String> compositeStepOrder;
 
   /// Number of servings this recipe is written for.
-  /// When set, the detail screen shows a serving-size scaler.
-  final int? servings;
+  final int servings;
 
   const Recipe({
     required this.id,
@@ -38,7 +37,7 @@ class Recipe {
     required this.updatedAt,
     this.componentOrder = const [],
     this.compositeStepOrder = const [],
-    this.servings,
+    this.servings = 1,
   });
 
   bool get isComposite => componentOrder.isNotEmpty;
@@ -57,7 +56,7 @@ class Recipe {
         'updatedAt': updatedAt.toIso8601String(),
         'componentOrder': componentOrder,
         'compositeStepOrder': compositeStepOrder,
-        if (servings != null) 'servings': servings,
+        'servings': servings,
       };
 
   factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
@@ -79,7 +78,7 @@ class Recipe {
             List<String>.from(json['componentOrder'] as List? ?? []),
         compositeStepOrder:
             List<String>.from(json['compositeStepOrder'] as List? ?? []),
-        servings: json['servings'] as int?,
+        servings: (json['servings'] as int?) ?? 1,
       );
 
   Recipe copyWith({

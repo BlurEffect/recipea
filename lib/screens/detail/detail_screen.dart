@@ -52,12 +52,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
     // Sync serving counter when recipe's base servings changes (e.g. after edit).
     if (recipe.servings != _lastRecipeServings) {
-      _targetServings = recipe.servings ?? 1;
+      _targetServings = recipe.servings;
       _lastRecipeServings = recipe.servings;
     }
-    final scaleFactor = (recipe.servings != null && recipe.servings! > 0)
-        ? _targetServings / recipe.servings!
-        : 1.0;
+    final scaleFactor = _targetServings / recipe.servings;
 
     // Always use allTagIds — for standalone it returns recipe.tagIds unchanged;
     // for composite it adds linked component tags (deduped, own tags first).
@@ -102,17 +100,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  // Serving scaler (shown when recipe has a servings count)
-                  if (recipe.servings != null) ...[
-                    _ServingScaler(
-                      target: _targetServings,
-                      onDecrement: _targetServings > 1
-                          ? () => setState(() => _targetServings--)
-                          : null,
-                      onIncrement: () => setState(() => _targetServings++),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
+                  // Serving scaler
+                  _ServingScaler(
+                    target: _targetServings,
+                    onDecrement: _targetServings > 1
+                        ? () => setState(() => _targetServings--)
+                        : null,
+                    onIncrement: () => setState(() => _targetServings++),
+                  ),
+                  const SizedBox(height: 12),
                   // Ingredients
                   if (recipe.isComposite)
                     _buildCompositeIngredients(recipe, allRecipes, recipeMap,
@@ -225,8 +221,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         ),
         const SizedBox(height: 12),
         if (_showCombinedIngredients)
-          ..._ingredientRows(allIngredients(recipe, allRecipes),
-              scaleFactor: scaleFactor)
+          ..._ingredientRows(
+              _scaledAllIngredients(recipe, allRecipes, recipeMap, scaleFactor))
         else
           _buildSeparateIngredients(recipe, allRecipes, recipeMap,
               scaleFactor: scaleFactor),
@@ -252,16 +248,17 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         ));
       } else {
         final linked = recipeMap[entry];
-        if (linked == null) continue; // skip deleted
+        if (linked == null) continue;
         if (linked.ingredients.isEmpty) continue;
         final colorIdx = linkedIds.indexOf(entry);
+        final componentScale = _componentScaleFactor(recipe, linked, scaleFactor);
         blocks.add(_IngredientBlock(
           title: linked.title,
           ingredients: linked.ingredients,
           color: colorIdx >= 0
               ? componentColors[colorIdx % componentColors.length]
               : null,
-          scaleFactor: scaleFactor,
+          scaleFactor: componentScale,
         ));
       }
     }
@@ -270,6 +267,58 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: blocks,
     );
+  }
+
+  /// Scale factor for a component's ingredients relative to the composite's
+  /// current target servings. If both recipes declare servings, we scale the
+  /// component by targetServings/component.servings; otherwise fall back to
+  /// the composite's scaleFactor.
+  double _componentScaleFactor(
+      Recipe composite, Recipe component, double compositeScaleFactor) {
+    if (component.servings > 0) {
+      // compositeScaleFactor = targetServings / composite.servings
+      // component target     = targetServings / component.servings
+      //                      = compositeScaleFactor * (composite.servings / component.servings)
+      return compositeScaleFactor * (composite.servings / component.servings);
+    }
+    return compositeScaleFactor;
+  }
+
+  /// Collects all ingredients for the combined view with per-component scaling
+  /// already applied, so _ingredientRows can use scaleFactor 1.0.
+  List<Ingredient> _scaledAllIngredients(Recipe recipe,
+      List<Recipe> allRecipes, Map<String, Recipe> recipeMap, double scaleFactor) {
+    final result = <Ingredient>[];
+    for (final entry in recipe.componentOrder) {
+      if (entry == 'self') {
+        result.addAll(_applyScale(recipe.ingredients, scaleFactor));
+      } else {
+        final linked = recipeMap[entry];
+        if (linked == null) continue;
+        final componentScale = _componentScaleFactor(recipe, linked, scaleFactor);
+        result.addAll(_applyScale(linked.ingredients, componentScale));
+      }
+    }
+    // Fall back to own ingredients if componentOrder is empty (shouldn't
+    // happen for a composite, but guards against inconsistent state).
+    if (result.isEmpty) {
+      result.addAll(_applyScale(recipe.ingredients, scaleFactor));
+    }
+    return result;
+  }
+
+  List<Ingredient> _applyScale(List<Ingredient> ingredients, double factor) {
+    if (factor == 1.0) return ingredients;
+    return ingredients
+        .map((ing) => ing.quantity != null
+            ? Ingredient(
+                name: ing.name,
+                quantity: ing.quantity! * factor,
+                unit: ing.unit,
+                note: ing.note,
+              )
+            : ing)
+        .toList();
   }
 
   // ── Composite steps ───────────────────────────────────────────────────────
