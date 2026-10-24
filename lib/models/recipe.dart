@@ -26,6 +26,9 @@ class Recipe {
   /// Number of servings this recipe is written for.
   final int servings;
 
+  /// Optional cook's notes shown prominently before ingredients.
+  final String? description;
+
   const Recipe({
     required this.id,
     required this.title,
@@ -38,6 +41,7 @@ class Recipe {
     this.componentOrder = const [],
     this.compositeStepOrder = const [],
     this.servings = 1,
+    this.description,
   });
 
   bool get isComposite => componentOrder.isNotEmpty;
@@ -57,6 +61,8 @@ class Recipe {
         'componentOrder': componentOrder,
         'compositeStepOrder': compositeStepOrder,
         'servings': servings,
+        if (description != null && description!.isNotEmpty)
+          'description': description,
       };
 
   factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
@@ -79,6 +85,7 @@ class Recipe {
         compositeStepOrder:
             List<String>.from(json['compositeStepOrder'] as List? ?? []),
         servings: (json['servings'] as int?) ?? 1,
+        description: json['description'] as String?,
       );
 
   Recipe copyWith({
@@ -93,6 +100,7 @@ class Recipe {
     List<String>? componentOrder,
     List<String>? compositeStepOrder,
     int? servings,
+    Object? description = _sentinel,
   }) =>
       Recipe(
         id: id ?? this.id,
@@ -107,6 +115,8 @@ class Recipe {
         componentOrder: componentOrder ?? this.componentOrder,
         compositeStepOrder: compositeStepOrder ?? this.compositeStepOrder,
         servings: servings ?? this.servings,
+        description:
+            description == _sentinel ? this.description : description as String?,
       );
 }
 

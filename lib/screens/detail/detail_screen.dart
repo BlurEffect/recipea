@@ -109,6 +109,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                         : null,
                     onIncrement: () => setState(() => _targetServings++),
                   ),
+                  // Cook's notes
+                  if (recipe.description != null &&
+                      recipe.description!.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _DescriptionCard(text: recipe.description!),
+                  ],
                   const SizedBox(height: 12),
                   // Ingredients
                   if (recipe.isComposite)
@@ -883,6 +889,40 @@ class _ServingScaler extends StatelessWidget {
       ],
     );
   }
+}
+
+// ── Description card ─────────────────────────────────────────────────────────
+
+class _DescriptionCard extends StatelessWidget {
+  final String text;
+  const _DescriptionCard({required this.text});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline, size: 18, color: AppColors.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 // ── Top-level helpers ─────────────────────────────────────────────────────────

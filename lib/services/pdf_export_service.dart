@@ -45,6 +45,8 @@ Future<File> exportRecipeToPdf(
     ..._buildComponentChips(recipe, recipeMap),
     ..._buildTags(recipe, allRecipes, allTags, tagMap, categoryColorMap),
     _buildServings(recipe),
+    if (recipe.description != null && recipe.description!.isNotEmpty)
+      _buildDescription(recipe.description!),
     pw.SizedBox(height: 12),
     pw.Divider(color: _green, thickness: 0.5),
     pw.SizedBox(height: 12),
@@ -133,6 +135,24 @@ List<pw.Widget> _buildTags(
   }
   return [pw.Wrap(children: chips), pw.SizedBox(height: 8)];
 }
+
+pw.Widget _buildDescription(String text) => pw.Padding(
+      padding: const pw.EdgeInsets.only(top: 8, bottom: 4),
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(10),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: _green, width: 0.5),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+        ),
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(
+              fontSize: 10,
+              color: _textDark,
+              fontStyle: pw.FontStyle.italic),
+        ),
+      ),
+    );
 
 pw.Widget _buildServings(Recipe recipe) => pw.Text(
       'Serves ${recipe.servings}',

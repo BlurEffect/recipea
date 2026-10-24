@@ -30,6 +30,7 @@ class EditScreen extends ConsumerStatefulWidget {
 class _EditScreenState extends ConsumerState<EditScreen> {
   final _titleController = TextEditingController();
   final _servingsController = TextEditingController();
+  final _descriptionController = TextEditingController();
   String? _imagePath;
   String? _existingImagePath;
   Set<String> _selectedTagIds = {};
@@ -57,6 +58,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       if (recipe != null) {
         _titleController.text = recipe.title;
         _servingsController.text = recipe.servings.toString();
+        _descriptionController.text = recipe.description ?? '';
         _imagePath = recipe.imagePath;
         _selectedTagIds = {...recipe.tagIds};
         _ingredients = List.from(recipe.ingredients);
@@ -77,6 +79,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   void dispose() {
     _titleController.dispose();
     _servingsController.dispose();
+    _descriptionController.dispose();
     for (final c in _ownStepControllerMap.values) {
       c.dispose();
     }
@@ -364,6 +367,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
       final now = DateTime.now();
       final servings = int.tryParse(_servingsController.text.trim()) ?? 1;
+      final descriptionText = _descriptionController.text.trim();
+      final description = descriptionText.isEmpty ? null : descriptionText;
       final recipe = _isNew
           ? Recipe(
               id: generateRecipeId(),
@@ -377,6 +382,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               componentOrder: _componentOrder,
               compositeStepOrder: _compositeStepOrder,
               servings: servings,
+              description: description,
             )
           : ref
               .read(recipeListProvider)
@@ -391,6 +397,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 componentOrder: _componentOrder,
                 compositeStepOrder: _compositeStepOrder,
                 servings: servings,
+                description: description,
               );
 
       await ref.read(recipeListProvider.notifier).save(recipe);
@@ -513,6 +520,20 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 20),
+              // Cook's notes / description
+              const _FieldLabel(text: "Cook's notes"),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _descriptionController,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  hintText:
+                      'Special equipment, tips, anything to know before starting (optional)',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                ),
               ),
               const SizedBox(height: 24),
               // Components
