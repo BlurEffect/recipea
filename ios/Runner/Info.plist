@@ -51,6 +51,10 @@
 	<string>Recipea needs access to your photos to add recipe images.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Recipea needs camera access to photograph your dishes.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recipea needs microphone access for keyboard dictation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Recipea uses speech recognition so you can dictate recipe steps and ingredients.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
