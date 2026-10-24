@@ -11,6 +11,7 @@ A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with
 | Navigation | `go_router ^14.6.2` — 7 named routes |
 | Images | `image_picker`, `path_provider` — local filesystem, path stored in Hive |
 | Export/Import | `share_plus`, `file_picker` — JSON with base64 images |
+| PDF Export | `pdf ^3.11.0`, `printing ^5.13.2` — print-friendly recipe PDFs |
 | IDs | `uuid ^4.5.1` — v4 UUIDs |
 
 ## Routes
@@ -64,6 +65,8 @@ lib/
     add_to_meal_plan_sheet.dart  Bottom sheet to assign a recipe to a meal plan day
   screens/
     splash/ browse/ detail/ edit/ meal_plan/ shopping_list/
+  services/
+    pdf_export_service.dart  exportRecipeToPdf() — A4 PDF via pw.MultiPage
   theme/
     app_colors.dart         Color tokens
     app_theme.dart          ThemeData factory
@@ -103,12 +106,26 @@ Repository: `lib/repositories/meal_plan_repository.dart`. `loadPlan()` has a try
 
 **Model** (`lib/models/shopping_item.dart`): `ShoppingItem` (name, amount, checked) + `ShoppingList` (items, generatedAt).
 
-**Generation:** Triggered by the refresh button on `ShoppingListScreen`. Collects all ingredients from `mealPlanRecipesProvider`, groups by normalised ingredient name, and accumulates amounts:
+**Generation:** Triggered by the refresh button on `ShoppingListScreen`. Collects all ingredients from `mealPlanRecipesProvider`, groups by `(name, unit, note)` triple (so ingredients with different notes are never silently merged), and accumulates amounts:
 - Same numeric unit → sum (e.g. "2 cups + 1 cup = 3 cups")
-- Fractions supported ("1/2")
 - Unit mismatch or non-numeric → joined with ` + `
 
 **Persistence:** Ticked items survive navigation. Regenerating resets all ticks (new `ShoppingList` with `generatedAt` timestamp; `ValueKey(generatedAt)` on the `ListView` forces a full rebuild).
+
+## Ingredient Model
+
+`lib/models/ingredient.dart` uses a structured format (not a freeform string):
+
+```dart
+class Ingredient {
+  final String name;
+  final double? quantity;   // null = no numeric amount
+  final String? unit;       // null = no unit (e.g. "2 eggs")
+  final String? note;       // e.g. "packed", "to taste"
+}
+```
+
+`fromJson` handles the legacy `amount: String` field via `_tryParseAmount` migration — old data is parsed automatically on first load. `ingredientUnits` constant list in `seed_data.dart` drives the unit dropdown (metric-first).
 
 ## Storage Pattern
 
@@ -165,8 +182,10 @@ Both boxes are seeded on first launch from `lib/data/seed_data.dart` via `seedIf
 {
   "id": "uuid-v4",
   "title": "Recipe Title",
+  "servings": 2,
+  "description": "Optional cook's notes — special equipment, tips, etc.",
   "tagIds": ["pasta", "dinner"],
-  "ingredients": [{ "name": "flour", "amount": "2 cups" }],
+  "ingredients": [{ "name": "flour", "quantity": 2.0, "unit": "cups", "note": null }],
   "steps": [{ "id": "uuid-v4", "order": 0, "instruction": "Mix ingredients." }],
   "createdAt": "ISO-8601",
   "updatedAt": "ISO-8601",
@@ -176,7 +195,7 @@ Both boxes are seeded on first launch from `lib/data/seed_data.dart` via `seedIf
 }
 ```
 
-Legacy bare-array format (version 1) is still accepted on import.
+`description` and `note` are omitted from JSON when empty/null. Legacy `"amount": "string"` ingredient format and bare-array envelope (version 1) are both still accepted on import.
 
 Composite recipes auto-bundle all transitively linked component recipes at export time.
 
@@ -188,13 +207,15 @@ Import deduplication: if UUID already exists → prompt user to replace.
 - Background: `Color(0xFFF7F6F2)` (warm off-white)
 - Surface (cards): `Colors.white`
 - Tag category colors: user-configurable, stored in Hive, seeded from `seed_data.dart`
-- Component colors (composite recipe step blocks): `componentColors` list in `seed_data.dart` — 6 pastel colors cycling by component index
+- Component colors (composite recipe step blocks): `componentColors` list in `seed_data.dart` — 6 saturated Material 700 colors cycling by component index
 
 ## Composite Recipes
 
 A recipe can link other recipes as ordered **components**. The composite recipe shows combined ingredients (with a Separate / Combined toggle), color-coded interleaved steps from all components, and aggregated unique tags.
 
-**Data model additions to `Recipe`:**
+**Full `Recipe` model fields** (relevant ones):
+- `servings: int` — non-nullable, default 1; drives the serving scaler on detail screen
+- `description: String?` — optional cook's notes shown as an info card before ingredients
 - `componentOrder: List<String>` — ordered list of component IDs + `'self'` sentinel. Empty = standalone.
 - `compositeStepOrder: List<String>` — explicit cross-component step IDs. Empty = block order fallback.
 - `isComposite` getter, `linkedRecipeIds` getter
@@ -208,13 +229,32 @@ A recipe can link other recipes as ordered **components**. The composite recipe 
 - `validateStepOrder` — enforces within-linked-component step order constraint (own steps are free)
 - `allLinkedRecipeIds` — transitive ID set for export bundling
 
-**Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar.
+**Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar. Component picker filters out composites (`!r.isComposite`) — nesting composites inside composites is intentionally blocked.
 
-**Detail screen:** Component chips header, Separate/Combined ingredient toggle, color-coded step tiles with "from [Recipe]" labels.
+**Detail screen:** Component chips (`ActionChip`, rectangular shape) are tappable and navigate directly to the component recipe. Separate/Combined ingredient toggle, color-coded step tiles with "from [Recipe]" labels. Serving scaler always shown.
+
+**Per-component scaling:** `compositeScaleFactor * (composite.servings / component.servings)` so a component written for 2 people scales correctly in a composite targeting 3.
+
+## PDF Export
+
+`lib/services/pdf_export_service.dart` — single top-level function `exportRecipeToPdf(recipe, allRecipes, allTags, allCategories)`.
+
+Layout (A4, `pw.MultiPage`): hero image → title → component chips (left-border rectangles) → tag chips (pill border) → servings → description (italic bordered box, if present) → divider → ingredients (bullet list, bold green amounts) → divider → steps (circle number badges; composite: colored left borders + "from X" attribution). Footer: green circle + "Recipea" + page N of M on every page.
+
+Output: `getTemporaryDirectory()/recipea_recipe.pdf`. Shared via `Share.shareXFiles` from the detail screen three-dot menu ("Export as PDF").
+
+## Search
+
+`BrowseScreen` has a persistent search bar (name search). Also present in the component picker dialog when adding a component to a composite recipe.
+
+## Permissions
+
+- **Android** (`AndroidManifest.xml`): `READ_EXTERNAL_STORAGE` (≤API 32), `READ_MEDIA_IMAGES`, `RECORD_AUDIO` (keyboard dictation)
+- **iOS** (`Info.plist`): `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`, `NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`
 
 ## Status
 
-Core app + meal plan + composite recipes complete. `flutter analyze` is clean.
+Core app + meal plan + composite recipes + PDF export + structured ingredients + serving scaler + cook's notes complete. `flutter analyze` is clean.
 
 ## Known Issues / Fragile Code to Revisit
 
