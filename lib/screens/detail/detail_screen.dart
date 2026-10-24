@@ -13,6 +13,7 @@ import '../../models/recipe.dart';
 import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
+import '../../services/pdf_export_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/recipe_graph.dart';
 import '../../widgets/add_to_meal_plan_sheet.dart';
@@ -480,6 +481,24 @@ class _RecipeAppBar extends ConsumerWidget {
                   );
                 }
               }
+            } else if (value == 'export_pdf') {
+              try {
+                final allTags = ref.read(allTagsProvider);
+                final allCategories = ref.read(categoryProvider);
+                final allRecipes = ref.read(recipeListProvider);
+                final file = await exportRecipeToPdf(
+                    recipe, allRecipes, allTags, allCategories);
+                if (context.mounted) {
+                  await Share.shareXFiles(
+                      [XFile(file.path, mimeType: 'application/pdf')]);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('PDF export failed: $e')),
+                  );
+                }
+              }
             } else if (value == 'duplicate') {
               final newId = generateRecipeId();
               final now = DateTime.now();
@@ -525,6 +544,7 @@ class _RecipeAppBar extends ConsumerWidget {
               child: Text('Add to Meal Plan'),
             ),
             PopupMenuItem(value: 'export', child: Text('Export recipe')),
+            PopupMenuItem(value: 'export_pdf', child: Text('Export as PDF')),
             PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
             PopupMenuItem(
               value: 'delete',

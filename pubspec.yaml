@@ -29,6 +29,8 @@ dependencies:
   # Export / Import
   share_plus: ^10.0.3
   file_picker: ^8.1.2
+  pdf: ^3.11.0
+  printing: ^5.13.2
 
   # Utilities
   uuid: ^4.5.1
