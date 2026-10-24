@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -125,8 +127,19 @@ class MealPlanScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Day header
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+                      Container(
+                        decoration: isToday
+                            ? BoxDecoration(
+                                color: AppColors.primary
+                                    .withValues(alpha: 0.06),
+                                border: const Border(
+                                  left: BorderSide(
+                                      color: AppColors.primary, width: 4),
+                                ),
+                              )
+                            : null,
+                        padding: EdgeInsets.fromLTRB(
+                            isToday ? 12 : 16, 4, 8, 4),
                         child: Row(
                           children: [
                             Expanded(
@@ -177,6 +190,9 @@ class MealPlanScreen extends ConsumerWidget {
                           onRemove: () => ref
                               .read(mealPlanProvider.notifier)
                               .removeSlot(day, slotIndex),
+                          onNavigate: recipe != null
+                              ? () => context.go('/recipes/${recipe.id}')
+                              : null,
                         );
                       }),
                       // Add slot button
@@ -247,22 +263,39 @@ class _SlotRow extends StatelessWidget {
   final Recipe? recipe;
   final VoidCallback onTap;
   final VoidCallback onRemove;
+  final VoidCallback? onNavigate;
 
   const _SlotRow({
     required this.recipe,
     required this.onTap,
     required this.onRemove,
+    this.onNavigate,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasImage =
+        recipe?.imagePath != null;
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.fromLTRB(16, hasImage ? 8 : 10, 16, hasImage ? 8 : 10),
         child: Row(
           children: [
+            if (hasImage) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.file(
+                  File(recipe!.imagePath!),
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      const SizedBox(width: 40, height: 40),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: recipe != null
                   ? Text(
@@ -283,6 +316,18 @@ class _SlotRow extends StatelessWidget {
                       ),
                     ),
             ),
+            if (onNavigate != null)
+              GestureDetector(
+                onTap: onNavigate,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
             GestureDetector(
               onTap: onRemove,
               child: Padding(
@@ -381,6 +426,21 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
               ),
             ),
             const Divider(height: 1),
+            if (widget.currentRecipeId != null) ...[
+              ListTile(
+                leading: const Icon(Icons.close,
+                    size: 20, color: AppColors.textSecondary),
+                title: const Text(
+                  'Leave slot empty',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+                onTap: () {
+                  widget.onPick(null);
+                  Navigator.pop(context);
+                },
+              ),
+              const Divider(height: 1),
+            ],
             Expanded(
               child: filtered.isEmpty
                   ? const Center(

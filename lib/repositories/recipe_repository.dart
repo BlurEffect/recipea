@@ -190,16 +190,28 @@ class RecipeRepository {
     List<Map<String, dynamic>> customTags,
     List<Map<String, dynamic>> categories,
   }) _parseImportJson(String jsonString) {
-    final decoded = jsonDecode(jsonString);
+    final dynamic decoded;
+    try {
+      decoded = jsonDecode(jsonString);
+    } on FormatException {
+      throw const FormatException('This file is not valid JSON.');
+    }
     if (decoded is List) {
       // Legacy bare-array format — no custom tags or categories
       return (recipes: decoded, customTags: [], categories: []);
     }
-    final map = decoded as Map<String, dynamic>;
-    final customTagsRaw = map['customTags'] as List<dynamic>? ?? [];
-    final categoriesRaw = map['categories'] as List<dynamic>? ?? [];
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Unrecognised file structure.');
+    }
+    final recipes = decoded['recipes'];
+    if (recipes is! List) {
+      throw const FormatException(
+          'No recipe data found. Make sure this file was exported from Recipea.');
+    }
+    final customTagsRaw = decoded['customTags'] as List<dynamic>? ?? [];
+    final categoriesRaw = decoded['categories'] as List<dynamic>? ?? [];
     return (
-      recipes: map['recipes'] as List<dynamic>,
+      recipes: recipes,
       customTags: customTagsRaw
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList(),

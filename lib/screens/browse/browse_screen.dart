@@ -117,7 +117,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'export_all', child: Text('Export all')),
+              PopupMenuItem(value: 'export_all', child: Text('Export database')),
               PopupMenuItem(value: 'import', child: Text('Import recipes')),
             ],
           ),
@@ -184,7 +184,7 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
     final allCategories = ref.read(categoryProvider);
     final json = await repo.exportToJson([], allTags, allCategories);
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/recipea_export_all.json');
+    final file = File('${dir.path}/recipea_backup.recipea');
     await file.writeAsString(json);
     if (context.mounted) {
       await Share.shareXFiles(
@@ -203,7 +203,7 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
 Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
   final picked = await FilePicker.platform.pickFiles(
     type: FileType.custom,
-    allowedExtensions: ['json'],
+    allowedExtensions: ['recipea', 'json'],
   );
   if (picked == null) return;
   final path = picked.files.single.path;
@@ -216,9 +216,10 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
     result = await ref.read(recipeRepositoryProvider).importFromJson(jsonString);
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Import failed: $e')),
-      );
+      final msg = e is FormatException
+          ? e.message
+          : 'Import failed. Make sure you\'re using a .recipea or .json file exported from this app.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
     return;
   }

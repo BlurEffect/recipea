@@ -82,8 +82,31 @@ class ShoppingListNotifier extends StateNotifier<ShoppingList> {
 
   void toggle(int index) {
     final items = [...state.items];
-    items[index] = items[index].copyWith(checked: !items[index].checked);
+    final item = items.removeAt(index);
+    final nowChecked = !item.checked;
+    final updated = item.copyWith(checked: nowChecked);
+    if (nowChecked) {
+      items.add(updated);
+    } else {
+      final insertAt = items.indexWhere((i) => i.checked);
+      items.insert(insertAt == -1 ? items.length : insertAt, updated);
+    }
     state = state.copyWith(items: items);
+    _repo.saveShoppingList(state);
+  }
+
+  void reorder(int oldIndex, int newIndex) {
+    final items = [...state.items];
+    if (newIndex > oldIndex) newIndex--;
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    state = state.copyWith(items: items);
+    _repo.saveShoppingList(state);
+  }
+
+  void removeChecked() {
+    state = state.copyWith(
+        items: state.items.where((i) => !i.checked).toList());
     _repo.saveShoppingList(state);
   }
 }

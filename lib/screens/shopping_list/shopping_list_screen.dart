@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../models/shopping_item.dart';
 import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
@@ -19,8 +21,6 @@ class ShoppingListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shoppingList = ref.watch(shoppingListProvider);
-    final planRecipes = ref.watch(mealPlanRecipesProvider);
-    final allRecipes = ref.watch(recipeListProvider);
     final items = shoppingList.items;
 
     String? generatedLabel;
@@ -53,11 +53,48 @@ class ShoppingListScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          if (items.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              tooltip: 'Share list',
+              onPressed: () => _shareList(shoppingList),
+            ),
+          if (items.any((i) => i.checked))
+            IconButton(
+              icon: const Icon(Icons.remove_done_outlined),
+              tooltip: 'Clear checked',
+              onPressed: () =>
+                  ref.read(shoppingListProvider.notifier).removeChecked(),
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Regenerate from meal plan',
-            onPressed: () {
-              ref.read(shoppingListProvider.notifier).generate(planRecipes, allRecipes);
+            onPressed: () async {
+              final hasChecked = items.any((i) => i.checked);
+              if (hasChecked) {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Regenerate list?'),
+                    content: const Text(
+                        'Your checked-off items will be lost.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Regenerate'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed != true || !context.mounted) return;
+              }
+              ref.read(shoppingListProvider.notifier).generate(
+                  ref.read(mealPlanRecipesProvider),
+                  ref.read(recipeListProvider));
             },
           ),
         ],
@@ -77,15 +114,17 @@ class ShoppingListScreen extends ConsumerWidget {
                 child: const Text('Go to Meal Plan'),
               ),
             )
-          : ListView.builder(
-              // Key forces a full rebuild when the list is regenerated,
-              // so stale checkbox states don't linger.
-              key: ValueKey(shoppingList.generatedAt?.millisecondsSinceEpoch),
+          : ReorderableListView.builder(
+              key: ValueKey(shoppingList.generatedAt?.millisecondsSinceEpoch ?? 0),
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: items.length,
+              onReorder: (oldIndex, newIndex) => ref
+                  .read(shoppingListProvider.notifier)
+                  .reorder(oldIndex, newIndex),
               itemBuilder: (context, index) {
                 final item = items[index];
                 return CheckboxListTile(
+                  key: ValueKey('${item.name}_${item.amount}_$index'),
                   value: item.checked,
                   onChanged: (_) =>
                       ref.read(shoppingListProvider.notifier).toggle(index),
@@ -122,4 +161,13 @@ class ShoppingListScreen extends ConsumerWidget {
             ),
     );
   }
+}
+
+void _shareList(ShoppingList list) {
+  final lines = list.items.map((i) {
+    final prefix = i.checked ? '✓' : '•';
+    final amount = i.amount.isNotEmpty ? '${i.amount}  ' : '';
+    return '$prefix $amount${i.name}';
+  }).join('\n');
+  Share.share('Shopping List\n${'─' * 20}\n$lines');
 }
