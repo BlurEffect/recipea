@@ -63,8 +63,29 @@ class ShoppingListScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.remove_done_outlined),
               tooltip: 'Clear checked',
-              onPressed: () =>
-                  ref.read(shoppingListProvider.notifier).removeChecked(),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Clear checked items?'),
+                    content: const Text(
+                        'Checked-off items will be permanently removed from the list.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  ref.read(shoppingListProvider.notifier).removeChecked();
+                }
+              },
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -177,10 +198,15 @@ class ShoppingListScreen extends ConsumerWidget {
 }
 
 void _shareList(ShoppingList list) {
-  final lines = list.items.map((i) {
-    final prefix = i.checked ? '✓' : '•';
-    final amount = i.amount.isNotEmpty ? '${i.amount}  ' : '';
-    return '$prefix $amount${i.name}';
-  }).join('\n');
-  Share.share('Shopping List\n${'─' * 20}\n$lines');
+  final pending = list.items.where((i) => !i.checked).toList();
+  final String body;
+  if (pending.isEmpty) {
+    body = 'Everything has been checked off!';
+  } else {
+    body = pending.map((i) {
+      final amount = i.amount.isNotEmpty ? '${i.amount}  ' : '';
+      return '• $amount${i.name}';
+    }).join('\n');
+  }
+  Share.share('Shopping List\n${'─' * 20}\n$body');
 }
