@@ -49,7 +49,7 @@ lib/
     category_repository.dart    CategoryDefinition CRUD + seedIfEmpty
     custom_tag_repository.dart  TagDefinition CRUD + seedIfEmpty
   providers/
-    recipe_providers.dart       recipeList, tagFilter, filteredRecipes
+    recipe_providers.dart       recipeList, tagFilter, filteredRecipes, SortOption, recipeSortProvider
     meal_plan_providers.dart    mealPlan, mealPlanRecipes, shoppingList
     category_providers.dart     categoryProvider, categoryMapProvider
     custom_tag_providers.dart   customTagsProvider, allTagsProvider
@@ -75,6 +75,8 @@ lib/
 ## Navigation
 
 Bottom navigation bar (3 tabs) is added directly to `BrowseScreen`, `MealPlanScreen`, and `ShoppingListScreen` via `AppBottomNavBar(currentIndex: N)`. Detail and Edit screens are full-screen with no nav bar. No ShellRoute used — plain `GoRoute` entries.
+
+**`push` vs `go` convention:** Use `context.push` for drill-down navigations that the user should be able to back out of (recipe detail from browse, meal plan, "Part of" chips, component chips, detail → edit). Use `context.go` only for top-level tab switches (bottom nav bar). Using `go` for drill-downs resets the stack to the route-tree parent — e.g. meal-plan → detail → back would land on `/recipes` instead of `/meal-plan`.
 
 ## Meal Plan
 
@@ -102,6 +104,8 @@ Repository: `lib/repositories/meal_plan_repository.dart`. `loadPlan()` has a try
 
 **Assigning from detail screen:** Three-dot menu → "Add to Meal Plan" → `AddToMealPlanSheet` (pick a day → appends a new slot with the recipe).
 
+**Slot row interaction model:** For filled slots, the primary row tap navigates to the recipe detail (`context.push`); a small edit icon (✎) opens the recipe picker. For empty slots, the primary row tap opens the picker directly. Both icons use `BoxConstraints(minWidth: 32, minHeight: 32)` for adequate touch targets.
+
 ## Shopping List
 
 **Model** (`lib/models/shopping_item.dart`): `ShoppingItem` (name, amount, checked) + `ShoppingList` (items, generatedAt).
@@ -111,6 +115,12 @@ Repository: `lib/repositories/meal_plan_repository.dart`. `loadPlan()` has a try
 - Unit mismatch or non-numeric → joined with ` + `
 
 **Persistence:** Ticked items survive navigation. Regenerating resets all ticks (new `ShoppingList` with `generatedAt` timestamp; `ValueKey(generatedAt)` on the `ListView` forces a full rebuild).
+
+**Reordering:** Items use `ReorderableListView.builder` with explicit `ReorderableDragStartListener` drag handles (≡ icon, trailing edge of each row). Consistent with ingredient and step editors.
+
+**Clear checked:** Requires a confirmation dialog before removing checked items (destructive, non-obvious icon).
+
+**Share:** Only unchecked items are included in the shared text. If everything is ticked, the share body reads "Everything has been checked off!".
 
 ## Ingredient Model
 
@@ -165,6 +175,18 @@ Both boxes are seeded on first launch from `lib/data/seed_data.dart` via `seedIf
 | Style | soup, salad, pasta, rice, stir-fry, baked, grilled, raw |
 | Attributes | quick, spicy, kid-friendly, meal-prep, one-pot, freezer-friendly |
 
+## Recipe List Sorting
+
+`BrowseScreen` has a sort button (≡ icon, left of the filter/tune icon) in the tag filter bar.
+
+**`SortOption` enum** (in `lib/providers/recipe_providers.dart`):
+- `titleAsc` — A → Z (default)
+- `titleDesc` — Z → A
+- `newestFirst` — by `createdAt` descending
+- `oldestFirst` — by `createdAt` ascending
+
+**`recipeSortProvider`** — `StateProvider<SortOption>`, defaults to `titleAsc`. Watched by `filteredRecipesProvider`, which applies the sort after tag/search filtering. `RecipeRepository.getAll()` no longer sorts — all ordering is the provider's responsibility.
+
 ## Export/Import JSON Schema
 
 **Version 2 envelope** (current):
@@ -201,6 +223,8 @@ Composite recipes auto-bundle all transitively linked component recipes at expor
 
 Import deduplication: if UUID already exists → prompt user to replace.
 
+**File extensions:** All exports use `.recipea` (not `.json`). Single-recipe export from the three-dot menu uses `<title-slug>.recipea` (slug = lowercased title with non-alphanumeric runs replaced by `_`, leading/trailing `_` stripped). Full database export from the browse screen uses `database.recipea`.
+
 ## Design Tokens
 
 - Primary green: `Color(0xFF2E7D32)`
@@ -231,7 +255,13 @@ A recipe can link other recipes as ordered **components**. The composite recipe 
 
 **Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar. Component picker filters out composites (`!r.isComposite`) — nesting composites inside composites is intentionally blocked.
 
-**Detail screen:** Component chips (`ActionChip`, rectangular shape) are tappable and navigate directly to the component recipe. Separate/Combined ingredient toggle, color-coded step tiles with "from [Recipe]" labels. Serving scaler always shown.
+**Ingredient reordering:** `IngredientListEditor` uses `ReorderableListView.builder` (shrinkWrap + NeverScrollableScrollPhysics inside a scroll parent) with explicit `ReorderableDragStartListener` drag handles. A `Listener.onPointerDown` wraps each handle to unfocus active TextFields before dragging (avoids a Flutter paint-order exception when text inputs are adjacent). Each row has a stable `id` (UUID, generated once per `_IngredientRow` instance) used as `ValueKey` to prevent state loss on reorder.
+
+**Detail screen:** Component chips (`ActionChip`, rectangular shape) are tappable and navigate directly to the component recipe (`context.push`). Separate/Combined ingredient toggle, color-coded step tiles with "from [Recipe]" labels. Serving scaler always shown, capped at 99 (increment button disabled at max, minimum 1).
+
+**"Part of" back-links:** If other recipes reference this one as a component, a `_UsedInSection` widget renders a "PART OF" label + `ActionChip` chips (rectangular, green border/tint) below the serving scaler. Each chip navigates to the parent recipe via `context.push`.
+
+**Combined ingredient view:** Same `(name, unit, note)` grouping logic as the shopping list — ingredients with identical name+unit+note are summed; mismatched units or no-quantity duplicates are deduplicated. This mirrors the shopping list generation so both views are consistent.
 
 **Per-component scaling:** `compositeScaleFactor * (composite.servings / component.servings)` so a component written for 2 people scales correctly in a composite targeting 3.
 
@@ -243,6 +273,10 @@ Layout (A4, `pw.MultiPage`): hero image → title → component chips (left-bord
 
 Output: `getTemporaryDirectory()/recipea_recipe.pdf`. Shared via `Share.shareXFiles` from the detail screen three-dot menu ("Export as PDF").
 
+**PDF rendering gotchas:**
+- Images: `pw.Image(width: double.infinity)` corrupts the PDF. Wrap in `pw.SizedBox(width: double.infinity, height: 180, child: pw.Image(..., fit: pw.BoxFit.cover))`.
+- Tag chip borders: `pw.BoxDecoration(border: Border.all() + borderRadius)` draws four separate line segments, not a true rounded rectangle. Use nested containers instead: outer container with colored background + borderRadius, 1px padding, inner white container with borderRadius−1.
+
 ## Search
 
 `BrowseScreen` has a persistent search bar (name search). Also present in the component picker dialog when adding a component to a composite recipe.
@@ -252,9 +286,13 @@ Output: `getTemporaryDirectory()/recipea_recipe.pdf`. Shared via `Share.shareXFi
 - **Android** (`AndroidManifest.xml`): `READ_EXTERNAL_STORAGE` (≤API 32), `READ_MEDIA_IMAGES`, `RECORD_AUDIO` (keyboard dictation)
 - **iOS** (`Info.plist`): `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`, `NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`
 
+## Reordering Convention
+
+All reorderable lists use **explicit drag handles** (`ReorderableDragStartListener` + `Icons.drag_handle`), never long-press. This applies to: recipe steps, composite step order, component order (edit screen), ingredients (edit screen), and shopping list items. When drag handles are adjacent to `TextField` widgets, wrap the handle in `Listener(onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(), ...)` to prevent a Flutter paint-order exception.
+
 ## Status
 
-Core app + meal plan + composite recipes + PDF export + structured ingredients + serving scaler + cook's notes complete. `flutter analyze` is clean.
+Core app + meal plan + composite recipes + PDF export + structured ingredients + serving scaler + cook's notes + recipe sorting + "Part of" back-links complete. `flutter analyze` is clean.
 
 ## Known Issues / Fragile Code to Revisit
 
