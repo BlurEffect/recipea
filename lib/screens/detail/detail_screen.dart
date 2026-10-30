@@ -202,7 +202,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               borderRadius: BorderRadius.circular(6)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          onPressed: () => context.go('/recipes/${linked.id}'),
+          onPressed: () => context.push('/recipes/${linked.id}'),
         ));
       }
     }
@@ -497,7 +497,7 @@ class _RecipeAppBar extends ConsumerWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.edit_outlined),
-          onPressed: () => context.go('/recipes/${recipe.id}/edit'),
+          onPressed: () => context.push('/recipes/${recipe.id}/edit'),
           tooltip: 'Edit recipe',
         ),
         PopupMenuButton<String>(
@@ -1006,7 +1006,7 @@ class _UsedInSection extends StatelessWidget {
             children: recipes
                 .map((r) => ActionChip(
                       label: Text(r.title),
-                      onPressed: () => context.go('/recipes/${r.id}'),
+                      onPressed: () => context.push('/recipes/${r.id}'),
                       side: BorderSide(
                           color: AppColors.primary.withValues(alpha: 0.4)),
                       backgroundColor:

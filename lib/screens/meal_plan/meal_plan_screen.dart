@@ -191,7 +191,7 @@ class MealPlanScreen extends ConsumerWidget {
                               .read(mealPlanProvider.notifier)
                               .removeSlot(day, slotIndex),
                           onNavigate: recipe != null
-                              ? () => context.go('/recipes/${recipe.id}')
+                              ? () => context.push('/recipes/${recipe.id}')
                               : null,
                         );
                       }),
