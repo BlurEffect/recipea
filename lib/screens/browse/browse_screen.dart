@@ -184,7 +184,7 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
     final allCategories = ref.read(categoryProvider);
     final json = await repo.exportToJson([], allTags, allCategories);
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/recipea_backup.recipea');
+    final file = File('${dir.path}/database.recipea');
     await file.writeAsString(json);
     if (context.mounted) {
       await Share.shareXFiles(

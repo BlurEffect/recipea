@@ -670,7 +670,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           ),
           child: Text(
             comp.title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white),
           ),
         ),
       );

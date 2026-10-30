@@ -62,6 +62,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     // for composite it adds linked component tags (deduped, own tags first).
     final tagIds = allTagIds(recipe, allRecipes);
 
+    final usedIn = allRecipes
+        .where((r) => r.isComposite && r.componentOrder.contains(recipe.id))
+        .toList();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -101,13 +105,20 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
+                  // "Part of" back-links
+                  if (usedIn.isNotEmpty) ...[
+                    _UsedInSection(recipes: usedIn),
+                    const SizedBox(height: 16),
+                  ],
                   // Serving scaler
                   _ServingScaler(
                     target: _targetServings,
                     onDecrement: _targetServings > 1
                         ? () => setState(() => _targetServings--)
                         : null,
-                    onIncrement: () => setState(() => _targetServings++),
+                    onIncrement: _targetServings < 99
+                        ? () => setState(() => _targetServings++)
+                        : null,
                   ),
                   // Cook's notes
                   if (recipe.description != null &&
@@ -295,25 +306,65 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   }
 
   /// Collects all ingredients for the combined view with per-component scaling
-  /// already applied, so _ingredientRows can use scaleFactor 1.0.
+  /// applied, then aggregates same-name/unit/note ingredients by summing quantities.
   List<Ingredient> _scaledAllIngredients(Recipe recipe,
       List<Recipe> allRecipes, Map<String, Recipe> recipeMap, double scaleFactor) {
-    final result = <Ingredient>[];
+    // 1. Collect all scaled ingredients in component order.
+    final raw = <Ingredient>[];
     for (final entry in recipe.componentOrder) {
       if (entry == 'self') {
-        result.addAll(_applyScale(recipe.ingredients, scaleFactor));
+        raw.addAll(_applyScale(recipe.ingredients, scaleFactor));
       } else {
         final linked = recipeMap[entry];
         if (linked == null) continue;
         final componentScale = _componentScaleFactor(recipe, linked, scaleFactor);
-        result.addAll(_applyScale(linked.ingredients, componentScale));
+        raw.addAll(_applyScale(linked.ingredients, componentScale));
       }
     }
-    // Fall back to own ingredients if componentOrder is empty (shouldn't
-    // happen for a composite, but guards against inconsistent state).
-    if (result.isEmpty) {
-      result.addAll(_applyScale(recipe.ingredients, scaleFactor));
+    if (raw.isEmpty) raw.addAll(_applyScale(recipe.ingredients, scaleFactor));
+
+    // 2. Accumulate numeric quantities by (name, unit, note).
+    final Map<(String, String, String), double> sums = {};
+    final Map<(String, String, String), Ingredient> templates = {};
+    for (final ing in raw) {
+      if (ing.quantity == null) continue;
+      final key = (
+        ing.name.trim().toLowerCase(),
+        (ing.unit ?? '').trim().toLowerCase(),
+        (ing.note ?? '').trim().toLowerCase(),
+      );
+      templates.putIfAbsent(key, () => ing);
+      sums[key] = (sums[key] ?? 0) + ing.quantity!;
     }
+
+    // 3. Build result: aggregated numeric ingredients in first-occurrence order.
+    final result = <Ingredient>[];
+    final seen = <(String, String, String)>{};
+    for (final ing in raw) {
+      if (ing.quantity == null) continue;
+      final key = (
+        ing.name.trim().toLowerCase(),
+        (ing.unit ?? '').trim().toLowerCase(),
+        (ing.note ?? '').trim().toLowerCase(),
+      );
+      if (seen.add(key)) {
+        final t = templates[key]!;
+        result.add(Ingredient(
+            name: t.name, quantity: sums[key], unit: t.unit, note: t.note));
+      }
+    }
+
+    // 4. Append no-quantity ingredients, deduplicated by (name, note).
+    final noQtySeen = <(String, String)>{};
+    for (final ing in raw) {
+      if (ing.quantity != null) continue;
+      final key = (
+        ing.name.trim().toLowerCase(),
+        (ing.note ?? '').trim().toLowerCase(),
+      );
+      if (noQtySeen.add(key)) result.add(ing);
+    }
+
     return result;
   }
 
@@ -473,7 +524,11 @@ class _RecipeAppBar extends ConsumerWidget {
                 final json =
                     await repo.exportToJson([recipe.id], allTags, allCategories);
                 final dir = await getTemporaryDirectory();
-                final file = File('${dir.path}/recipea_export.json');
+                final slug = recipe.title
+                    .toLowerCase()
+                    .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+                    .replaceAll(RegExp(r'^_|_$'), '');
+                final file = File('${dir.path}/$slug.recipea');
                 await file.writeAsString(json);
                 if (context.mounted) {
                   await Share.shareXFiles(
@@ -838,7 +893,7 @@ class _IngredientBlock extends StatelessWidget {
 class _ServingScaler extends StatelessWidget {
   final int target;
   final VoidCallback? onDecrement;
-  final VoidCallback onIncrement;
+  final VoidCallback? onIncrement;
 
   const _ServingScaler({
     required this.target,
@@ -881,7 +936,7 @@ class _ServingScaler extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           iconSize: 22,
-          color: AppColors.primary,
+          color: onIncrement != null ? AppColors.primary : AppColors.divider,
           onPressed: onIncrement,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -922,6 +977,50 @@ class _DescriptionCard extends StatelessWidget {
             ),
           ],
         ),
+      );
+}
+
+// ── "Part of" back-links ──────────────────────────────────────────────────────
+
+class _UsedInSection extends StatelessWidget {
+  final List<Recipe> recipes;
+  const _UsedInSection({required this.recipes});
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'PART OF',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: recipes
+                .map((r) => ActionChip(
+                      label: Text(r.title),
+                      onPressed: () => context.go('/recipes/${r.id}'),
+                      side: BorderSide(
+                          color: AppColors.primary.withValues(alpha: 0.4)),
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.06),
+                      labelStyle: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.primary,
+                      ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                    ))
+                .toList(),
+          ),
+        ],
       );
 }
 
