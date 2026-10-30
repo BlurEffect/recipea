@@ -115,12 +115,20 @@ final tagFilterProvider =
 
 final recipeSearchProvider = StateProvider<String>((_) => '');
 
+// ── Sort ──────────────────────────────────────────────────────────────────────
+
+enum SortOption { titleAsc, titleDesc, newestFirst, oldestFirst }
+
+final recipeSortProvider =
+    StateProvider<SortOption>((_) => SortOption.titleAsc);
+
 // ── Filtered recipes (derived) ────────────────────────────────────────────────
 
 final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
   final recipes = ref.watch(recipeListProvider);
   final filter = ref.watch(tagFilterProvider);
   final query = ref.watch(recipeSearchProvider).trim().toLowerCase();
+  final sort = ref.watch(recipeSortProvider);
 
   var result = recipes;
 
@@ -130,19 +138,28 @@ final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
         .toList();
   }
 
-  if (filter.isEmpty) return result;
+  if (filter.isNotEmpty) {
+    result = result.where((r) {
+      if (filter.included.isNotEmpty &&
+          !filter.included.every((t) => r.tagIds.contains(t))) {
+        return false;
+      }
+      if (filter.excluded.isNotEmpty &&
+          filter.excluded.any((t) => r.tagIds.contains(t))) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
 
-  return result.where((r) {
-    if (filter.included.isNotEmpty &&
-        !filter.included.every((t) => r.tagIds.contains(t))) {
-      return false;
-    }
-    if (filter.excluded.isNotEmpty &&
-        filter.excluded.any((t) => r.tagIds.contains(t))) {
-      return false;
-    }
-    return true;
-  }).toList();
+  final sorted = [...result];
+  sorted.sort((a, b) => switch (sort) {
+    SortOption.titleAsc    => a.title.compareTo(b.title),
+    SortOption.titleDesc   => b.title.compareTo(a.title),
+    SortOption.newestFirst => b.createdAt.compareTo(a.createdAt),
+    SortOption.oldestFirst => a.createdAt.compareTo(b.createdAt),
+  });
+  return sorted;
 });
 
 // ── New recipe ID generator ───────────────────────────────────────────────────

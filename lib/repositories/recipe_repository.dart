@@ -22,8 +22,7 @@ class RecipeRepository {
   List<Recipe> getAll() {
     return _box.values
         .map((json) => Recipe.fromJson(jsonDecode(json) as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        .toList();
   }
 
   Recipe? getById(String id) {

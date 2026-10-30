@@ -72,7 +72,11 @@ Future<File> exportRecipeToPdf(
 List<pw.Widget> _buildHeader(Recipe recipe, pw.MemoryImage? heroImage) {
   return [
     if (heroImage != null) ...[
-      pw.Image(heroImage, width: double.infinity, height: 180, fit: pw.BoxFit.cover),
+      pw.SizedBox(
+        width: double.infinity,
+        height: 180,
+        child: pw.Image(heroImage, fit: pw.BoxFit.cover),
+      ),
       pw.SizedBox(height: 12),
     ],
     pw.Text(
@@ -124,13 +128,20 @@ List<pw.Widget> _buildTags(
     final tagColor = catColor != null ? _toPdfColor(catColor) : _green;
     chips.add(pw.Container(
       margin: const pw.EdgeInsets.only(right: 6, bottom: 4),
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: tagColor, width: 1),
+        color: tagColor,
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
       ),
-      child: pw.Text(tag.label,
-          style: pw.TextStyle(fontSize: 9, color: _textDark)),
+      padding: const pw.EdgeInsets.all(1),
+      child: pw.Container(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: const pw.BoxDecoration(
+          color: PdfColors.white,
+          borderRadius: pw.BorderRadius.all(pw.Radius.circular(9)),
+        ),
+        child: pw.Text(tag.label,
+            style: pw.TextStyle(fontSize: 9, color: _textDark)),
+      ),
     ));
   }
   return [pw.Wrap(children: chips), pw.SizedBox(height: 8)];

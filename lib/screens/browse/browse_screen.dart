@@ -142,6 +142,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           _TagFilterBar(
             filter: filter,
             allTags: allTags,
+            sort: ref.watch(recipeSortProvider),
             onAddTags: () => showTagSelectorSheet(
               context: context,
               currentFilter: filter,
@@ -153,6 +154,8 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             onRemoveExcluded: (id) =>
                 ref.read(tagFilterProvider.notifier).toggleExcluded(id),
             onClear: () => ref.read(tagFilterProvider.notifier).clear(),
+            onSort: (opt) =>
+                ref.read(recipeSortProvider.notifier).state = opt,
           ),
           const Divider(height: 1),
           Expanded(
@@ -353,18 +356,22 @@ class _SearchField extends StatelessWidget {
 class _TagFilterBar extends StatelessWidget {
   final TagFilterState filter;
   final List<TagDefinition> allTags;
+  final SortOption sort;
   final VoidCallback onAddTags;
   final void Function(String) onRemoveIncluded;
   final void Function(String) onRemoveExcluded;
   final VoidCallback onClear;
+  final void Function(SortOption) onSort;
 
   const _TagFilterBar({
     required this.filter,
     required this.allTags,
+    required this.sort,
     required this.onAddTags,
     required this.onRemoveIncluded,
     required this.onRemoveExcluded,
     required this.onClear,
+    required this.onSort,
   });
 
   @override
@@ -426,6 +433,26 @@ class _TagFilterBar extends StatelessWidget {
                   ),
           ),
           const SizedBox(width: 8),
+          PopupMenuButton<SortOption>(
+            tooltip: 'Sort',
+            padding: EdgeInsets.zero,
+            onSelected: onSort,
+            itemBuilder: (_) => [
+              _sortMenuItem(SortOption.titleAsc,    'A → Z',        sort),
+              _sortMenuItem(SortOption.titleDesc,   'Z → A',        sort),
+              _sortMenuItem(SortOption.newestFirst, 'Newest first', sort),
+              _sortMenuItem(SortOption.oldestFirst, 'Oldest first', sort),
+            ],
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.sort, size: 18, color: AppColors.primary),
+            ),
+          ),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: onAddTags,
             child: Container(
@@ -442,3 +469,16 @@ class _TagFilterBar extends StatelessWidget {
     );
   }
 }
+
+PopupMenuItem<SortOption> _sortMenuItem(
+    SortOption opt, String label, SortOption current) =>
+    PopupMenuItem(
+      value: opt,
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          if (current == opt)
+            const Icon(Icons.check, size: 16, color: AppColors.primary),
+        ],
+      ),
+    );

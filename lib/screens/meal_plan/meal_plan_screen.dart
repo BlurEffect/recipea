@@ -261,9 +261,9 @@ class MealPlanScreen extends ConsumerWidget {
 
 class _SlotRow extends StatelessWidget {
   final Recipe? recipe;
-  final VoidCallback onTap;
+  final VoidCallback onTap;       // opens recipe picker
   final VoidCallback onRemove;
-  final VoidCallback? onNavigate;
+  final VoidCallback? onNavigate; // navigate to recipe detail
 
   const _SlotRow({
     required this.recipe,
@@ -274,12 +274,16 @@ class _SlotRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage =
-        recipe?.imagePath != null;
+    final hasImage = recipe?.imagePath != null;
+    final hasFilled = recipe != null;
+    // For filled slots: primary tap navigates; edit icon opens picker.
+    // For empty slots: primary tap opens picker.
+    final primaryTap = hasFilled ? onNavigate : onTap;
+
     return InkWell(
-      onTap: onTap,
+      onTap: primaryTap,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, hasImage ? 8 : 10, 16, hasImage ? 8 : 10),
+        padding: EdgeInsets.fromLTRB(16, hasImage ? 8 : 10, 8, hasImage ? 8 : 10),
         child: Row(
           children: [
             if (hasImage) ...[
@@ -297,7 +301,7 @@ class _SlotRow extends StatelessWidget {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: recipe != null
+              child: hasFilled
                   ? Text(
                       recipe!.title,
                       style: const TextStyle(
@@ -316,28 +320,22 @@ class _SlotRow extends StatelessWidget {
                       ),
                     ),
             ),
-            if (onNavigate != null)
-              GestureDetector(
-                onTap: onNavigate,
-                child: const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+            // For filled slots: edit button opens the picker.
+            if (hasFilled)
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                color: AppColors.textSecondary,
+                onPressed: onTap,
+                tooltip: 'Change recipe',
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
-            GestureDetector(
-              onTap: onRemove,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: Icon(
-                  Icons.close,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-              ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 16),
+              color: AppColors.textSecondary,
+              onPressed: onRemove,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
           ],
         ),
