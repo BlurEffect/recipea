@@ -32,6 +32,9 @@ dependencies:
   pdf: ^3.11.0
   printing: ^5.13.2
 
+  # Permissions
+  permission_handler: ^11.3.1
+
   # Utilities
   uuid: ^4.5.1
   intl: ^0.19.0

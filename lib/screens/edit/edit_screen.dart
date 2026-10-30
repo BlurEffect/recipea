@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/seed_data.dart';
@@ -50,6 +51,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestMicIfNeeded());
     if (!_isNew) {
       final recipe = ref
           .read(recipeListProvider)
@@ -73,6 +75,55 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         }
       }
     }
+  }
+
+  Future<void> _requestMicIfNeeded() async {
+    if (!mounted) return;
+    final status = await Permission.microphone.status;
+    if (status.isGranted || !mounted) return;
+
+    if (status.isPermanentlyDenied) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Microphone access'),
+          content: const Text(
+              'Microphone permission was permanently denied. '
+              'Enable it in Settings to use voice input while writing recipe steps.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Not now')),
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  openAppSettings();
+                },
+                child: const Text('Open Settings')),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final allow = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Voice input'),
+        content: const Text(
+            'Allow microphone access so you can use voice input '
+            'to dictate recipe steps and other fields.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Not now')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Allow')),
+        ],
+      ),
+    );
+    if (allow == true) await Permission.microphone.request();
   }
 
   @override
