@@ -123,39 +123,52 @@ class ShoppingListScreen extends ConsumerWidget {
                   .reorder(oldIndex, newIndex),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return CheckboxListTile(
+                return Row(
                   key: ValueKey('${item.name}_${item.amount}_$index'),
-                  value: item.checked,
-                  onChanged: (_) =>
-                      ref.read(shoppingListProvider.notifier).toggle(index),
-                  activeColor: AppColors.primary,
-                  title: Text(
-                    item.name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: item.checked
-                          ? AppColors.textSecondary
-                          : AppColors.textPrimary,
-                      decoration:
-                          item.checked ? TextDecoration.lineThrough : null,
-                    ),
-                  ),
-                  subtitle: item.amount.isNotEmpty
-                      ? Text(
-                          item.amount,
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        value: item.checked,
+                        onChanged: (_) =>
+                            ref.read(shoppingListProvider.notifier).toggle(index),
+                        activeColor: AppColors.primary,
+                        title: Text(
+                          item.name,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 15,
                             color: item.checked
                                 ? AppColors.textSecondary
-                                    .withValues(alpha: 0.6)
-                                : AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                            decoration: item.checked
-                                ? TextDecoration.lineThrough
-                                : null,
+                                : AppColors.textPrimary,
+                            decoration:
+                                item.checked ? TextDecoration.lineThrough : null,
                           ),
-                        )
-                      : null,
+                        ),
+                        subtitle: item.amount.isNotEmpty
+                            ? Text(
+                                item.amount,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: item.checked
+                                      ? AppColors.textSecondary
+                                          .withValues(alpha: 0.6)
+                                      : AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: item.checked
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(Icons.drag_handle, color: AppColors.divider),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),

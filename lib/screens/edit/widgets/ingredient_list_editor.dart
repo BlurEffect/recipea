@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/seed_data.dart';
 import '../../../models/ingredient.dart';
 import '../../../theme/app_colors.dart';
+
+const _rowUuid = Uuid();
 
 class IngredientListEditor extends StatefulWidget {
   final List<Ingredient> ingredients;
@@ -66,12 +69,27 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
     widget.onChanged(ingredients);
   }
 
+  void _reorderRow(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final row = _rows.removeAt(oldIndex);
+      _rows.insert(newIndex, row);
+    });
+    _notify();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (int i = 0; i < _rows.length; i++) _buildRow(i),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _rows.length,
+          onReorder: _reorderRow,
+          itemBuilder: (_, i) => _buildRow(i),
+        ),
         TextButton.icon(
           onPressed: _addRow,
           icon: const Icon(Icons.add, size: 16),
@@ -88,6 +106,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
   Widget _buildRow(int i) {
     final row = _rows[i];
     return Padding(
+      key: ValueKey(row.id),
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,6 +160,18 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                   padding: const EdgeInsets.only(left: 4),
                   constraints: const BoxConstraints(),
                 ),
+              // Drag handle
+              Listener(
+                onPointerDown: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
+                child: ReorderableDragStartListener(
+                  index: i,
+                  child: const Padding(
+                    padding: EdgeInsets.only(left: 4),
+                    child: Icon(Icons.drag_handle, color: AppColors.divider),
+                  ),
+                ),
+              ),
             ],
           ),
           // Note field (always shown so users know it exists)
@@ -215,17 +246,19 @@ class _UnitDropdown extends StatelessWidget {
 }
 
 class _IngredientRow {
+  final String id;
   final TextEditingController nameController;
   final TextEditingController quantityController;
   final TextEditingController noteController;
   String? selectedUnit;
 
   _IngredientRow({
+    String? id,
     required this.nameController,
     required this.quantityController,
     required this.noteController,
     this.selectedUnit,
-  });
+  }) : id = id ?? _rowUuid.v4();
 
   factory _IngredientRow.fromIngredient(Ingredient ing) => _IngredientRow(
         nameController: TextEditingController(text: ing.name),
