@@ -88,12 +88,23 @@ const List<String> ingredientUnits = [
 
 const List<Color> componentColors = [
   Color(0xFF1976D2), // blue
-  Color(0xFF388E3C), // green
+  Color(0xFFE91E63), // pink
   Color(0xFFF57C00), // orange
   Color(0xFF7B1FA2), // purple
   Color(0xFF0097A7), // cyan
   Color(0xFFD32F2F), // red
 ];
+
+/// Returns a stable color for a component recipe ID.
+/// Uses a simple polynomial hash so the same ID always gets the same color,
+/// regardless of its position in the component list.
+Color componentColor(String recipeId) {
+  int h = 0;
+  for (final c in recipeId.codeUnits) {
+    h = (h * 31 + c) & 0x7FFFFFFF;
+  }
+  return componentColors[h % componentColors.length];
+}
 
 const List<Color> categoryColorPalette = [
   Color(0xFF43A047), // green  (Diet default)

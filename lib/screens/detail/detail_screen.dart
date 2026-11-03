@@ -185,7 +185,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ));
       } else {
-        final color = componentColors[i % componentColors.length];
+        final color = componentColor(id);
         chips.add(ActionChip(
           avatar: Container(
             width: 10,
@@ -255,7 +255,6 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   Widget _buildSeparateIngredients(
       Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap,
       {double scaleFactor = 1.0}) {
-    final linkedIds = recipe.linkedRecipeIds;
     final blocks = <Widget>[];
 
     for (final entry in recipe.componentOrder) {
@@ -271,14 +270,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         final linked = recipeMap[entry];
         if (linked == null) continue;
         if (linked.ingredients.isEmpty) continue;
-        final colorIdx = linkedIds.indexOf(entry);
         final componentScale = _componentScaleFactor(recipe, linked, scaleFactor);
         blocks.add(_IngredientBlock(
           title: linked.title,
           ingredients: linked.ingredients,
-          color: colorIdx >= 0
-              ? componentColors[colorIdx % componentColors.length]
-              : null,
+          color: componentColor(entry),
           scaleFactor: componentScale,
         ));
       }
@@ -389,16 +385,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     final ordered = resolveStepOrder(recipe, allRecipes);
     if (ordered.isEmpty) return const SizedBox.shrink();
 
-    final linkedIds = recipe.linkedRecipeIds;
     final tiles = <Widget>[];
     for (int i = 0; i < ordered.length; i++) {
       final entry = ordered[i];
       final isOwn = entry.sourceRecipeId == 'self';
-      final colorIdx =
-          isOwn ? -1 : linkedIds.indexOf(entry.sourceRecipeId);
-      final color = colorIdx >= 0
-          ? componentColors[colorIdx % componentColors.length]
-          : null;
+      final color = isOwn ? null : componentColor(entry.sourceRecipeId);
       final sourceTitle = isOwn
           ? null
           : (recipeMap[entry.sourceRecipeId]?.title ?? '(deleted)');

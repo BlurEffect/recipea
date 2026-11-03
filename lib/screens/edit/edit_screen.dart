@@ -383,10 +383,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   Color? _componentColorFor(String sourceRecipeId) {
     if (sourceRecipeId == 'self') return null;
-    final linkedIds = _componentOrder.where((id) => id != 'self').toList();
-    final idx = linkedIds.indexOf(sourceRecipeId);
-    if (idx < 0) return null;
-    return componentColors[idx % componentColors.length];
+    return componentColor(sourceRecipeId);
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -645,12 +642,13 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               // Ingredients
               const _FieldLabel(text: 'Ingredients'),
               const SizedBox(height: 12),
-              IngredientListEditor(
-                ingredients: _ingredients,
-                onChanged: (list) => setState(() => _ingredients = list),
-              ),
-              // Read-only ingredients from linked component recipes
-              if (_isComposite) ..._buildLinkedIngredients(recipeMap),
+              if (_isComposite)
+                ..._buildOrderedIngredients(recipeMap)
+              else
+                IngredientListEditor(
+                  ingredients: _ingredients,
+                  onChanged: (list) => setState(() => _ingredients = list),
+                ),
               const SizedBox(height: 24),
               // Steps
               const _FieldLabel(text: 'Steps'),
@@ -702,20 +700,21 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     ];
   }
 
-  // ── Linked component ingredients (read-only) ──────────────────────────────
+  // ── Ingredient section for composite recipes (respects componentOrder) ──────
 
-  List<Widget> _buildLinkedIngredients(Map<String, Recipe> recipeMap) {
+  List<Widget> _buildOrderedIngredients(Map<String, Recipe> recipeMap) {
     final widgets = <Widget>[];
-    int colorIndex = 0;
     for (final id in _componentOrder) {
-      if (id == 'self') continue;
-      final comp = recipeMap[id];
-      if (comp == null || comp.ingredients.isEmpty) {
-        colorIndex++;
+      if (id == 'self') {
+        widgets.add(IngredientListEditor(
+          ingredients: _ingredients,
+          onChanged: (list) => setState(() => _ingredients = list),
+        ));
         continue;
       }
-      final color = componentColors[colorIndex % componentColors.length];
-      colorIndex++;
+      final comp = recipeMap[id];
+      if (comp == null || comp.ingredients.isEmpty) continue;
+      final color = componentColor(id);
       widgets.add(const SizedBox(height: 12));
       widgets.add(
         Container(
@@ -798,13 +797,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   ? 'This recipe'
                   : (linkedRecipe?.title ?? '(deleted)');
 
-              final linkedIndex = _componentOrder
-                  .where((id) => id != 'self')
-                  .toList()
-                  .indexOf(entry);
-              final color = isSelf
-                  ? null
-                  : componentColors[linkedIndex % componentColors.length];
+              final color = isSelf ? null : componentColor(entry);
 
               return ListTile(
                 key: ValueKey(entry),
