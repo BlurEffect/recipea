@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 
 class ImagePickerField extends StatelessWidget {
@@ -18,6 +19,7 @@ class ImagePickerField extends StatelessWidget {
   });
 
   Future<void> _pick(BuildContext context, ImageSource source) async {
+    final l = AppLocalizations.of(context)!;
     final picker = ImagePicker();
     final xFile = await picker.pickImage(
       source: source,
@@ -32,14 +34,14 @@ class ImagePickerField extends StatelessWidget {
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       uiSettings: [
         AndroidUiSettings(
-          toolbarTitle: 'Crop photo',
+          toolbarTitle: l.imagePickCropTitle,
           toolbarColor: AppColors.primary,
           toolbarWidgetColor: Colors.white,
           lockAspectRatio: true,
           hideBottomControls: true,
         ),
         IOSUiSettings(
-          title: 'Crop photo',
+          title: l.imagePickCropTitle,
           aspectRatioLockEnabled: true,
           resetAspectRatioEnabled: false,
         ),
@@ -51,6 +53,7 @@ class ImagePickerField extends StatelessWidget {
   }
 
   void _showOptions(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -63,7 +66,7 @@ class ImagePickerField extends StatelessWidget {
             const SizedBox(height: 12),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from library'),
+              title: Text(l.imagePickFromLibrary),
               onTap: () {
                 Navigator.pop(context);
                 _pick(context, ImageSource.gallery);
@@ -71,7 +74,7 @@ class ImagePickerField extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
+              title: Text(l.imagePickTakePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _pick(context, ImageSource.camera);
@@ -80,7 +83,7 @@ class ImagePickerField extends StatelessWidget {
             if (imagePath != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: AppColors.error),
-                title: const Text('Remove photo', style: TextStyle(color: AppColors.error)),
+                title: Text(l.imagePickRemove, style: const TextStyle(color: AppColors.error)),
                 onTap: () {
                   Navigator.pop(context);
                   onRemove?.call();
@@ -95,6 +98,7 @@ class ImagePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _showOptions(context),
       child: LayoutBuilder(
@@ -117,7 +121,7 @@ class ImagePickerField extends StatelessWidget {
                         Image.file(
                           File(imagePath!),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _emptyState(),
+                          errorBuilder: (_, _, _) => _emptyState(l),
                         ),
                         Positioned(
                           bottom: 8,
@@ -129,16 +133,15 @@ class ImagePickerField extends StatelessWidget {
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Change photo',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 12),
+                            child: Text(
+                              l.editChangePhoto,
+                              style: const TextStyle(color: Colors.white, fontSize: 12),
                             ),
                           ),
                         ),
                       ],
                     )
-                  : _emptyState(),
+                  : _emptyState(l),
             ),
           );
         },
@@ -146,15 +149,15 @@ class ImagePickerField extends StatelessWidget {
     );
   }
 
-  Widget _emptyState() => Column(
+  Widget _emptyState(AppLocalizations l) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.add_photo_alternate_outlined,
+        children: [
+          const Icon(Icons.add_photo_alternate_outlined,
               size: 40, color: AppColors.textSecondary),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Add a photo',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            l.editAddPhoto,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       );

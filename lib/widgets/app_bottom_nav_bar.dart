@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 class AppBottomNavBar extends StatelessWidget {
@@ -12,6 +13,7 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (i) => context.go(_routes[i]),
@@ -19,21 +21,21 @@ class AppBottomNavBar extends StatelessWidget {
       unselectedItemColor: AppColors.textSecondary,
       backgroundColor: AppColors.surface,
       type: BottomNavigationBarType.fixed,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.menu_book_outlined),
-          activeIcon: Icon(Icons.menu_book),
-          label: 'Recipes',
+          icon: const Icon(Icons.menu_book_outlined),
+          activeIcon: const Icon(Icons.menu_book),
+          label: l.navRecipes,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month_outlined),
-          activeIcon: Icon(Icons.calendar_month),
-          label: 'Meal Plan',
+          icon: const Icon(Icons.calendar_month_outlined),
+          activeIcon: const Icon(Icons.calendar_month),
+          label: l.navMealPlan,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart_outlined),
-          activeIcon: Icon(Icons.shopping_cart),
-          label: 'Shopping',
+          icon: const Icon(Icons.shopping_cart_outlined),
+          activeIcon: const Icon(Icons.shopping_cart),
+          label: l.navShopping,
         ),
       ],
     );

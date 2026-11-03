@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/seed_data.dart';
 import '../data/tag_definitions.dart';
+import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../providers/category_providers.dart';
 import '../providers/custom_tag_providers.dart';
@@ -41,80 +42,84 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
     showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isNew ? 'New Category' : 'Edit Category'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                maxLength: 30,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(hintText: 'Category name'),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Color',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+        builder: (ctx, setDialogState) {
+          final l = AppLocalizations.of(ctx)!;
+          return AlertDialog(
+            title: Text(isNew ? l.categoryManagerNewTitle : l.categoryManagerEditTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: 30,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(hintText: l.categoryManagerRenameHint),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: categoryColorPalette.map((color) {
-                  final isSelected = selectedColor == color;
-                  return GestureDetector(
-                    onTap: () => setDialogState(() => selectedColor = color),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: AppColors.textPrimary, width: 2.5)
+                const SizedBox(height: 12),
+                Text(
+                  l.categoryManagerColorLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: categoryColorPalette.map((color) {
+                    final isSelected = selectedColor == color;
+                    return GestureDetector(
+                      onTap: () => setDialogState(() => selectedColor = color),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: AppColors.textPrimary, width: 2.5)
+                              : null,
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check, size: 16, color: Colors.white)
                             : null,
                       ),
-                      child: isSelected
-                          ? const Icon(Icons.check, size: 16, color: Colors.white)
-                          : null,
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  final name = controller.text.trim();
+                  if (name.isEmpty) return;
+                  ref.read(categoryProvider.notifier).save(CategoryDefinition(
+                        id: existing?.id ?? const Uuid().v4(),
+                        name: name,
+                        color: selectedColor,
+                      ));
+                  Navigator.pop(ctx);
+                },
+                child: Text(isNew ? l.create : l.save),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isEmpty) return;
-                ref.read(categoryProvider.notifier).save(CategoryDefinition(
-                      id: existing?.id ?? const Uuid().v4(),
-                      name: name,
-                      color: selectedColor,
-                    ));
-                Navigator.pop(ctx);
-              },
-              child: Text(isNew ? 'Create' : 'Save'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   void _confirmDeleteCategory(CategoryDefinition category) {
+    final l = AppLocalizations.of(context)!;
     final allTags = ref.read(allTagsProvider);
     final tagsInCategory = allTags.where((t) => t.category == category.id).toList();
     final tagIds = tagsInCategory.map((t) => t.id).toSet();
@@ -126,25 +131,20 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
     final tagCount = tagsInCategory.length;
     final recipeCount = affectedRecipes.length;
 
-    String message = "'${category.name}' will be permanently deleted.";
-    if (tagCount > 0) {
-      message += '\n\nThis will also delete $tagCount tag${tagCount == 1 ? '' : 's'}';
-      if (recipeCount > 0) {
-        message +=
-            ' and remove them from $recipeCount recipe${recipeCount == 1 ? '' : 's'}';
-      }
-      message += '.';
-    }
+    final message = l.categoryManagerDeleteCatPermanent(category.name) +
+        (tagCount > 0
+            ? '\n\n${l.categoryManagerDeleteCatTagsLine(tagCount)}${l.categoryManagerDeleteCatRecipesLine(recipeCount)}'
+            : '');
 
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete category?'),
+        title: Text(l.categoryManagerDeleteCatTitle),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -152,7 +152,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               await _cascadeDeleteCategory(
                   category, tagsInCategory, tagIds, affectedRecipes);
             },
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+            child: Text(l.delete, style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -184,34 +184,31 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
   // ── Tag CRUD ───────────────────────────────────────────────────────────────
 
   void _confirmDeleteTag(TagDefinition tag) {
+    final l = AppLocalizations.of(context)!;
     final affectedRecipes = ref
         .read(recipeListProvider)
         .where((r) => r.tagIds.contains(tag.id))
         .toList();
     final recipeCount = affectedRecipes.length;
 
-    String message = "'${tag.label}' will be permanently deleted.";
-    if (recipeCount > 0) {
-      message +=
-          '\n\nIt will be removed from $recipeCount recipe${recipeCount == 1 ? '' : 's'}.';
-    }
-
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete tag?'),
-        content: Text(message),
+        title: Text(l.categoryManagerDeleteTagTitle),
+        content: Text(
+          '${l.categoryManagerDeleteTagPermanent(tag.label)}\n\n${l.categoryManagerDeleteTagBody(recipeCount)}',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await _deleteSingleTag(tag, affectedRecipes);
             },
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+            child: Text(l.delete, style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -234,6 +231,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final categories = ref.watch(categoryProvider);
     final allTags = ref.watch(allTagsProvider);
 
@@ -245,7 +243,6 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
       builder: (_, scrollController) {
         return Column(
           children: [
-            // Handle
             const SizedBox(height: 12),
             Container(
               width: 40,
@@ -256,19 +253,18 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  const Text(
-                    'Manage Categories',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l.categoryManagerTitle,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.add),
-                    tooltip: 'Add category',
+                    tooltip: l.categoryManagerAddCategory,
                     onPressed: _showEditCategoryDialog,
                   ),
                 ],
@@ -277,10 +273,10 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
             const Divider(height: 1),
             Expanded(
               child: categories.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        'No categories yet',
-                        style: TextStyle(color: AppColors.textSecondary),
+                        l.categoryManagerNoCats,
+                        style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     )
                   : ListView.builder(
@@ -325,10 +321,10 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Category header row
         Row(
           children: [
             const SizedBox(width: 16),
@@ -352,21 +348,20 @@ class _CategorySection extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 18),
-              tooltip: 'Edit',
+              tooltip: l.edit,
               visualDensity: VisualDensity.compact,
               onPressed: onEdit,
             ),
             IconButton(
-              icon: Icon(Icons.delete_outline,
+              icon: const Icon(Icons.delete_outline,
                   size: 18, color: AppColors.error),
-              tooltip: 'Delete category',
+              tooltip: l.categoryManagerDeleteCatTitle,
               visualDensity: VisualDensity.compact,
               onPressed: onDelete,
             ),
             const SizedBox(width: 4),
           ],
         ),
-        // Tags
         if (tags.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
@@ -392,7 +387,7 @@ class _CategorySection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
             child: Text(
-              'No tags',
+              l.categoryManagerNoTags,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,

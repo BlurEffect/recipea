@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../l10n/app_localizations.dart';
 import '../providers/meal_plan_providers.dart';
 import '../theme/app_colors.dart';
 
@@ -14,14 +16,10 @@ class AddToMealPlanSheet extends ConsumerWidget {
     required this.recipeTitle,
   });
 
-  static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final plan = ref.watch(mealPlanProvider);
 
     final today = DateTime.now();
@@ -54,7 +52,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Add to Meal Plan',
+                  l.addToMealPlanTitle,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -68,7 +66,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Choose a day to add "$recipeTitle"',
+                  l.addToMealPlanChooseDay(recipeTitle),
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -85,14 +83,14 @@ class AddToMealPlanSheet extends ConsumerWidget {
                 itemBuilder: (context, i) {
                   final day = days[i];
                   final isToday = i == 0;
-                  final dayLabel =
-                      '${_weekdays[day.weekday - 1]}, ${_months[day.month - 1]} ${day.day}';
+                  final dayLabel = DateFormat.MMMEd(locale).format(day);
+                  final header = isToday ? l.addToMealPlanToday(dayLabel) : dayLabel;
                   final existingCount =
                       plan.getSlotsForDay(day).whereType<String>().length;
 
                   return ListTile(
                     title: Text(
-                      isToday ? 'Today — $dayLabel' : dayLabel,
+                      header,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -103,9 +101,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
                     ),
                     subtitle: existingCount > 0
                         ? Text(
-                            existingCount == 1
-                                ? '1 recipe planned'
-                                : '$existingCount recipes planned',
+                            l.addToMealPlanPlanned(existingCount),
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
@@ -123,7 +119,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Added to $dayLabel'),
+                          content: Text(l.addToMealPlanAdded(dayLabel)),
                           duration: const Duration(seconds: 2),
                         ),
                       );

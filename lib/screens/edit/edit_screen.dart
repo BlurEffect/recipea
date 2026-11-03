@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/seed_data.dart';
 import '../../data/tag_definitions.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/ingredient.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_step.dart';
@@ -43,7 +44,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   // Composite recipe state
   List<String> _componentOrder = [];
   List<String> _compositeStepOrder = [];
-  // Controllers for own steps in composite mode (stepId → controller).
   Map<String, TextEditingController> _ownStepControllerMap = {};
 
   bool get _isNew => widget.recipeId == 'new';
@@ -83,24 +83,24 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     final status = await Permission.microphone.status;
     if (status.isGranted || !mounted) return;
 
+    final l = AppLocalizations.of(context)!;
+
     if (status.isPermanentlyDenied) {
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('Microphone access'),
-          content: const Text(
-              'Microphone permission was permanently denied. '
-              'Enable it in Settings to use voice input while writing recipe steps.'),
+          title: Text(l.editMicTitle),
+          content: Text(l.editMicDeniedBody),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Not now')),
+                child: Text(l.notNow)),
             TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   openAppSettings();
                 },
-                child: const Text('Open Settings')),
+                child: Text(l.openSettings)),
           ],
         ),
       );
@@ -110,17 +110,15 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     final allow = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Voice input'),
-        content: const Text(
-            'Allow microphone access so you can use voice input '
-            'to dictate recipe steps and other fields.'),
+        title: Text(l.editVoiceInputTitle),
+        content: Text(l.editVoiceInputBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Not now')),
+              child: Text(l.notNow)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Allow')),
+              child: Text(l.allow)),
         ],
       ),
     );
@@ -153,7 +151,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         List<String>.from(_componentOrder)..removeWhere((id) => id == recipeId);
     final stillHasLinked = newOrder.any((id) => id != 'self');
     if (!stillHasLinked) {
-      // Revert to standalone mode — sync text before clearing controllers
       _syncOwnSteps();
       for (final c in _ownStepControllerMap.values) {
         c.dispose();
@@ -164,7 +161,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         _compositeStepOrder = [];
       });
     } else {
-      // Remove this component's steps from compositeStepOrder
       final allRecipes = ref.read(recipeListProvider);
       final compRecipe = allRecipes
           .cast<Recipe?>()
@@ -182,6 +178,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   }
 
   Future<void> _showAddComponentDialog(List<Recipe> allRecipes) async {
+    final l = AppLocalizations.of(context)!;
     final selfId = _isNew ? '' : widget.recipeId;
     final alreadyLinked = _componentOrder.where((id) => id != 'self').toSet();
 
@@ -196,7 +193,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     if (available.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No recipes available to link')),
+        SnackBar(content: Text(l.editNoRecipesAvailable)),
       );
       return;
     }
@@ -207,6 +204,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocalState) {
+          final ll = AppLocalizations.of(ctx)!;
           final filtered = query.isEmpty
               ? available
               : available
@@ -215,7 +213,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   .toList();
 
           return AlertDialog(
-            title: const Text('Add component recipe'),
+            title: Text(ll.editPickComponent),
             contentPadding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
             content: SizedBox(
               width: double.maxFinite,
@@ -227,9 +225,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     child: TextField(
                       autofocus: true,
                       onChanged: (v) => setLocalState(() => query = v),
-                      decoration: const InputDecoration(
-                        hintText: 'Search…',
-                        prefixIcon: Icon(Icons.search, size: 20),
+                      decoration: InputDecoration(
+                        hintText: ll.editSearchRecipesHint,
+                        prefixIcon: const Icon(Icons.search, size: 20),
                         isDense: true,
                       ),
                     ),
@@ -237,12 +235,12 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   const Divider(height: 1),
                   Flexible(
                     child: filtered.isEmpty
-                        ? const Padding(
-                            padding: EdgeInsets.all(24),
+                        ? Padding(
+                            padding: const EdgeInsets.all(24),
                             child: Text(
-                              'No recipes match',
+                              ll.editNoRecipesMatch,
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           )
                         : ListView.builder(
@@ -260,7 +258,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text(ll.cancel),
               ),
             ],
           );
@@ -272,7 +270,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
     setState(() {
       if (_componentOrder.isEmpty) {
-        // First component: initialise own step controllers from current _steps
         _ownStepControllerMap = {
           for (final s in _steps)
             s.id: TextEditingController(text: s.instruction),
@@ -286,8 +283,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   // ── Composite step management ─────────────────────────────────────────────
 
-  /// Rebuilds [_steps] from [_ownStepControllerMap], preserving the current
-  /// [_steps] ordering. Call before save or before re-entering standalone mode.
   void _syncOwnSteps() {
     final newSteps = <RecipeStep>[];
     for (int i = 0; i < _steps.length; i++) {
@@ -355,8 +350,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     if (validateStepOrder(proposedOrder, tempRecipe, allRecipes)) {
       setState(() {
         _compositeStepOrder = proposedOrder;
-        // Keep _steps order aligned with the composite own-step ordering
-        // so block-fallback and future syncs stay consistent.
         final ownIds =
             proposedOrder.where((id) => _ownStepControllerMap.containsKey(id));
         final ownMap = {for (final s in _steps) s.id: s};
@@ -373,9 +366,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Steps within a recipe must stay in order'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.editStepsInOrder),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -391,10 +384,11 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   Future<void> _save() async {
     if (_isComposite) _syncOwnSteps();
 
+    final l = AppLocalizations.of(context)!;
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a title')),
+        SnackBar(content: Text(l.editPleaseAddTitle)),
       );
       return;
     }
@@ -461,7 +455,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.editSaveFailed(e.toString()))),
         );
       }
     } finally {
@@ -473,6 +467,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final allTags = ref.watch(allTagsProvider);
     final allRecipes = ref.watch(recipeListProvider);
     final recipeMap = {for (final r in allRecipes) r.id: r};
@@ -486,7 +481,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
-            _isNew ? 'New Recipe' : 'Edit Recipe',
+            _isNew ? l.editNewRecipe : l.editExistingRecipe,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           actions: [
@@ -505,7 +500,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               TextButton(
                 onPressed: _save,
                 child: Text(
-                  _isNew ? 'Save' : 'Update',
+                  _isNew ? l.save : l.update,
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -539,11 +534,11 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               ),
               const SizedBox(height: 20),
               // Title
-              const _FieldLabel(text: 'Title'),
+              _FieldLabel(text: l.editTitleLabel),
               const SizedBox(height: 8),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(hintText: 'Recipe name'),
+                decoration: InputDecoration(hintText: l.editTitleHint),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -554,7 +549,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               // Servings
               Row(
                 children: [
-                  const _FieldLabel(text: 'Servings'),
+                  _FieldLabel(text: l.editServingsLabel),
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 70,
@@ -576,15 +571,14 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               ),
               const SizedBox(height: 20),
               // Cook's notes / description
-              const _FieldLabel(text: "Cook's notes"),
+              _FieldLabel(text: l.detailDescription),
               const SizedBox(height: 8),
               TextField(
                 controller: _descriptionController,
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
-                  hintText:
-                      'Special equipment, tips, anything to know before starting (optional)',
+                  hintText: l.editDescriptionHint,
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                 ),
               ),
@@ -595,7 +589,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               // Tags
               Row(
                 children: [
-                  const _FieldLabel(text: 'Tags'),
+                  _FieldLabel(text: l.editTagsLabel),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: () => showTagSelectorSheet(
@@ -605,7 +599,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                           setState(() => _selectedTagIds = f.included),
                     ),
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add tags'),
+                    label: Text(l.editAddTagsButton),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       padding: EdgeInsets.zero,
@@ -615,10 +609,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               ),
               const SizedBox(height: 8),
               if (_selectedTagIds.isEmpty)
-                const Text(
-                  'No tags selected',
+                Text(
+                  l.editNoTagsSelected,
                   style:
-                      TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                      const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                 )
               else
                 Wrap(
@@ -636,11 +630,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                           ))
                       .toList(),
                 ),
-              // Read-only tags from linked component recipes
               if (_isComposite) ..._buildLinkedTagChips(allTags, recipeMap),
               const SizedBox(height: 24),
               // Ingredients
-              const _FieldLabel(text: 'Ingredients'),
+              _FieldLabel(text: l.editIngredientsLabel),
               const SizedBox(height: 12),
               if (_isComposite)
                 ..._buildOrderedIngredients(recipeMap)
@@ -651,7 +644,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 ),
               const SizedBox(height: 24),
               // Steps
-              const _FieldLabel(text: 'Steps'),
+              _FieldLabel(text: l.editStepsLabel),
               const SizedBox(height: 12),
               _isComposite
                   ? _buildCompositeStepsSection(allRecipes, recipeMap)
@@ -671,6 +664,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   List<Widget> _buildLinkedTagChips(
       List<TagDefinition> allTags, Map<String, Recipe> recipeMap) {
+    final l = AppLocalizations.of(context)!;
     final linkedTagIds = <String>[];
     for (final id in _componentOrder) {
       if (id == 'self') continue;
@@ -691,9 +685,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     if (chips.isEmpty) return const [];
     return [
       const SizedBox(height: 8),
-      const Text(
-        'From components',
-        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+      Text(
+        l.editFromComponents,
+        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
       ),
       const SizedBox(height: 6),
       Wrap(spacing: 8, runSpacing: 8, children: chips),
@@ -772,14 +766,15 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   Widget _buildComponentsSection(
       List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _FieldLabel(text: 'Components'),
+        _FieldLabel(text: l.editComponentsLabel),
         const SizedBox(height: 4),
-        const Text(
-          'Link other recipes as building blocks. Their steps and ingredients will be combined into this recipe.',
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        Text(
+          l.editComponentsDescription,
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         if (_componentOrder.isNotEmpty) ...[
           const SizedBox(height: 8),
@@ -794,8 +789,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               final linkedRecipe = isSelf ? null : recipeMap[entry];
               final isDeleted = !isSelf && linkedRecipe == null;
               final title = isSelf
-                  ? 'This recipe'
-                  : (linkedRecipe?.title ?? '(deleted)');
+                  ? l.editComponentSelf
+                  : (linkedRecipe?.title ?? l.editComponentDeleted);
 
               final color = isSelf ? null : componentColor(entry);
 
@@ -850,7 +845,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           child: TextButton.icon(
             onPressed: () => _showAddComponentDialog(allRecipes),
             icon: const Icon(Icons.add_link, size: 18),
-            label: const Text('Add component recipe'),
+            label: Text(l.editAddComponent),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
         ),
@@ -862,6 +857,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   Widget _buildCompositeStepsSection(
       List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
+    final l = AppLocalizations.of(context)!;
     final tempRecipe = Recipe(
       id: _isNew ? '' : widget.recipeId,
       title: '',
@@ -879,9 +875,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (ordered.isEmpty)
-          const Text(
-            'No steps yet',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          Text(
+            l.editNoStepsYet,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
           )
         else
           ReorderableListView.builder(
@@ -896,7 +892,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               final color = _componentColorFor(entry.sourceRecipeId);
               final sourceTitle = isOwn
                   ? null
-                  : (recipeMap[entry.sourceRecipeId]?.title ?? '(deleted)');
+                  : (recipeMap[entry.sourceRecipeId]?.title ?? l.editComponentDeleted);
 
               return _buildCompositeStepTile(
                 key: ValueKey(entry.step.id),
@@ -914,7 +910,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           child: TextButton.icon(
             onPressed: _addOwnStep,
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add step to this recipe'),
+            label: Text(l.editAddStepToRecipe),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
         ),
@@ -930,6 +926,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     required Color? color,
     required String? sourceTitle,
   }) {
+    final l = AppLocalizations.of(context)!;
     final badgeColor = color ?? AppColors.primary;
     final badge = Container(
       width: 28,
@@ -985,7 +982,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 controller: controller,
                 maxLines: null,
                 decoration: InputDecoration(
-                  hintText: 'Step ${index + 1}...',
+                  hintText: l.editStepHint(index + 1),
                   isDense: true,
                 ),
                 textInputAction: TextInputAction.newline,
@@ -1006,7 +1003,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         ),
       );
     } else {
-      // Read-only linked step
       return Container(
         key: key,
         decoration: BoxDecoration(
@@ -1036,7 +1032,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'from $sourceTitle',
+                          l.detailFromComponent(sourceTitle),
                           style: TextStyle(
                             fontSize: 12,
                             color: color ?? AppColors.textSecondary,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/recipe_step.dart';
 import '../../../theme/app_colors.dart';
 
@@ -119,7 +120,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
                     onChanged: (_) => _notify(),
                     maxLines: null,
                     decoration: InputDecoration(
-                      hintText: 'Step ${i + 1}...',
+                      hintText: AppLocalizations.of(context)!.editStepHint(i + 1),
                       isDense: true,
                     ),
                     textInputAction: TextInputAction.newline,
@@ -160,7 +161,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
           child: TextButton.icon(
             onPressed: _addStep,
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add step'),
+            label: Text(AppLocalizations.of(context)!.editAddStep),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           ),
         ),

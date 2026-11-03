@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/meal_plan.dart';
 import '../../models/recipe.dart';
 import '../../providers/meal_plan_providers.dart';
@@ -15,16 +17,12 @@ import '../../widgets/empty_state.dart';
 class MealPlanScreen extends ConsumerWidget {
   const MealPlanScreen({super.key});
 
-  static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
     final plan = ref.watch(mealPlanProvider);
     final allRecipes = ref.watch(recipeListProvider);
+    final locale = Localizations.localeOf(context).languageCode;
 
     final today = DateTime.now();
     final days = List.generate(7, (i) {
@@ -38,14 +36,14 @@ class MealPlanScreen extends ConsumerWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             Text(
-              'Meal Plan',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              l.navMealPlan,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             Text(
-              'Check days to include in shopping list',
-              style: TextStyle(
+              l.mealPlanSubtitle,
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.normal,
                 color: AppColors.textSecondary,
@@ -61,19 +59,18 @@ class MealPlanScreen extends ConsumerWidget {
                 showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Clear meal plan?'),
-                    content: const Text(
-                        'All recipe assignments will be removed.'),
+                    title: Text(l.mealPlanClearTitle),
+                    content: Text(l.mealPlanClearBody),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(l.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
-                          'Clear',
-                          style: TextStyle(color: AppColors.error),
+                        child: Text(
+                          l.clear,
+                          style: const TextStyle(color: AppColors.error),
                         ),
                       ),
                     ],
@@ -85,15 +82,18 @@ class MealPlanScreen extends ConsumerWidget {
                 });
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'clear',
-                child: Text(
-                  'Clear plan',
-                  style: TextStyle(color: AppColors.error),
+            itemBuilder: (ctx) {
+              final ll = AppLocalizations.of(ctx)!;
+              return [
+                PopupMenuItem(
+                  value: 'clear',
+                  child: Text(
+                    ll.mealPlanClearPlan,
+                    style: const TextStyle(color: AppColors.error),
+                  ),
                 ),
-              ),
-            ],
+              ];
+            },
           ),
         ],
       ),
@@ -101,12 +101,11 @@ class MealPlanScreen extends ConsumerWidget {
       body: allRecipes.isEmpty
           ? EmptyState(
               icon: Icons.menu_book_outlined,
-              message: 'No recipes yet',
-              subMessage:
-                  'Add some recipes first, then plan your meals here',
+              message: l.mealPlanNoRecipes,
+              subMessage: l.mealPlanNoRecipesSubtitle,
               action: TextButton(
                 onPressed: () => context.go('/recipes'),
-                child: const Text('Go to Recipes'),
+                child: Text(l.goToRecipes),
               ),
             )
           : ListView.builder(
@@ -115,9 +114,8 @@ class MealPlanScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final day = days[index];
                 final isToday = index == 0;
-                final dayLabel =
-                    '${_weekdays[day.weekday - 1]}, ${_months[day.month - 1]} ${day.day}';
-                final header = isToday ? 'Today — $dayLabel' : dayLabel;
+                final dayLabel = DateFormat.MMMEd(locale).format(day);
+                final header = isToday ? l.mealPlanToday(dayLabel) : dayLabel;
                 final slots = plan.getSlotsForDay(day);
 
                 return Card(
@@ -212,7 +210,7 @@ class MealPlanScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Add meal',
+                                l.mealPlanAddMeal,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color:
@@ -231,7 +229,6 @@ class MealPlanScreen extends ConsumerWidget {
     );
   }
 
-  /// Opens the picker for an existing filled slot. "Remove meal" removes the slot.
   Future<void> _showRecipePicker(
     BuildContext context,
     WidgetRef ref,
@@ -262,7 +259,6 @@ class MealPlanScreen extends ConsumerWidget {
     );
   }
 
-  /// Opens the picker with no pre-selected recipe; adds a slot only on confirm.
   Future<void> _addMeal(
     BuildContext context,
     WidgetRef ref,
@@ -305,6 +301,7 @@ class _SlotRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final hasImage = recipe.imagePath != null;
 
     return InkWell(
@@ -342,7 +339,7 @@ class _SlotRow extends StatelessWidget {
               icon: const Icon(Icons.edit_outlined, size: 16),
               color: AppColors.textSecondary,
               onPressed: onEdit,
-              tooltip: 'Change recipe',
+              tooltip: l.mealPlanChangeRecipe,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
@@ -389,6 +386,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final filtered = widget.allRecipes
         .where((r) =>
             _query.isEmpty ||
@@ -414,13 +412,13 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Choose a recipe',
-                  style: TextStyle(
+                  l.mealPlanChooseRecipe,
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -432,11 +430,11 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Search recipes...',
-                  prefixIcon: Icon(Icons.search, size: 20),
+                decoration: InputDecoration(
+                  hintText: l.mealPlanSearchRecipes,
+                  prefixIcon: const Icon(Icons.search, size: 20),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
                 onChanged: (v) => setState(() => _query = v),
               ),
@@ -446,9 +444,9 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
               ListTile(
                 leading: const Icon(Icons.delete_outline,
                     size: 20, color: AppColors.error),
-                title: const Text(
-                  'Remove meal',
-                  style: TextStyle(color: AppColors.error),
+                title: Text(
+                  l.mealPlanRemoveMeal,
+                  style: const TextStyle(color: AppColors.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -459,11 +457,10 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
             ],
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        'No recipes found',
-                        style:
-                            TextStyle(color: AppColors.textSecondary),
+                        l.mealPlanNoResults,
+                        style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     )
                   : ListView.builder(

@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../data/seed_data.dart';
 import '../data/tag_definitions.dart';
+import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../models/ingredient.dart';
 import '../models/recipe.dart';
@@ -25,6 +26,7 @@ Future<File> exportRecipeToPdf(
   List<Recipe> allRecipes,
   List<TagDefinition> allTags,
   List<CategoryDefinition> allCategories,
+  AppLocalizations l,
 ) async {
   final doc = pw.Document();
 
@@ -44,20 +46,20 @@ Future<File> exportRecipeToPdf(
     ..._buildHeader(recipe, heroImage),
     ..._buildComponentChips(recipe, recipeMap),
     ..._buildTags(recipe, allRecipes, allTags, tagMap, categoryColorMap),
-    _buildServings(recipe),
+    _buildServings(recipe, l),
     if (recipe.description != null && recipe.description!.isNotEmpty)
       _buildDescription(recipe.description!),
     pw.SizedBox(height: 12),
     pw.Divider(color: _green, thickness: 0.5),
     pw.SizedBox(height: 12),
-    ..._buildIngredients(recipe, allRecipes),
-    ..._buildSteps(recipe, allRecipes, recipeMap),
+    ..._buildIngredients(recipe, allRecipes, l),
+    ..._buildSteps(recipe, allRecipes, recipeMap, l),
   ];
 
   doc.addPage(pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.fromLTRB(40, 40, 40, 60),
-    footer: _buildFooter,
+    footer: (ctx) => _buildFooter(ctx, l),
     build: (_) => content,
   ));
 
@@ -168,19 +170,19 @@ pw.Widget _buildDescription(String text) => pw.Padding(
       ),
     );
 
-pw.Widget _buildServings(Recipe recipe) => pw.Text(
-      'Serves ${recipe.servings}',
+pw.Widget _buildServings(Recipe recipe, AppLocalizations l) => pw.Text(
+      l.pdfServes(recipe.servings),
       style: pw.TextStyle(fontSize: 11, color: _textGray),
     );
 
-List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes) {
+List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes, AppLocalizations l) {
   final ingredients = recipe.isComposite
       ? allIngredients(recipe, allRecipes)
       : recipe.ingredients;
   if (ingredients.isEmpty) return [];
 
   return [
-    pw.Text('Ingredients',
+    pw.Text(l.pdfIngredients,
         style: pw.TextStyle(
             fontSize: 14, fontWeight: pw.FontWeight.bold, color: _green)),
     pw.SizedBox(height: 8),
@@ -192,13 +194,13 @@ List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes) {
 }
 
 List<pw.Widget> _buildSteps(
-    Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
+    Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap, AppLocalizations l) {
   if (recipe.isComposite) {
     final ordered = resolveStepOrder(recipe, allRecipes);
     if (ordered.isEmpty) return [];
     final linkedIds = recipe.linkedRecipeIds;
     return [
-      pw.Text('Steps',
+      pw.Text(l.pdfSteps,
           style: pw.TextStyle(
               fontSize: 14, fontWeight: pw.FontWeight.bold, color: _green)),
       pw.SizedBox(height: 8),
@@ -209,13 +211,14 @@ List<pw.Widget> _buildSteps(
           ordered[i].sourceRecipeId,
           linkedIds,
           recipeMap,
+          l,
         ),
     ];
   } else {
     if (recipe.steps.isEmpty) return [];
     final sorted = [...recipe.steps]..sort((a, b) => a.order.compareTo(b.order));
     return [
-      pw.Text('Steps',
+      pw.Text(l.pdfSteps,
           style: pw.TextStyle(
               fontSize: 14, fontWeight: pw.FontWeight.bold, color: _green)),
       pw.SizedBox(height: 8),
@@ -318,6 +321,7 @@ pw.Widget _buildCompositeStepRow(
   String sourceRecipeId,
   List<String> linkedIds,
   Map<String, Recipe> recipeMap,
+  AppLocalizations l,
 ) {
   final isOwn = sourceRecipeId == 'self';
   final colorIdx = isOwn ? -1 : linkedIds.indexOf(sourceRecipeId);
@@ -359,7 +363,7 @@ pw.Widget _buildCompositeStepRow(
                 pw.Text(instruction,
                     style: const pw.TextStyle(fontSize: 11, color: _textDark)),
                 if (sourceTitle != null)
-                  pw.Text('from $sourceTitle',
+                  pw.Text(l.pdfFrom(sourceTitle),
                       style: pw.TextStyle(
                           fontSize: 9,
                           color: _textGray,
@@ -373,7 +377,7 @@ pw.Widget _buildCompositeStepRow(
   );
 }
 
-pw.Widget _buildFooter(pw.Context context) {
+pw.Widget _buildFooter(pw.Context context, AppLocalizations l) {
   return pw.Padding(
     padding: const pw.EdgeInsets.only(top: 8),
     child: pw.Row(
@@ -389,14 +393,14 @@ pw.Widget _buildFooter(pw.Context context) {
             ),
           ),
           pw.SizedBox(width: 6),
-          pw.Text('Recipea',
+          pw.Text(l.pdfAppName,
               style: pw.TextStyle(
                   fontSize: 10,
                   fontWeight: pw.FontWeight.bold,
                   color: _green)),
         ]),
         pw.Text(
-          'Page ${context.pageNumber} of ${context.pagesCount}',
+          l.pdfPageOf(context.pageNumber, context.pagesCount),
           style: const pw.TextStyle(fontSize: 9, color: _textGray),
         ),
       ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/tag_definitions.dart';
+import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../providers/category_providers.dart';
 import '../providers/custom_tag_providers.dart';
@@ -85,60 +86,64 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
     showDialog<void>(
       context: dialogContext,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('New Tag'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                maxLength: 30,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(hintText: 'Tag name'),
+        builder: (ctx, setDialogState) {
+          final l = AppLocalizations.of(ctx)!;
+          return AlertDialog(
+            title: Text(l.tagSelectorNewTagTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: 30,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(hintText: l.tagSelectorTagNameHint),
+                ),
+                const SizedBox(height: 4),
+                DropdownButtonFormField<CategoryDefinition>(
+                  initialValue: selectedCategory,
+                  items: categories
+                      .map((c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c.name),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setDialogState(() => selectedCategory = v!),
+                  decoration: InputDecoration(labelText: l.tagSelectorCategoryLabel),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.cancel),
               ),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<CategoryDefinition>(
-                initialValue: selectedCategory,
-                items: categories
-                    .map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c.name),
-                        ))
-                    .toList(),
-                onChanged: (v) => setDialogState(() => selectedCategory = v!),
-                decoration: const InputDecoration(labelText: 'Category'),
+              TextButton(
+                onPressed: () {
+                  final label = controller.text.trim();
+                  if (label.isEmpty) return;
+                  final tag = TagDefinition(
+                    id: const Uuid().v4(),
+                    label: label,
+                    category: selectedCategory.id,
+                    isCustom: true,
+                  );
+                  ref.read(customTagsProvider.notifier).save(tag);
+                  Navigator.pop(ctx);
+                },
+                child: Text(l.create),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final label = controller.text.trim();
-                if (label.isEmpty) return;
-                final tag = TagDefinition(
-                  id: const Uuid().v4(),
-                  label: label,
-                  category: selectedCategory.id,
-                  isCustom: true,
-                );
-                ref.read(customTagsProvider.notifier).save(tag);
-                Navigator.pop(ctx);
-              },
-              child: const Text('Create'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final allTags = ref.watch(allTagsProvider);
     final categoryMap = ref.watch(categoryMapProvider);
 
@@ -183,17 +188,17 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Select Tags',
-                        style: TextStyle(
+                      Text(
+                        l.tagSelectorTitle,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Tap once to include · tap twice to exclude',
-                        style: TextStyle(
+                      Text(
+                        l.tagSelectorTapHint,
+                        style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
@@ -210,7 +215,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                         });
                         widget.onChanged(const TagFilterState());
                       },
-                      child: const Text('Clear all'),
+                      child: Text(l.browseClearAll),
                     ),
                 ],
               ),
@@ -220,9 +225,9 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
-                decoration: const InputDecoration(
-                  hintText: 'Search tags...',
-                  prefixIcon: Icon(Icons.search, size: 20),
+                decoration: InputDecoration(
+                  hintText: l.tagSelectorSearchHint,
+                  prefixIcon: const Icon(Icons.search, size: 20),
                   isDense: true,
                 ),
               ),
@@ -268,7 +273,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                         TextButton.icon(
                           onPressed: () => _showCreateDialog(sheetContext),
                           icon: const Icon(Icons.add, size: 16),
-                          label: const Text('New tag'),
+                          label: Text(l.tagSelectorNewTag),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.primary,
                           ),
@@ -279,7 +284,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                             context: sheetContext,
                           ),
                           icon: const Icon(Icons.category_outlined, size: 16),
-                          label: const Text('Manage categories'),
+                          label: Text(l.tagSelectorManage),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.textSecondary,
                           ),

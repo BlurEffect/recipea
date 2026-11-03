@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
@@ -13,21 +15,17 @@ import '../../widgets/empty_state.dart';
 class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({super.key});
 
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final shoppingList = ref.watch(shoppingListProvider);
     final items = shoppingList.items;
 
     String? generatedLabel;
     if (shoppingList.generatedAt != null) {
-      final d = shoppingList.generatedAt!;
-      generatedLabel =
-          'Generated ${_months[d.month - 1]} ${d.day}, ${d.year}';
+      final dateStr = DateFormat.yMMMd(locale).format(shoppingList.generatedAt!);
+      generatedLabel = l.shoppingGeneratedOn(dateStr);
     }
 
     return Scaffold(
@@ -37,9 +35,9 @@ class ShoppingListScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Shopping List',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              l.shoppingListTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             if (generatedLabel != null)
               Text(
@@ -56,28 +54,27 @@ class ShoppingListScreen extends ConsumerWidget {
           if (items.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.share_outlined),
-              tooltip: 'Share list',
-              onPressed: () => _shareList(shoppingList),
+              tooltip: l.shoppingShareTooltip,
+              onPressed: () => _shareList(context, shoppingList),
             ),
           if (items.any((i) => i.checked))
             IconButton(
               icon: const Icon(Icons.remove_done_outlined),
-              tooltip: 'Clear checked',
+              tooltip: l.shoppingClearCheckedTooltip,
               onPressed: () async {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Clear checked items?'),
-                    content: const Text(
-                        'Checked-off items will be permanently removed from the list.'),
+                    title: Text(l.shoppingClearCheckedTitle),
+                    content: Text(l.shoppingClearCheckedBody),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(l.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Clear'),
+                        child: Text(l.clear),
                       ),
                     ],
                   ),
@@ -89,24 +86,23 @@ class ShoppingListScreen extends ConsumerWidget {
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Regenerate from meal plan',
+            tooltip: l.shoppingGenerateTooltip,
             onPressed: () async {
               final hasChecked = items.any((i) => i.checked);
               if (hasChecked) {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Regenerate list?'),
-                    content: const Text(
-                        'Your checked-off items will be lost.'),
+                    title: Text(l.shoppingRegenerateTitle),
+                    content: Text(l.shoppingRegenerateBody),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(l.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Regenerate'),
+                        child: Text(l.shoppingRegenerateAction),
                       ),
                     ],
                   ),
@@ -125,14 +121,14 @@ class ShoppingListScreen extends ConsumerWidget {
           ? EmptyState(
               icon: Icons.shopping_cart_outlined,
               message: shoppingList.generatedAt == null
-                  ? 'No shopping list yet'
-                  : 'Shopping list is empty',
+                  ? l.shoppingEmptyTitle
+                  : l.shoppingEmptyGeneratedTitle,
               subMessage: shoppingList.generatedAt == null
-                  ? 'Assign recipes in your Meal Plan, then tap refresh to generate'
-                  : 'Your meal plan has no ingredients to list',
+                  ? l.shoppingEmptySubtitle
+                  : l.shoppingEmptyGeneratedSubtitle,
               action: TextButton(
                 onPressed: () => context.go('/meal-plan'),
-                child: const Text('Go to Meal Plan'),
+                child: Text(l.shoppingGoToMealPlan),
               ),
             )
           : ReorderableListView.builder(
@@ -197,16 +193,17 @@ class ShoppingListScreen extends ConsumerWidget {
   }
 }
 
-void _shareList(ShoppingList list) {
+void _shareList(BuildContext context, ShoppingList list) {
+  final l = AppLocalizations.of(context)!;
   final pending = list.items.where((i) => !i.checked).toList();
   final String body;
   if (pending.isEmpty) {
-    body = 'Everything has been checked off!';
+    body = l.shoppingShareCheckedOff;
   } else {
     body = pending.map((i) {
       final amount = i.amount.isNotEmpty ? '${i.amount}  ' : '';
       return '• $amount${i.name}';
     }).join('\n');
   }
-  Share.share('Shopping List\n${'─' * 20}\n$body');
+  Share.share('${l.shoppingShareHeader}\n${'─' * 20}\n$body');
 }

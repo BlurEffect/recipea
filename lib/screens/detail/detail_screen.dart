@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/seed_data.dart';
 import '../../data/tag_definitions.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/ingredient.dart';
 import '../../models/recipe.dart';
 import '../../providers/category_providers.dart';
@@ -45,9 +46,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     final recipeMap = {for (final r in allRecipes) r.id: r};
 
     if (recipe == null) {
+      final l = AppLocalizations.of(context)!;
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Recipe not found')),
+        body: Center(child: Text(l.detailRecipeNotFound)),
       );
     }
 
@@ -137,7 +139,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     _buildCompositeIngredients(recipe, allRecipes, recipeMap,
                         scaleFactor: scaleFactor)
                   else if (recipe.ingredients.isNotEmpty) ...[
-                    _SectionHeader(title: 'Ingredients'),
+                    _SectionHeader(title: AppLocalizations.of(context)!.detailIngredients),
                     const SizedBox(height: 12),
                     ..._ingredientRows(recipe.ingredients,
                         scaleFactor: scaleFactor),
@@ -147,7 +149,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   if (recipe.isComposite)
                     _buildCompositeSteps(recipe, allRecipes, recipeMap)
                   else if (recipe.steps.isNotEmpty) ...[
-                    _SectionHeader(title: 'Steps'),
+                    _SectionHeader(title: AppLocalizations.of(context)!.detailSteps),
                     const SizedBox(height: 12),
                     ...recipe.steps.map(
                       (step) => _StandalonStepTile(
@@ -247,12 +249,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     final hasIngredients = allIngredients(recipe, allRecipes).isNotEmpty;
     if (!hasIngredients) return const SizedBox.shrink();
 
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(child: _SectionHeader(title: 'Ingredients')),
+            Expanded(child: _SectionHeader(title: l.detailIngredients)),
             SegmentedButton<bool>(
               style: SegmentedButton.styleFrom(
                 textStyle: const TextStyle(fontSize: 12),
@@ -260,9 +263,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 minimumSize: const Size(0, 32),
               ),
-              segments: const [
-                ButtonSegment(value: false, label: Text('Separate')),
-                ButtonSegment(value: true, label: Text('Combined')),
+              segments: [
+                ButtonSegment(value: false, label: Text(l.detailSeparate)),
+                ButtonSegment(value: true, label: Text(l.detailCombined)),
               ],
               selected: {_showCombinedIngredients},
               onSelectionChanged: (v) =>
@@ -287,11 +290,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       {double scaleFactor = 1.0}) {
     final blocks = <Widget>[];
 
+    final l = AppLocalizations.of(context)!;
     for (final entry in recipe.componentOrder) {
       if (entry == 'self') {
         if (recipe.ingredients.isEmpty) continue;
         blocks.add(_IngredientBlock(
-          title: 'This recipe',
+          title: l.detailThisRecipe,
           ingredients: recipe.ingredients,
           color: null,
           scaleFactor: scaleFactor,
@@ -420,9 +424,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       final entry = ordered[i];
       final isOwn = entry.sourceRecipeId == 'self';
       final color = isOwn ? null : componentColor(entry.sourceRecipeId);
+      final l = AppLocalizations.of(context)!;
       final sourceTitle = isOwn
           ? null
-          : (recipeMap[entry.sourceRecipeId]?.title ?? '(deleted)');
+          : (recipeMap[entry.sourceRecipeId]?.title ?? l.detailDeletedComponent);
       tiles.add(_CompositeStepTile(
         number: i + 1,
         instruction: entry.step.instruction,
@@ -434,7 +439,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeader(title: 'Steps'),
+        _SectionHeader(title: AppLocalizations.of(context)!.detailSteps),
         const SizedBox(height: 12),
         ...tiles,
       ],
@@ -518,12 +523,12 @@ class _RecipeAppBar extends ConsumerWidget {
         IconButton(
           icon: const Icon(Icons.format_list_bulleted),
           onPressed: () => context.go('/recipes'),
-          tooltip: 'All recipes',
+          tooltip: AppLocalizations.of(context)!.detailHomeTooltip,
         ),
         IconButton(
           icon: const Icon(Icons.edit_outlined),
           onPressed: () => context.push('/recipes/${recipe.id}/edit'),
-          tooltip: 'Edit recipe',
+          tooltip: AppLocalizations.of(context)!.detailEditTooltip,
         ),
         PopupMenuButton<String>(
           onSelected: (value) async {
@@ -563,7 +568,7 @@ class _RecipeAppBar extends ConsumerWidget {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e')),
+                    SnackBar(content: Text(AppLocalizations.of(context)!.detailExportFailed(e.toString()))),
                   );
                 }
               }
@@ -572,8 +577,9 @@ class _RecipeAppBar extends ConsumerWidget {
                 final allTags = ref.read(allTagsProvider);
                 final allCategories = ref.read(categoryProvider);
                 final allRecipes = ref.read(recipeListProvider);
+                final l = AppLocalizations.of(context)!;
                 final file = await exportRecipeToPdf(
-                    recipe, allRecipes, allTags, allCategories);
+                    recipe, allRecipes, allTags, allCategories, l);
                 if (context.mounted) {
                   await Share.shareXFiles(
                       [XFile(file.path, mimeType: 'application/pdf')]);
@@ -581,7 +587,7 @@ class _RecipeAppBar extends ConsumerWidget {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('PDF export failed: $e')),
+                    SnackBar(content: Text(AppLocalizations.of(context)!.detailPdfFailed(e.toString()))),
                   );
                 }
               }
@@ -597,22 +603,22 @@ class _RecipeAppBar extends ConsumerWidget {
               await ref.read(recipeListProvider.notifier).save(copy);
               if (context.mounted) context.go('/recipes/$newId/edit');
             } else if (value == 'delete') {
+              final l = AppLocalizations.of(context)!;
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Delete recipe?'),
-                  content:
-                      Text('Delete "${recipe.title}"? This cannot be undone.'),
+                  title: Text(l.detailDeleteTitle(recipe.title)),
+                  content: Text(l.detailDeleteBody),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
+                      child: Text(l.cancel),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: AppColors.error),
+                      child: Text(
+                        l.delete,
+                        style: const TextStyle(color: AppColors.error),
                       ),
                     ),
                   ],
@@ -624,19 +630,19 @@ class _RecipeAppBar extends ConsumerWidget {
               }
             }
           },
-          itemBuilder: (_) => const [
-            PopupMenuItem(
-              value: 'add_to_plan',
-              child: Text('Add to Meal Plan'),
-            ),
-            PopupMenuItem(value: 'export', child: Text('Export recipe')),
-            PopupMenuItem(value: 'export_pdf', child: Text('Export as PDF')),
-            PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
-            PopupMenuItem(
-              value: 'delete',
-              child: Text('Delete', style: TextStyle(color: AppColors.error)),
-            ),
-          ],
+          itemBuilder: (ctx) {
+            final l = AppLocalizations.of(ctx)!;
+            return [
+              PopupMenuItem(value: 'add_to_plan', child: Text(l.detailAddToMealPlan)),
+              PopupMenuItem(value: 'export', child: Text(l.detailExportRecipe)),
+              PopupMenuItem(value: 'export_pdf', child: Text(l.detailExportPdf)),
+              PopupMenuItem(value: 'duplicate', child: Text(l.detailDuplicate)),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(l.detailDeleteMenuLabel, style: const TextStyle(color: AppColors.error)),
+              ),
+            ];
+          },
         ),
       ],
     );
@@ -785,7 +791,7 @@ class _CompositeStepTile extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'from $sourceTitle',
+                        AppLocalizations.of(context)!.detailFromComponent(sourceTitle!),
                         style: TextStyle(
                           fontSize: 12,
                           color: color ?? AppColors.textSecondary,
@@ -921,9 +927,9 @@ class _ServingScaler extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          'Serves',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.detailServes,
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
@@ -1005,9 +1011,9 @@ class _UsedInSection extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'PART OF',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.detailPartOf,
+            style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,

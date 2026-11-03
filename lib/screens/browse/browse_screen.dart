@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/tag_definitions.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/meal_plan_providers.dart';
@@ -39,7 +40,6 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    // Reset search when screen is removed from the tree.
     ref.read(recipeSearchProvider.notifier).state = '';
     super.dispose();
   }
@@ -51,6 +51,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final recipes = ref.watch(filteredRecipesProvider);
     final filter = ref.watch(tagFilterProvider);
     final query = ref.watch(recipeSearchProvider);
@@ -60,42 +61,42 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 
     Widget emptyState;
     if (!anyFilter) {
-      emptyState = const EmptyState(
+      emptyState = EmptyState(
         icon: Icons.menu_book_outlined,
-        message: 'No recipes yet',
-        subMessage: 'Tap the + button to add your first recipe',
+        message: l.browseEmptyTitle,
+        subMessage: l.browseEmptySubtitle,
       );
     } else if (query.isNotEmpty && filter.isEmpty) {
       emptyState = EmptyState(
         icon: Icons.search_off,
-        message: 'No recipes match "$query"',
-        subMessage: 'Try a different search term',
+        message: l.browseSearchEmptyTitle(query),
+        subMessage: l.browseSearchEmptySubtitle,
         action: TextButton(
           onPressed: _clearSearch,
-          child: const Text('Clear search'),
+          child: Text(l.browseClearSearch),
         ),
       );
     } else if (query.isEmpty && filter.isNotEmpty) {
       emptyState = EmptyState(
         icon: Icons.search_off,
-        message: 'No recipes match these filters',
-        subMessage: 'Try removing some filters',
+        message: l.browseFilterEmptyTitle,
+        subMessage: l.browseFilterEmptySubtitle,
         action: TextButton(
           onPressed: () => ref.read(tagFilterProvider.notifier).clear(),
-          child: const Text('Clear filters'),
+          child: Text(l.browseClearFilters),
         ),
       );
     } else {
       emptyState = EmptyState(
         icon: Icons.search_off,
-        message: 'No recipes found',
-        subMessage: 'Try clearing the search or filters',
+        message: l.noRecipesFound,
+        subMessage: l.browseNoRecipesFoundSubtitle,
         action: TextButton(
           onPressed: () {
             _clearSearch();
             ref.read(tagFilterProvider.notifier).clear();
           },
-          child: const Text('Clear all'),
+          child: Text(l.browseClearAll),
         ),
       );
     }
@@ -103,9 +104,9 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Recipes',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          l.navRecipes,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           PopupMenuButton<String>(
@@ -117,9 +118,9 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 await _importRecipes(context, ref);
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'export_all', child: Text('Export full backup')),
-              PopupMenuItem(value: 'import', child: Text('Import recipes')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'export_all', child: Text(l.browseExportBackup)),
+              PopupMenuItem(value: 'import', child: Text(l.browseImportRecipes)),
             ],
           ),
         ],
@@ -127,7 +128,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
       bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go('/recipes/new/edit'),
-        tooltip: 'Create recipe',
+        tooltip: l.create,
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -182,22 +183,20 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 }
 
 Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
+  final l = AppLocalizations.of(context)!;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text('Export full backup'),
-      content: const Text(
-        'Exports all your recipes, categories, tags, and meal plan history. '
-        'Use this to back up your data or migrate to a new device.',
-      ),
+      title: Text(l.browseExportBackupTitle),
+      content: Text(l.browseExportBackupBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Export'),
+          child: Text(l.export),
         ),
       ],
     ),
@@ -225,8 +224,9 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
     }
   } catch (e) {
     if (context.mounted) {
+      final l2 = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
+        SnackBar(content: Text(l2.browseExportFailed(e.toString()))),
       );
     }
   }
@@ -248,9 +248,8 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
     result = await ref.read(recipeRepositoryProvider).importFromJson(jsonString);
   } catch (e) {
     if (context.mounted) {
-      final msg = e is FormatException
-          ? e.message
-          : 'Import failed. Make sure you\'re using a .recipea or .json file exported from this app.';
+      final l = AppLocalizations.of(context)!;
+      final msg = e is FormatException ? e.message : l.browseImportFailed;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
     return;
@@ -259,17 +258,16 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
   int totalImported = result.imported;
 
   if (result.conflicts.isNotEmpty && context.mounted) {
+    final l = AppLocalizations.of(context)!;
     final replace = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Duplicate recipes'),
+        title: Text(l.browseDuplicatesTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${result.conflicts.length} recipe(s) already exist:',
-            ),
+            Text(l.browseDuplicatesExist(result.conflicts.length)),
             const SizedBox(height: 8),
             ...result.conflicts.map(
               (t) => Padding(
@@ -279,17 +277,17 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
               ),
             ),
             const SizedBox(height: 12),
-            const Text('Replace them with the imported versions?'),
+            Text(l.browseDuplicatesReplace),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Skip'),
+            child: Text(l.skip),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Replace'),
+            child: Text(l.replace),
           ),
         ],
       ),
@@ -318,9 +316,10 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
   }
 
   if (context.mounted) {
+    final l = AppLocalizations.of(context)!;
     final msg = totalImported == 0
-        ? 'Nothing new to import'
-        : 'Imported $totalImported recipe(s)';
+        ? l.browseImportNothingNew
+        : l.browseImportedCount(totalImported);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
@@ -340,6 +339,7 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
@@ -349,7 +349,7 @@ class _SearchField extends StatelessWidget {
         autofocus: false,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search recipes…',
+          hintText: l.browseSearchHint,
           hintStyle:
               const TextStyle(color: AppColors.textSecondary, fontSize: 14),
           prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
@@ -409,6 +409,7 @@ class _TagFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -418,13 +419,13 @@ class _TagFilterBar extends StatelessWidget {
             child: filter.isEmpty
                 ? GestureDetector(
                     onTap: onAddTags,
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.filter_list, size: 18, color: AppColors.textSecondary),
-                        SizedBox(width: 8),
+                        const Icon(Icons.filter_list, size: 18, color: AppColors.textSecondary),
+                        const SizedBox(width: 8),
                         Text(
-                          'Filter by tags...',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          l.browseFilterHint,
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                         ),
                       ],
                     ),
@@ -471,12 +472,12 @@ class _TagFilterBar extends StatelessWidget {
             padding: EdgeInsets.zero,
             onSelected: onSort,
             itemBuilder: (_) => [
-              _sortMenuItem(SortOption.titleAsc,       'A → Z',           sort),
-              _sortMenuItem(SortOption.titleDesc,      'Z → A',           sort),
-              _sortMenuItem(SortOption.newestFirst,    'Newest first',    sort),
-              _sortMenuItem(SortOption.oldestFirst,    'Oldest first',    sort),
-              _sortMenuItem(SortOption.lastCookedDesc, 'Recently cooked', sort),
-              _sortMenuItem(SortOption.lastCookedAsc,  'Cook next',       sort),
+              _sortMenuItem(SortOption.titleAsc,       l.sortTitleAsc,       sort),
+              _sortMenuItem(SortOption.titleDesc,      l.sortTitleDesc,      sort),
+              _sortMenuItem(SortOption.newestFirst,    l.sortNewestFirst,    sort),
+              _sortMenuItem(SortOption.oldestFirst,    l.sortOldestFirst,    sort),
+              _sortMenuItem(SortOption.lastCookedDesc, l.sortLastCookedDesc, sort),
+              _sortMenuItem(SortOption.lastCookedAsc,  l.sortLastCookedAsc,  sort),
             ],
             child: Container(
               padding: const EdgeInsets.all(6),

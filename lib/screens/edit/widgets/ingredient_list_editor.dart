@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/seed_data.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/ingredient.dart';
 import '../../../theme/app_colors.dart';
 
@@ -94,7 +95,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
         TextButton.icon(
           onPressed: _addRow,
           icon: const Icon(Icons.add, size: 16),
-          label: const Text('Add ingredient'),
+          label: Text(AppLocalizations.of(context)!.editAddIngredient),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             padding: EdgeInsets.zero,
@@ -122,8 +123,8 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                   controller: row.quantityController,
                   onChanged: (_) => _notify(),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    hintText: 'Qty',
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.editQtyHint,
                     isDense: true,
                   ),
                   style: const TextStyle(fontSize: 14),
@@ -142,8 +143,8 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                 child: TextField(
                   controller: row.nameController,
                   onChanged: (_) => _notify(),
-                  decoration: const InputDecoration(
-                    hintText: 'Ingredient name',
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.editIngredientNameHint,
                     isDense: true,
                   ),
                   style: const TextStyle(fontSize: 14),
@@ -179,16 +180,16 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
             child: TextField(
               controller: row.noteController,
               onChanged: (_) => _notify(),
-              decoration: const InputDecoration(
-                hintText: 'Note (e.g. "to taste", "finely chopped")',
-                hintStyle: TextStyle(
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.editNoteHint,
+                hintStyle: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
                 isDense: true,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
-                focusedBorder: UnderlineInputBorder(),
+                focusedBorder: const UnderlineInputBorder(),
               ),
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
@@ -230,9 +231,9 @@ class _UnitField extends StatelessWidget {
             focusNode: fn,
             onChanged: (_) => onChanged(),
             style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              hintText: 'Unit',
-              hintStyle: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context)!.editUnitHint,
+              hintStyle: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
               isDense: true,
             ),
           );
