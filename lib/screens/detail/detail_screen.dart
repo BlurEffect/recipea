@@ -86,6 +86,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  // Recipe image
+                  if (recipe.imagePath != null) ...[
+                    const SizedBox(height: 16),
+                    _buildRecipeImage(recipe.imagePath!),
+                  ],
                   // Component chips (composite only)
                   if (recipe.isComposite) ...[
                     const SizedBox(height: 12),
@@ -158,6 +163,31 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ── Recipe image ──────────────────────────────────────────────────────────
+
+  Widget _buildRecipeImage(String imagePath) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = (constraints.maxWidth * 0.5).clamp(120.0, 280.0);
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    Container(color: AppColors.divider),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -481,7 +511,6 @@ class _RecipeAppBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SliverAppBar(
-      expandedHeight: recipe.imagePath != null ? 280 : 0,
       pinned: true,
       backgroundColor: AppColors.background,
       foregroundColor: AppColors.textPrimary,
@@ -610,16 +639,6 @@ class _RecipeAppBar extends ConsumerWidget {
           ],
         ),
       ],
-      flexibleSpace: recipe.imagePath != null
-          ? FlexibleSpaceBar(
-              background: Image.file(
-                File(recipe.imagePath!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    Container(color: AppColors.divider),
-              ),
-            )
-          : null,
     );
   }
 }

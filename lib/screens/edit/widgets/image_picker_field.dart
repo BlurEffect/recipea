@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../theme/app_colors.dart';
 
@@ -24,8 +25,28 @@ class ImagePickerField extends StatelessWidget {
       maxHeight: 1200,
       imageQuality: 85,
     );
-    if (xFile != null) {
-      onImagePicked(xFile.path);
+    if (xFile == null) return;
+
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: xFile.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop photo',
+          toolbarColor: AppColors.primary,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: true,
+          hideBottomControls: true,
+        ),
+        IOSUiSettings(
+          title: 'Crop photo',
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+        ),
+      ],
+    );
+    if (cropped != null) {
+      onImagePicked(cropped.path);
     }
   }
 
@@ -76,42 +97,51 @@ class ImagePickerField extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _showOptions(context),
-      child: Container(
-        height: 200,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.divider.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: imagePath != null
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.file(
-                    File(imagePath!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _emptyState(),
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Change photo',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : _emptyState(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = (constraints.maxWidth * 0.5).clamp(120.0, 280.0);
+          return Center(
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: AppColors.divider.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.divider),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: imagePath != null
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.file(
+                          File(imagePath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _emptyState(),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Change photo',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : _emptyState(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -119,7 +149,8 @@ class ImagePickerField extends StatelessWidget {
   Widget _emptyState() => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
-          Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppColors.textSecondary),
+          Icon(Icons.add_photo_alternate_outlined,
+              size: 40, color: AppColors.textSecondary),
           SizedBox(height: 8),
           Text(
             'Add a photo',
