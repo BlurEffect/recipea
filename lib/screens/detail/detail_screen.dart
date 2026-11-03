@@ -496,6 +496,11 @@ class _RecipeAppBar extends ConsumerWidget {
       foregroundColor: AppColors.textPrimary,
       actions: [
         IconButton(
+          icon: const Icon(Icons.format_list_bulleted),
+          onPressed: () => context.go('/recipes'),
+          tooltip: 'All recipes',
+        ),
+        IconButton(
           icon: const Icon(Icons.edit_outlined),
           onPressed: () => context.push('/recipes/${recipe.id}/edit'),
           tooltip: 'Edit recipe',

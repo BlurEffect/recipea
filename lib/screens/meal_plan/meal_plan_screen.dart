@@ -177,9 +177,11 @@ class MealPlanScreen extends ConsumerWidget {
                                   (r) => r?.id == recipeId,
                                   orElse: () => null,
                                 );
+                        if (recipe == null) return const SizedBox.shrink();
                         return _SlotRow(
+                          key: ValueKey(recipeId),
                           recipe: recipe,
-                          onTap: () => _showRecipePicker(
+                          onEdit: () => _showRecipePicker(
                             context,
                             ref,
                             day,
@@ -190,16 +192,14 @@ class MealPlanScreen extends ConsumerWidget {
                           onRemove: () => ref
                               .read(mealPlanProvider.notifier)
                               .removeSlot(day, slotIndex),
-                          onNavigate: recipe != null
-                              ? () => context.push('/recipes/${recipe.id}')
-                              : null,
+                          onNavigate: () =>
+                              context.push('/recipes/${recipe.id}'),
                         );
                       }),
                       // Add slot button
                       const Divider(height: 1),
                       InkWell(
-                        onTap: () =>
-                            ref.read(mealPlanProvider.notifier).addSlot(day),
+                        onTap: () => _addMeal(context, ref, day, allRecipes),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -231,6 +231,7 @@ class MealPlanScreen extends ConsumerWidget {
     );
   }
 
+  /// Opens the picker for an existing filled slot. "Remove meal" removes the slot.
   Future<void> _showRecipePicker(
     BuildContext context,
     WidgetRef ref,
@@ -254,34 +255,60 @@ class MealPlanScreen extends ConsumerWidget {
         onPick: (recipeId) => ref
             .read(mealPlanProvider.notifier)
             .setSlotRecipe(day, slotIndex, recipeId),
+        onRemoveSlot: () => ref
+            .read(mealPlanProvider.notifier)
+            .removeSlot(day, slotIndex),
+      ),
+    );
+  }
+
+  /// Opens the picker with no pre-selected recipe; adds a slot only on confirm.
+  Future<void> _addMeal(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime day,
+    List<Recipe> allRecipes,
+  ) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => _RecipePickerSheet(
+        currentRecipeId: null,
+        allRecipes: allRecipes,
+        onPick: (recipeId) {
+          if (recipeId != null) {
+            ref.read(mealPlanProvider.notifier).addRecipeToDay(day, recipeId);
+          }
+        },
       ),
     );
   }
 }
 
 class _SlotRow extends StatelessWidget {
-  final Recipe? recipe;
-  final VoidCallback onTap;       // opens recipe picker
+  final Recipe recipe;
+  final VoidCallback onEdit;
   final VoidCallback onRemove;
-  final VoidCallback? onNavigate; // navigate to recipe detail
+  final VoidCallback onNavigate;
 
   const _SlotRow({
+    super.key,
     required this.recipe,
-    required this.onTap,
+    required this.onEdit,
     required this.onRemove,
-    this.onNavigate,
+    required this.onNavigate,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = recipe?.imagePath != null;
-    final hasFilled = recipe != null;
-    // For filled slots: primary tap navigates; edit icon opens picker.
-    // For empty slots: primary tap opens picker.
-    final primaryTap = hasFilled ? onNavigate : onTap;
+    final hasImage = recipe.imagePath != null;
 
     return InkWell(
-      onTap: primaryTap,
+      onTap: onNavigate,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, hasImage ? 8 : 10, 8, hasImage ? 8 : 10),
         child: Row(
@@ -290,7 +317,7 @@ class _SlotRow extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: Image.file(
-                  File(recipe!.imagePath!),
+                  File(recipe.imagePath!),
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
@@ -301,35 +328,24 @@ class _SlotRow extends StatelessWidget {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: hasFilled
-                  ? Text(
-                      recipe!.title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                  : Text(
-                      'Tap to choose a recipe...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-            ),
-            // For filled slots: edit button opens the picker.
-            if (hasFilled)
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 16),
-                color: AppColors.textSecondary,
-                onPressed: onTap,
-                tooltip: 'Change recipe',
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              child: Text(
+                recipe.title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              color: AppColors.textSecondary,
+              onPressed: onEdit,
+              tooltip: 'Change recipe',
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
             IconButton(
               icon: const Icon(Icons.close, size: 16),
               color: AppColors.textSecondary,
@@ -348,11 +364,13 @@ class _RecipePickerSheet extends StatefulWidget {
   final String? currentRecipeId;
   final List<Recipe> allRecipes;
   final void Function(String? recipeId) onPick;
+  final VoidCallback? onRemoveSlot;
 
   const _RecipePickerSheet({
     required this.currentRecipeId,
     required this.allRecipes,
     required this.onPick,
+    this.onRemoveSlot,
   });
 
   @override
@@ -424,17 +442,17 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
               ),
             ),
             const Divider(height: 1),
-            if (widget.currentRecipeId != null) ...[
+            if (widget.onRemoveSlot != null) ...[
               ListTile(
-                leading: const Icon(Icons.close,
-                    size: 20, color: AppColors.textSecondary),
+                leading: const Icon(Icons.delete_outline,
+                    size: 20, color: AppColors.error),
                 title: const Text(
-                  'Leave slot empty',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  'Remove meal',
+                  style: TextStyle(color: AppColors.error),
                 ),
                 onTap: () {
-                  widget.onPick(null);
                   Navigator.pop(context);
+                  widget.onRemoveSlot!();
                 },
               ),
               const Divider(height: 1),
