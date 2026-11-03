@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data/tag_definitions.dart';
 import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
+import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../repositories/recipe_repository.dart';
 import '../../theme/app_colors.dart';
@@ -117,7 +118,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'export_all', child: Text('Export database')),
+              PopupMenuItem(value: 'export_all', child: Text('Export full backup')),
               PopupMenuItem(value: 'import', child: Text('Import recipes')),
             ],
           ),
@@ -181,11 +182,39 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 }
 
 Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Export full backup'),
+      content: const Text(
+        'Exports all your recipes, categories, tags, and meal plan history. '
+        'Use this to back up your data or migrate to a new device.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Export'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
   try {
     final repo = ref.read(recipeRepositoryProvider);
     final allTags = ref.read(allTagsProvider);
     final allCategories = ref.read(categoryProvider);
-    final json = await repo.exportToJson([], allTags, allCategories);
+    final mealPlan = ref.read(mealPlanProvider);
+    final json = await repo.exportToJson(
+      [],
+      allTags,
+      allCategories,
+      mealPlanHistory: mealPlan.daySlots,
+    );
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/database.recipea');
     await file.writeAsString(json);
@@ -283,6 +312,10 @@ Future<void> _importRecipes(BuildContext context, WidgetRef ref) async {
   }
 
   ref.read(recipeListProvider.notifier).refresh();
+
+  if (result.mealPlanHistory != null) {
+    ref.read(mealPlanProvider.notifier).mergeHistory(result.mealPlanHistory!);
+  }
 
   if (context.mounted) {
     final msg = totalImported == 0
@@ -438,10 +471,12 @@ class _TagFilterBar extends StatelessWidget {
             padding: EdgeInsets.zero,
             onSelected: onSort,
             itemBuilder: (_) => [
-              _sortMenuItem(SortOption.titleAsc,    'A → Z',        sort),
-              _sortMenuItem(SortOption.titleDesc,   'Z → A',        sort),
-              _sortMenuItem(SortOption.newestFirst, 'Newest first', sort),
-              _sortMenuItem(SortOption.oldestFirst, 'Oldest first', sort),
+              _sortMenuItem(SortOption.titleAsc,       'A → Z',           sort),
+              _sortMenuItem(SortOption.titleDesc,      'Z → A',           sort),
+              _sortMenuItem(SortOption.newestFirst,    'Newest first',    sort),
+              _sortMenuItem(SortOption.oldestFirst,    'Oldest first',    sort),
+              _sortMenuItem(SortOption.lastCookedDesc, 'Recently cooked', sort),
+              _sortMenuItem(SortOption.lastCookedAsc,  'Cook next',       sort),
             ],
             child: Container(
               padding: const EdgeInsets.all(6),

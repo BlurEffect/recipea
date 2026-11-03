@@ -41,6 +41,24 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
       _save(state.toggleExcludedDate(date));
 
   void clear() => _save(MealPlan.empty());
+
+  /// Merges historical past-date slots from an imported backup.
+  /// Only adds date keys not already present locally; never touches today/future.
+  void mergeHistory(Map<String, List<String?>> importedSlots) {
+    final today = DateTime.now();
+    final todayKey = '${today.year}-'
+        '${today.month.toString().padLeft(2, '0')}-'
+        '${today.day.toString().padLeft(2, '0')}';
+    final merged = Map<String, List<String?>>.from(state.daySlots);
+    bool changed = false;
+    for (final entry in importedSlots.entries) {
+      if (entry.key.compareTo(todayKey) >= 0) continue;
+      if (merged.containsKey(entry.key)) continue;
+      merged[entry.key] = entry.value;
+      changed = true;
+    }
+    if (changed) _save(state.copyWith(daySlots: merged));
+  }
 }
 
 final mealPlanProvider = StateNotifierProvider<MealPlanNotifier, MealPlan>(
@@ -115,6 +133,36 @@ final shoppingListProvider =
     StateNotifierProvider<ShoppingListNotifier, ShoppingList>(
   (ref) => ShoppingListNotifier(ref.read(mealPlanRepositoryProvider)),
 );
+
+// ---------------------------------------------------------------------------
+// Last cooked map (recipeId → most recent past cook date)
+// ---------------------------------------------------------------------------
+
+/// Derives a map of recipeId → most recent date (before today) that the recipe
+/// (or any composite that contains it) appeared in a meal plan slot.
+final lastCookedMapProvider = Provider<Map<String, DateTime>>((ref) {
+  final plan = ref.watch(mealPlanProvider);
+  final allRecipes = ref.watch(recipeListProvider);
+  final recipeMap = {for (final r in allRecipes) r.id: r};
+  final today = DateTime.now();
+  final todayMidnight = DateTime(today.year, today.month, today.day);
+  final result = <String, DateTime>{};
+
+  for (final entry in plan.daySlots.entries) {
+    final date = DateTime.tryParse(entry.key);
+    if (date == null || !date.isBefore(todayMidnight)) continue;
+    for (final recipeId in entry.value.whereType<String>()) {
+      final recipe = recipeMap[recipeId];
+      final ids = <String>{recipeId};
+      if (recipe != null) ids.addAll(allLinkedRecipeIds(recipe, allRecipes));
+      for (final id in ids) {
+        final current = result[id];
+        if (current == null || date.isAfter(current)) result[id] = date;
+      }
+    }
+  }
+  return result;
+});
 
 // ---------------------------------------------------------------------------
 // Ingredient accumulation

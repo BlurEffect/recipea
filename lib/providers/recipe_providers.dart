@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/recipe.dart';
 import '../repositories/recipe_repository.dart';
+import 'meal_plan_providers.dart';
 
 // ── Repository ────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ final recipeSearchProvider = StateProvider<String>((_) => '');
 
 // ── Sort ──────────────────────────────────────────────────────────────────────
 
-enum SortOption { titleAsc, titleDesc, newestFirst, oldestFirst }
+enum SortOption { titleAsc, titleDesc, newestFirst, oldestFirst, lastCookedDesc, lastCookedAsc }
 
 final recipeSortProvider =
     StateProvider<SortOption>((_) => SortOption.titleAsc);
@@ -129,6 +130,7 @@ final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
   final filter = ref.watch(tagFilterProvider);
   final query = ref.watch(recipeSearchProvider).trim().toLowerCase();
   final sort = ref.watch(recipeSortProvider);
+  final cookedMap = ref.watch(lastCookedMapProvider);
 
   var result = recipes;
 
@@ -154,13 +156,30 @@ final filteredRecipesProvider = Provider<List<Recipe>>((ref) {
 
   final sorted = [...result];
   sorted.sort((a, b) => switch (sort) {
-    SortOption.titleAsc    => a.title.compareTo(b.title),
-    SortOption.titleDesc   => b.title.compareTo(a.title),
-    SortOption.newestFirst => b.createdAt.compareTo(a.createdAt),
-    SortOption.oldestFirst => a.createdAt.compareTo(b.createdAt),
+    SortOption.titleAsc      => a.title.compareTo(b.title),
+    SortOption.titleDesc     => b.title.compareTo(a.title),
+    SortOption.newestFirst   => b.createdAt.compareTo(a.createdAt),
+    SortOption.oldestFirst   => a.createdAt.compareTo(b.createdAt),
+    SortOption.lastCookedDesc => _compareByLastCooked(a, b, cookedMap, descending: true),
+    SortOption.lastCookedAsc  => _compareByLastCooked(a, b, cookedMap, descending: false),
   });
   return sorted;
 });
+
+int _compareByLastCooked(
+  Recipe a,
+  Recipe b,
+  Map<String, DateTime> cookedMap, {
+  required bool descending,
+}) {
+  final aDate = cookedMap[a.id];
+  final bDate = cookedMap[b.id];
+  if (aDate == null && bDate == null) return a.title.compareTo(b.title);
+  if (aDate == null) return descending ? 1 : -1;
+  if (bDate == null) return descending ? -1 : 1;
+  final cmp = descending ? bDate.compareTo(aDate) : aDate.compareTo(bDate);
+  return cmp != 0 ? cmp : a.title.compareTo(b.title);
+}
 
 // ── New recipe ID generator ───────────────────────────────────────────────────
 

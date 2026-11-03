@@ -70,8 +70,9 @@ class RecipeRepository {
   Future<String> exportToJson(
     List<String> ids,
     List<TagDefinition> allTags,
-    List<CategoryDefinition> allCategories,
-  ) async {
+    List<CategoryDefinition> allCategories, {
+    Map<String, List<String?>>? mealPlanHistory,
+  }) async {
     final allStored = getAll();
     final baseRecipes = ids.isEmpty
         ? allStored
@@ -111,6 +112,8 @@ class RecipeRepository {
           .map((t) => {'id': t.id, 'label': t.label, 'category': t.category, 'isCustom': t.isCustom})
           .toList(),
       'recipes': jsonList,
+      // ignore: use_null_aware_elements
+      if (mealPlanHistory != null) 'mealPlanHistory': mealPlanHistory,
     });
   }
 
@@ -156,6 +159,7 @@ class RecipeRepository {
       conflictIds: conflictIds,
       customTags: parsed.customTags,
       categories: parsed.categories,
+      mealPlanHistory: parsed.mealPlanHistory,
     );
   }
 
@@ -188,6 +192,7 @@ class RecipeRepository {
     List<dynamic> recipes,
     List<Map<String, dynamic>> customTags,
     List<Map<String, dynamic>> categories,
+    Map<String, List<String?>>? mealPlanHistory,
   }) _parseImportJson(String jsonString) {
     final dynamic decoded;
     try {
@@ -197,7 +202,7 @@ class RecipeRepository {
     }
     if (decoded is List) {
       // Legacy bare-array format — no custom tags or categories
-      return (recipes: decoded, customTags: [], categories: []);
+      return (recipes: decoded, customTags: [], categories: [], mealPlanHistory: null);
     }
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('Unrecognised file structure.');
@@ -209,6 +214,18 @@ class RecipeRepository {
     }
     final customTagsRaw = decoded['customTags'] as List<dynamic>? ?? [];
     final categoriesRaw = decoded['categories'] as List<dynamic>? ?? [];
+
+    Map<String, List<String?>>? history;
+    final rawHistory = decoded['mealPlanHistory'] as Map<String, dynamic>?;
+    if (rawHistory != null) {
+      history = rawHistory.map(
+        (k, v) => MapEntry(
+          k,
+          (v as List<dynamic>).map((e) => e as String?).toList(),
+        ),
+      );
+    }
+
     return (
       recipes: recipes,
       customTags: customTagsRaw
@@ -217,6 +234,7 @@ class RecipeRepository {
       categories: categoriesRaw
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList(),
+      mealPlanHistory: history,
     );
   }
 }
@@ -227,6 +245,7 @@ class ImportResult {
   final List<String> conflictIds;
   final List<Map<String, dynamic>> customTags;
   final List<Map<String, dynamic>> categories;
+  final Map<String, List<String?>>? mealPlanHistory;
 
   const ImportResult({
     required this.imported,
@@ -234,5 +253,6 @@ class ImportResult {
     required this.conflictIds,
     this.customTags = const [],
     this.categories = const [],
+    this.mealPlanHistory,
   });
 }
