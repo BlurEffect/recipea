@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -417,7 +418,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       }
 
       final now = DateTime.now();
-      final servings = int.tryParse(_servingsController.text.trim()) ?? 1;
+      final servings = (int.tryParse(_servingsController.text.trim()) ?? 1).clamp(1, 99);
       final descriptionText = _descriptionController.text.trim();
       final description = descriptionText.isEmpty ? null : descriptionText;
       final recipe = _isNew
@@ -563,6 +564,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     child: TextField(
                       controller: _servingsController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        _ServingsRangeFormatter(),
+                      ],
                       decoration: const InputDecoration(
                         hintText: '1',
                         isDense: true,
@@ -1079,5 +1084,18 @@ class _FieldLabel extends StatelessWidget {
         letterSpacing: 0.3,
       ),
     );
+  }
+}
+
+class _ServingsRangeFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) return newValue;
+    final n = int.tryParse(newValue.text);
+    if (n == null) return oldValue;
+    if (n < 1) return newValue.copyWith(text: '1');
+    if (n > 99) return oldValue;
+    return newValue;
   }
 }

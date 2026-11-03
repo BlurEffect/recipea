@@ -70,18 +70,28 @@ Future<File> exportRecipeToPdf(
 // ── Section builders ──────────────────────────────────────────────────────────
 
 List<pw.Widget> _buildHeader(Recipe recipe, pw.MemoryImage? heroImage) {
+  final titleWidget = pw.Text(
+    recipe.title,
+    style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: _textDark),
+  );
+  if (heroImage == null) {
+    return [titleWidget, pw.SizedBox(height: 8)];
+  }
   return [
-    if (heroImage != null) ...[
-      pw.SizedBox(
-        width: double.infinity,
-        height: 180,
-        child: pw.Image(heroImage, fit: pw.BoxFit.cover),
-      ),
-      pw.SizedBox(height: 12),
-    ],
-    pw.Text(
-      recipe.title,
-      style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: _textDark),
+    pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Expanded(child: titleWidget),
+        pw.SizedBox(width: 16),
+        pw.Container(
+          width: 130,
+          height: 130,
+          decoration: pw.BoxDecoration(
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+            image: pw.DecorationImage(image: heroImage, fit: pw.BoxFit.cover),
+          ),
+        ),
+      ],
     ),
     pw.SizedBox(height: 8),
   ];
@@ -128,20 +138,13 @@ List<pw.Widget> _buildTags(
     final tagColor = catColor != null ? _toPdfColor(catColor) : _green;
     chips.add(pw.Container(
       margin: const pw.EdgeInsets.only(right: 6, bottom: 4),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: pw.BoxDecoration(
-        color: tagColor,
+        color: _lightenPdfColor(tagColor),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
       ),
-      padding: const pw.EdgeInsets.all(1),
-      child: pw.Container(
-        padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: const pw.BoxDecoration(
-          color: PdfColors.white,
-          borderRadius: pw.BorderRadius.all(pw.Radius.circular(9)),
-        ),
-        child: pw.Text(tag.label,
-            style: pw.TextStyle(fontSize: 9, color: _textDark)),
-      ),
+      child: pw.Text(tag.label,
+          style: pw.TextStyle(fontSize: 9, color: tagColor)),
     ));
   }
   return [pw.Wrap(children: chips), pw.SizedBox(height: 8)];
@@ -414,3 +417,10 @@ String _formatAmount(Ingredient ing) {
 
 PdfColor _toPdfColor(Color color) =>
     PdfColor(color.r, color.g, color.b, color.a);
+
+// Blends a PdfColor toward white (factor = how much white to mix in).
+PdfColor _lightenPdfColor(PdfColor c, {double factor = 0.82}) => PdfColor(
+      c.red + (1.0 - c.red) * factor,
+      c.green + (1.0 - c.green) * factor,
+      c.blue + (1.0 - c.blue) * factor,
+    );
