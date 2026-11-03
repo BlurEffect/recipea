@@ -73,7 +73,7 @@ final List<TagDefinition> seedTags = [
 // ── Component recipe color palette ───────────────────────────────────────────
 // Light pastel backgrounds for color-coding step blocks in composite recipes.
 // 'self' (the overarching recipe's own steps) always uses white/default.
-// Colors cycle: componentColors[index % componentColors.length]
+// Color is assigned via componentColor(recipeId) — polynomial hash, not positional index.
 
 // ── Ingredient units ─────────────────────────────────────────────────────────
 // Metric-first list shown in the unit picker when editing ingredients.

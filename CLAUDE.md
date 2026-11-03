@@ -9,8 +9,9 @@ A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with
 | Storage | `hive_flutter ^1.1.0` — `Box<String>` with JSON encoding, no codegen |
 | State | `flutter_riverpod ^2.6.1` — StateNotifier providers |
 | Navigation | `go_router ^14.6.2` — 7 named routes |
-| Images | `image_picker`, `path_provider` — local filesystem, path stored in Hive |
+| Images | `image_picker`, `image_cropper`, `path_provider` — local filesystem, 1:1 crop on pick, path stored in Hive |
 | Export/Import | `share_plus`, `file_picker` — JSON with base64 images |
+| Localisation | `flutter_localizations` (SDK) — ARB + `flutter gen-l10n` pipeline |
 | PDF Export | `pdf ^3.11.0`, `printing ^5.13.2` — print-friendly recipe PDFs |
 | IDs | `uuid ^4.5.1` — v4 UUIDs |
 
@@ -66,6 +67,12 @@ lib/
   screens/
     splash/ browse/ detail/ edit/ meal_plan/ shopping_list/
   services/
+  l10n/
+    app_en.arb              English strings (template)
+    app_de.arb              German translations
+    app_localizations.dart  Generated — do not edit by hand
+    app_localizations_en.dart
+    app_localizations_de.dart
     pdf_export_service.dart  exportRecipeToPdf() — A4 PDF via pw.MultiPage
   theme/
     app_colors.dart         Color tokens
@@ -104,7 +111,7 @@ Repository: `lib/repositories/meal_plan_repository.dart`. `loadPlan()` has a try
 
 **Assigning from detail screen:** Three-dot menu → "Add to Meal Plan" → `AddToMealPlanSheet` (pick a day → appends a new slot with the recipe).
 
-**Slot row interaction model:** For filled slots, the primary row tap navigates to the recipe detail (`context.push`); a small edit icon (✎) opens the recipe picker. For empty slots, the primary row tap opens the picker directly. Both icons use `BoxConstraints(minWidth: 32, minHeight: 32)` for adequate touch targets.
+**Slot row interaction model:** All slots are filled — empty slots no longer exist. Tapping "+ Add meal" opens the recipe picker directly and creates a slot only when a recipe is confirmed. The primary row tap navigates to the recipe detail (`context.push`); a small edit icon (✎) opens the picker to change the recipe. Removing a recipe via the picker's "Remove meal" option deletes the whole slot. Both tap targets use `BoxConstraints(minWidth: 32, minHeight: 32)`.
 
 ## Shopping List
 
@@ -135,7 +142,7 @@ class Ingredient {
 }
 ```
 
-`fromJson` handles the legacy `amount: String` field via `_tryParseAmount` migration — old data is parsed automatically on first load. `ingredientUnits` constant list in `seed_data.dart` drives the unit dropdown (metric-first).
+`fromJson` handles the legacy `amount: String` field via `_tryParseAmount` migration — old data is parsed automatically on first load. `ingredientUnits` constant list in `seed_data.dart` drives the unit **autocomplete field** in the ingredient editor (free-text `RawAutocomplete<String>` with prefix-match suggestions; field may be left empty). Current units (metric-first): `g, kg, ml, l, tsp, tbsp, cup, oz, lb, piece, slice, clove, bunch, pinch, can, sprig, head, stalk, handful`.
 
 ## Storage Pattern
 
@@ -184,6 +191,8 @@ Both boxes are seeded on first launch from `lib/data/seed_data.dart` via `seedIf
 - `titleDesc` — Z → A
 - `newestFirst` — by `createdAt` descending
 - `oldestFirst` — by `createdAt` ascending
+- `lastCookedDesc` — most recently assigned in meal plan first
+- `lastCookedAsc` — least recently cooked first ("what should I cook next?")
 
 **`recipeSortProvider`** — `StateProvider<SortOption>`, defaults to `titleAsc`. Watched by `filteredRecipesProvider`, which applies the sort after tag/search filtering. `RecipeRepository.getAll()` no longer sorts — all ordering is the provider's responsibility.
 
@@ -231,7 +240,7 @@ Import deduplication: if UUID already exists → prompt user to replace.
 - Background: `Color(0xFFF7F6F2)` (warm off-white)
 - Surface (cards): `Colors.white`
 - Tag category colors: user-configurable, stored in Hive, seeded from `seed_data.dart`
-- Component colors (composite recipe step blocks): `componentColors` list in `seed_data.dart` — 6 saturated Material 700 colors cycling by component index
+- Component colors (composite recipe step blocks): `componentColors` list in `seed_data.dart` — 6 saturated colors (blue, **pink**, orange, purple, cyan, red). Color is assigned via `componentColor(recipeId)` — a polynomial hash on the recipe ID string, so each component keeps its color regardless of reordering.
 
 ## Composite Recipes
 
@@ -253,7 +262,7 @@ A recipe can link other recipes as ordered **components**. The composite recipe 
 - `validateStepOrder` — enforces within-linked-component step order constraint (own steps are free)
 - `allLinkedRecipeIds` — transitive ID set for export bundling
 
-**Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar. Component picker filters out composites (`!r.isComposite`) — nesting composites inside composites is intentionally blocked.
+**Edit screen:** Components section (reorderable linked recipe list + 'self' block positioning). Composite step editor shows all steps in a single draggable list — own steps are editable, linked steps are read-only; invalid reorders show a SnackBar. Component picker filters out composites (`!r.isComposite`) — nesting composites inside composites is intentionally blocked. The ingredients section follows `_componentOrder` via `_buildOrderedIngredients`: the 'self' editable block appears at its correct position, interleaved with read-only component ingredient blocks; each component block is tinted with `componentColor(id)`.
 
 **Ingredient reordering:** `IngredientListEditor` uses `ReorderableListView.builder` (shrinkWrap + NeverScrollableScrollPhysics inside a scroll parent) with explicit `ReorderableDragStartListener` drag handles. A `Listener.onPointerDown` wraps each handle to unfocus active TextFields before dragging (avoids a Flutter paint-order exception when text inputs are adjacent). Each row has a stable `id` (UUID, generated once per `_IngredientRow` instance) used as `ValueKey` to prevent state loss on reorder.
 
@@ -267,7 +276,7 @@ A recipe can link other recipes as ordered **components**. The composite recipe 
 
 ## PDF Export
 
-`lib/services/pdf_export_service.dart` — single top-level function `exportRecipeToPdf(recipe, allRecipes, allTags, allCategories)`.
+`lib/services/pdf_export_service.dart` — single top-level function `exportRecipeToPdf(recipe, allRecipes, allTags, allCategories, l)` where `l` is an `AppLocalizations` instance passed from the call site.
 
 Layout (A4, `pw.MultiPage`): hero image → title → component chips (left-border rectangles) → tag chips (pill border) → servings → description (italic bordered box, if present) → divider → ingredients (bullet list, bold green amounts) → divider → steps (circle number badges; composite: colored left borders + "from X" attribution). Footer: green circle + "Recipea" + page N of M on every page.
 
@@ -290,9 +299,22 @@ Output: `getTemporaryDirectory()/recipea_recipe.pdf`. Shared via `Share.shareXFi
 
 All reorderable lists use **explicit drag handles** (`ReorderableDragStartListener` + `Icons.drag_handle`), never long-press. This applies to: recipe steps, composite step order, component order (edit screen), ingredients (edit screen), and shopping list items. When drag handles are adjacent to `TextField` widgets, wrap the handle in `Listener(onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(), ...)` to prevent a Flutter paint-order exception.
 
+## Localisation
+
+All user-visible strings (~130) are extracted into ARB files and generated via Flutter's official `flutter gen-l10n` pipeline.
+
+- **Config:** `l10n.yaml` at project root; `flutter.generate: true` in `pubspec.yaml`
+- **Template:** `lib/l10n/app_en.arb` (English — edit this to add/change keys)
+- **Translations:** `lib/l10n/app_de.arb` (German)
+- **Generated output:** `lib/l10n/app_localizations.dart` + locale subclasses — do not edit
+- **Usage:** `final l = AppLocalizations.of(context)!;` at the top of each `build` method
+- **Date formatting:** `DateFormat.MMMEd(Localizations.localeOf(context).languageCode).format(day)` replaces all manual weekday/month arrays
+
+**Adding a new language:** Create `lib/l10n/app_xx.arb` (copy `app_en.arb`, translate values), then run `flutter gen-l10n`. No code changes needed — the new locale is picked up automatically.
+
 ## Status
 
-Core app + meal plan + composite recipes + PDF export + structured ingredients + serving scaler + cook's notes + recipe sorting + "Part of" back-links complete. `flutter analyze` is clean.
+Core app + meal plan + composite recipes + PDF export + structured ingredients + serving scaler + cook's notes + recipe sorting + "Part of" back-links + English/German localisation complete. `flutter analyze` is clean.
 
 ## Known Issues / Fragile Code to Revisit
 
@@ -304,7 +326,7 @@ Core app + meal plan + composite recipes + PDF export + structured ingredients +
 - [ ] Hero transitions on recipe image (browse tile → detail): wrap `Image.file` in both with `Hero(tag: 'recipe-image-${recipe.id}')`
 - [ ] Splash screen animation polish (currently a simple fade-in)
 - [ ] Custom tag icons — replace the colored-dot `Container` in `lib/widgets/tag_chip.dart` with real SVG/icon assets when ready. `TagDefinition` is the right place to add icon data.
-- [ ] `intl` date formatting on detail screen (show `updatedAt` as "Updated Mar 29, 2026")
+- [ ] `intl` date formatting on detail screen (show `updatedAt` as "Updated Mar 29, 2026") — `intl` is available; `DateFormat` already used elsewhere
 
 ## Version 2.0 — Google Drive Sync
 
