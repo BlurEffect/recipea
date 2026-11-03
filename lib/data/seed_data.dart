@@ -83,6 +83,7 @@ const List<String> ingredientUnits = [
   'tsp', 'tbsp', 'cup',
   'oz', 'lb',
   'piece', 'slice', 'clove', 'bunch', 'pinch',
+  'can', 'sprig', 'head', 'stalk', 'handful',
 ];
 
 const List<Color> componentColors = [

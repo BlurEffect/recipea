@@ -57,10 +57,11 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
           final qtyText = r.quantityController.text.trim();
           final qty = double.tryParse(qtyText);
           final note = r.noteController.text.trim();
+          final rawUnit = r.unitController.text.trim();
           return Ingredient(
             name: name,
             quantity: qty,
-            unit: r.selectedUnit,
+            unit: rawUnit.isEmpty ? null : rawUnit.toLowerCase(),
             note: note.isEmpty ? null : note,
           );
         })
@@ -129,13 +130,11 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                 ),
               ),
               const SizedBox(width: 6),
-              // Unit picker
-              _UnitDropdown(
-                value: row.selectedUnit,
-                onChanged: (u) {
-                  setState(() => row.selectedUnit = u);
-                  _notify();
-                },
+              // Unit field
+              _UnitField(
+                controller: row.unitController,
+                focusNode: row.unitFocusNode,
+                onChanged: _notify,
               ),
               const SizedBox(width: 6),
               // Name
@@ -200,46 +199,73 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
   }
 }
 
-class _UnitDropdown extends StatelessWidget {
-  final String? value;
-  final ValueChanged<String?> onChanged;
+class _UnitField extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onChanged;
 
-  const _UnitDropdown({required this.value, required this.onChanged});
+  const _UnitField({
+    required this.controller,
+    required this.focusNode,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: DropdownButton<String?>(
-        value: value,
-        isDense: true,
-        underline: const SizedBox(),
-        hint: const Text('–', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-        items: [
-          const DropdownMenuItem<String?>(
-            value: null,
-            child: Text('–', style: TextStyle(fontSize: 14)),
-          ),
-          // If the stored unit isn't in the standard list (e.g. migrated from
-          // free-text "cups" → not matching canonical "cup"), include it so the
-          // dropdown can display it without asserting.
-          if (value != null && !ingredientUnits.contains(value))
-            DropdownMenuItem<String?>(
-              value: value,
-              child: Text(value!, style: const TextStyle(fontSize: 14)),
+    return SizedBox(
+      width: 80,
+      child: RawAutocomplete<String>(
+        textEditingController: controller,
+        focusNode: focusNode,
+        optionsBuilder: (TextEditingValue value) {
+          if (value.text.isEmpty) return const Iterable.empty();
+          return ingredientUnits.where(
+            (u) => u.startsWith(value.text.toLowerCase()),
+          );
+        },
+        onSelected: (_) => onChanged(),
+        fieldViewBuilder: (context, textController, fn, _) {
+          return TextField(
+            controller: textController,
+            focusNode: fn,
+            onChanged: (_) => onChanged(),
+            style: const TextStyle(fontSize: 14),
+            decoration: const InputDecoration(
+              hintText: 'Unit',
+              hintStyle: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              isDense: true,
             ),
-          ...ingredientUnits.map(
-            (u) => DropdownMenuItem<String?>(
-              value: u,
-              child: Text(u, style: const TextStyle(fontSize: 14)),
+          );
+        },
+        optionsViewBuilder: (context, onSelected, options) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(4),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 200, maxWidth: 120),
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (_, index) {
+                    final option = options.elementAt(index);
+                    return InkWell(
+                      onTap: () => onSelected(option),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Text(option,
+                            style: const TextStyle(fontSize: 14)),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
-        onChanged: onChanged,
+          );
+        },
       ),
     );
   }
@@ -250,15 +276,18 @@ class _IngredientRow {
   final TextEditingController nameController;
   final TextEditingController quantityController;
   final TextEditingController noteController;
-  String? selectedUnit;
+  final TextEditingController unitController;
+  final FocusNode unitFocusNode;
 
   _IngredientRow({
     String? id,
     required this.nameController,
     required this.quantityController,
     required this.noteController,
-    this.selectedUnit,
-  }) : id = id ?? _rowUuid.v4();
+    required this.unitController,
+    FocusNode? unitFocusNode,
+  })  : id = id ?? _rowUuid.v4(),
+        unitFocusNode = unitFocusNode ?? FocusNode();
 
   factory _IngredientRow.fromIngredient(Ingredient ing) => _IngredientRow(
         nameController: TextEditingController(text: ing.name),
@@ -266,19 +295,22 @@ class _IngredientRow {
           text: ing.quantity != null ? _fmtQty(ing.quantity!) : '',
         ),
         noteController: TextEditingController(text: ing.note ?? ''),
-        selectedUnit: ing.unit,
+        unitController: TextEditingController(text: ing.unit ?? ''),
       );
 
   factory _IngredientRow.empty() => _IngredientRow(
         nameController: TextEditingController(),
         quantityController: TextEditingController(),
         noteController: TextEditingController(),
+        unitController: TextEditingController(),
       );
 
   void dispose() {
     nameController.dispose();
     quantityController.dispose();
     noteController.dispose();
+    unitController.dispose();
+    unitFocusNode.dispose();
   }
 }
 
