@@ -400,6 +400,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editStepsInOrder => 'Steps within a recipe must stay in order';
 
   @override
+  String get editStepOrderCustom => 'Custom step order';
+
+  @override
+  String get editStepOrderReset => 'Reset order';
+
+  @override
   String get editChangePhoto => 'Change photo';
 
   @override

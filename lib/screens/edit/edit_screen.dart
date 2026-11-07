@@ -704,6 +704,25 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     final widgets = <Widget>[];
     for (final id in _componentOrder) {
       if (id == 'self') {
+        final l = AppLocalizations.of(context)!;
+        widgets.add(const SizedBox(height: 12));
+        widgets.add(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              l.editComponentSelf,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white),
+            ),
+          ),
+        );
+        widgets.add(const SizedBox(height: 8));
         widgets.add(IngredientListEditor(
           ingredients: _ingredients,
           onChanged: (list) => setState(() => _ingredients = list),
@@ -878,6 +897,31 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_compositeStepOrder.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                const SizedBox(width: 4),
+                Text(
+                  l.editStepOrderCustom,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => setState(() => _compositeStepOrder = []),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child: Text(l.editStepOrderReset,
+                      style: const TextStyle(fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
         if (ordered.isEmpty)
           Text(
             l.editNoStepsYet,

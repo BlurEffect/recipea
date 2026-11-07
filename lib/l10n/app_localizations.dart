@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'Steps within a recipe must stay in order'**
   String get editStepsInOrder;
 
+  /// No description provided for @editStepOrderCustom.
+  String get editStepOrderCustom;
+
+  /// No description provided for @editStepOrderReset.
+  String get editStepOrderReset;
+
   /// No description provided for @editChangePhoto.
   ///
   /// In en, this message translates to:

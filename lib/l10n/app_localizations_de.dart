@@ -401,6 +401,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben';
 
   @override
+  String get editStepOrderCustom => 'Benutzerdefinierte Reihenfolge';
+
+  @override
+  String get editStepOrderReset => 'Reihenfolge zurücksetzen';
+
+  @override
   String get editChangePhoto => 'Foto ändern';
 
   @override

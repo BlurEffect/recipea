@@ -390,6 +390,12 @@
   "editStepsInOrder": "Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben",
   "@editStepsInOrder": {},
 
+  "editStepOrderCustom": "Benutzerdefinierte Reihenfolge",
+  "@editStepOrderCustom": {},
+
+  "editStepOrderReset": "Reihenfolge zurücksetzen",
+  "@editStepOrderReset": {},
+
   "editChangePhoto": "Foto ändern",
   "@editChangePhoto": {},
 

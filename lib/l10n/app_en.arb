@@ -390,6 +390,12 @@
   "editStepsInOrder": "Steps within a recipe must stay in order",
   "@editStepsInOrder": {},
 
+  "editStepOrderCustom": "Custom step order",
+  "@editStepOrderCustom": {},
+
+  "editStepOrderReset": "Reset order",
+  "@editStepOrderReset": {},
+
   "editChangePhoto": "Change photo",
   "@editChangePhoto": {},
 
