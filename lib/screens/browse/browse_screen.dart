@@ -421,18 +421,15 @@ class _TagFilterBar extends StatelessWidget {
         children: [
           Expanded(
             child: filter.isEmpty
-                ? GestureDetector(
-                    onTap: onAddTags,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.filter_list, size: 18, color: AppColors.textSecondary),
-                        const SizedBox(width: 8),
-                        Text(
-                          l.browseFilterHint,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                ? Row(
+                    children: [
+                      const Icon(Icons.filter_list, size: 18, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text(
+                        l.browseFilterHint,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                      ),
+                    ],
                   )
                 : SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
