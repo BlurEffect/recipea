@@ -220,9 +220,9 @@ class _UnitField extends StatelessWidget {
         focusNode: focusNode,
         optionsBuilder: (TextEditingValue value) {
           if (value.text.isEmpty) return const Iterable.empty();
-          return ingredientUnits.where(
+          return (ingredientUnits.where(
             (u) => u.startsWith(value.text.toLowerCase()),
-          );
+          ).toList()..sort());
         },
         onSelected: (_) => onChanged(),
         fieldViewBuilder: (context, textController, fn, _) {

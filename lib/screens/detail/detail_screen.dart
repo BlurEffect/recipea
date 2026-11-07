@@ -519,12 +519,18 @@ class _RecipeAppBar extends ConsumerWidget {
       pinned: true,
       backgroundColor: AppColors.background,
       foregroundColor: AppColors.textPrimary,
+      leadingWidth: 96,
+      leading: Row(
+        children: [
+          const BackButton(),
+          IconButton(
+            icon: const Icon(Icons.format_list_bulleted),
+            onPressed: () => context.go('/recipes'),
+            tooltip: AppLocalizations.of(context)!.detailHomeTooltip,
+          ),
+        ],
+      ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.format_list_bulleted),
-          onPressed: () => context.go('/recipes'),
-          tooltip: AppLocalizations.of(context)!.detailHomeTooltip,
-        ),
         IconButton(
           icon: const Icon(Icons.edit_outlined),
           onPressed: () => context.push('/recipes/${recipe.id}/edit'),

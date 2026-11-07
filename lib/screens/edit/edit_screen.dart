@@ -510,7 +510,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               ),
           ],
         ),
-        body: SingleChildScrollView(
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,6 +658,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               const SizedBox(height: 40),
             ],
           ),
+        ),
         ),
       ),
     );
