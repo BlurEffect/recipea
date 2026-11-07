@@ -1249,6 +1249,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recipea'**
   String get pdfAppName;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguageLabel;
+
+  /// No description provided for @settingsLanguageEn.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsLanguageEn;
+
+  /// No description provided for @settingsLanguageDe.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get settingsLanguageDe;
 }
 
 class _AppLocalizationsDelegate

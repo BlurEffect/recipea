@@ -3,4 +3,5 @@ abstract class HiveBoxes {
   static const String customTags = 'custom_tags';
   static const String categories = 'categories';
   static const String mealPlan = 'meal_plan';
+  static const String settings = 'settings';
 }

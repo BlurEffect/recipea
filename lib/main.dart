@@ -15,6 +15,7 @@ void main() async {
   await Hive.openBox<String>(HiveBoxes.customTags);
   await Hive.openBox<String>(HiveBoxes.categories);
   await Hive.openBox<String>(HiveBoxes.mealPlan);
+  await Hive.openBox<String>(HiveBoxes.settings);
 
   await CategoryRepository().seedIfEmpty(seedCategories);
   await CustomTagRepository().seedIfEmpty(seedTags);

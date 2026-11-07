@@ -676,5 +676,17 @@
   },
 
   "pdfAppName": "Recipea",
-  "@pdfAppName": {}
+  "@pdfAppName": {},
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+
+  "settingsLanguageLabel": "Language",
+  "@settingsLanguageLabel": {},
+
+  "settingsLanguageEn": "English",
+  "@settingsLanguageEn": {},
+
+  "settingsLanguageDe": "German",
+  "@settingsLanguageDe": {}
 }

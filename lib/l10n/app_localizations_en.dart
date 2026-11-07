@@ -695,4 +695,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfAppName => 'Recipea';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguageLabel => 'Language';
+
+  @override
+  String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsLanguageDe => 'German';
 }

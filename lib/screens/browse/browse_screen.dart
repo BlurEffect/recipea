@@ -18,6 +18,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/tag_chip.dart';
+import '../../widgets/settings_sheet.dart';
 import '../../widgets/tag_selector_sheet.dart';
 import 'widgets/recipe_list_tile.dart';
 
@@ -116,11 +117,14 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 await _exportAll(context, ref);
               } else if (value == 'import') {
                 await _importRecipes(context, ref);
+              } else if (value == 'settings') {
+                if (context.mounted) showSettingsSheet(context);
               }
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'export_all', child: Text(l.browseExportBackup)),
               PopupMenuItem(value: 'import', child: Text(l.browseImportRecipes)),
+              PopupMenuItem(value: 'settings', child: Text(l.settingsTitle)),
             ],
           ),
         ],

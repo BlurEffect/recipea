@@ -18,16 +18,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get update => 'Aktualisieren';
 
   @override
-  String get delete => 'Loeschen';
+  String get delete => 'Löschen';
 
   @override
-  String get confirm => 'Bestaetigen';
+  String get confirm => 'Bestätigen';
 
   @override
   String get replace => 'Ersetzen';
 
   @override
-  String get skip => 'Ueberspringen';
+  String get skip => 'Überspringen';
 
   @override
   String get clear => 'Leeren';
@@ -39,7 +39,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get import => 'Importieren';
 
   @override
-  String get add => 'Hinzufuegen';
+  String get add => 'Hinzufügen';
 
   @override
   String get remove => 'Entfernen';
@@ -48,7 +48,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get edit => 'Bearbeiten';
 
   @override
-  String get close => 'Schliessen';
+  String get close => 'Schließen';
 
   @override
   String get ok => 'OK';
@@ -69,7 +69,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get allow => 'Erlauben';
 
   @override
-  String get openSettings => 'Einstellungen oeffnen';
+  String get openSettings => 'Einstellungen öffnen';
 
   @override
   String get noRecipesFound => 'Keine Rezepte gefunden';
@@ -94,47 +94,47 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get browseEmptySubtitle =>
-      'Tippe auf + um dein erstes Rezept hinzuzufuegen';
+      'Tippe auf + um dein erstes Rezept hinzuzufügen';
 
   @override
   String browseSearchEmptyTitle(String query) {
-    return 'Keine Rezepte fuer \"$query\"';
+    return 'Keine Rezepte für "$query"';
   }
 
   @override
   String get browseSearchEmptySubtitle => 'Anderen Suchbegriff versuchen';
 
   @override
-  String get browseFilterEmptyTitle => 'Keine Rezepte fuer diese Filter';
+  String get browseFilterEmptyTitle => 'Keine Rezepte für diese Filter';
 
   @override
   String get browseFilterEmptySubtitle =>
       'Versuche, einige Filter zu entfernen';
 
   @override
-  String get browseNoRecipesFoundSubtitle => 'Suche oder Filter zuruecksetzen';
+  String get browseNoRecipesFoundSubtitle => 'Suche oder Filter zurücksetzen';
 
   @override
-  String get browseClearSearch => 'Suche zuruecksetzen';
+  String get browseClearSearch => 'Suche zurücksetzen';
 
   @override
-  String get browseClearFilters => 'Filter zuruecksetzen';
+  String get browseClearFilters => 'Filter zurücksetzen';
 
   @override
-  String get browseClearAll => 'Alles zuruecksetzen';
+  String get browseClearAll => 'Alles zurücksetzen';
 
   @override
-  String get browseExportBackup => 'Vollstaendige Sicherung exportieren';
+  String get browseExportBackup => 'Vollständige Sicherung exportieren';
 
   @override
   String get browseImportRecipes => 'Rezepte importieren';
 
   @override
-  String get browseExportBackupTitle => 'Vollstaendige Sicherung exportieren';
+  String get browseExportBackupTitle => 'Vollständige Sicherung exportieren';
 
   @override
   String get browseExportBackupBody =>
-      'Exportiert alle Rezepte, Kategorien, Tags und Essensplanverlauf. Zum Sichern oder Uebertragen auf ein neues Geraet.';
+      'Exportiert alle Rezepte, Kategorien, Tags und Essensplanverlauf. Zum Sichern oder Übertragen auf ein neues Gerät.';
 
   @override
   String browseExportFailed(String error) {
@@ -186,13 +186,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sortNewestFirst => 'Neueste zuerst';
 
   @override
-  String get sortOldestFirst => 'Aelteste zuerst';
+  String get sortOldestFirst => 'Älteste zuerst';
 
   @override
   String get sortLastCookedDesc => 'Zuletzt gekocht';
 
   @override
-  String get sortLastCookedAsc => 'Als naechstes kochen';
+  String get sortLastCookedAsc => 'Als nächstes kochen';
 
   @override
   String get goToRecipes => 'Zu den Rezepten';
@@ -204,7 +204,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get detailHomeTooltip => 'Alle Rezepte';
 
   @override
-  String get detailAddToMealPlan => 'Zum Essensplan hinzufuegen';
+  String get detailAddToMealPlan => 'Zum Essensplan hinzufügen';
 
   @override
   String get detailExportRecipe => 'Rezept exportieren';
@@ -216,15 +216,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get detailDuplicate => 'Duplizieren';
 
   @override
-  String get detailDeleteMenuLabel => 'Loeschen';
+  String get detailDeleteMenuLabel => 'Löschen';
 
   @override
   String detailDeleteTitle(String title) {
-    return '\"$title\" loeschen?';
+    return '"$title" löschen?';
   }
 
   @override
-  String get detailDeleteBody => 'Das kann nicht rueckgaengig gemacht werden.';
+  String get detailDeleteBody => 'Das kann nicht rückgängig gemacht werden.';
 
   @override
   String detailExportFailed(String error) {
@@ -280,7 +280,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get detailRecipeNotFound => 'Rezept nicht gefunden';
 
   @override
-  String get detailDeletedComponent => 'Geloeschte Komponente';
+  String get detailDeletedComponent => 'Gelöschte Komponente';
 
   @override
   String get editNewRecipe => 'Neues Rezept';
@@ -299,16 +299,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editDescriptionHint =>
-      'Spezielle Ausruestung, Tipps, alles Wissenswerte (optional)';
+      'Spezielle Ausrüstung, Tipps, alles Wissenswerte (optional)';
 
   @override
   String get editTagsLabel => 'Tags';
 
   @override
-  String get editAddTagsButton => 'Tags hinzufuegen';
+  String get editAddTagsButton => 'Tags hinzufügen';
 
   @override
-  String get editNoTagsSelected => 'Keine Tags ausgewaehlt';
+  String get editNoTagsSelected => 'Keine Tags ausgewählt';
 
   @override
   String get editFromComponents => 'Von Komponenten';
@@ -327,10 +327,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editComponentsDescription =>
-      'Verknuepfe andere Rezepte als Bausteine. Ihre Schritte und Zutaten werden in dieses Rezept kombiniert.';
+      'Verknüpfe andere Rezepte als Bausteine. Ihre Schritte und Zutaten werden in dieses Rezept kombiniert.';
 
   @override
-  String get editAddComponent => 'Komponente hinzufuegen';
+  String get editAddComponent => 'Komponente hinzufügen';
 
   @override
   String editSaveFailed(String error) {
@@ -338,10 +338,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get editUnsavedTitle => 'Ungespeicherte Aenderungen';
+  String get editUnsavedTitle => 'Ungespeicherte Änderungen';
 
   @override
-  String get editUnsavedBody => 'Aenderungen verwerfen?';
+  String get editUnsavedBody => 'Änderungen verwerfen?';
 
   @override
   String get editDiscard => 'Verwerfen';
@@ -359,7 +359,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editNoteHint => 'Hinweis (z. B. nach Geschmack, fein gehackt)';
 
   @override
-  String get editAddIngredient => 'Zutat hinzufuegen';
+  String get editAddIngredient => 'Zutat hinzufügen';
 
   @override
   String editStepHint(int number) {
@@ -367,22 +367,22 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get editAddStep => 'Schritt hinzufuegen';
+  String get editAddStep => 'Schritt hinzufügen';
 
   @override
   String get editNoStepsYet => 'Noch keine Schritte';
 
   @override
-  String get editAddStepToRecipe => 'Schritt zu diesem Rezept hinzufuegen';
+  String get editAddStepToRecipe => 'Schritt zu diesem Rezept hinzufügen';
 
   @override
   String get editComponentSelf => 'Dieses Rezept';
 
   @override
-  String get editComponentDeleted => '(geloescht)';
+  String get editComponentDeleted => '(gelöscht)';
 
   @override
-  String get editPickComponent => 'Komponente auswaehlen';
+  String get editPickComponent => 'Komponente auswählen';
 
   @override
   String get editSearchRecipesHint => 'Suchen…';
@@ -391,21 +391,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editNoRecipesMatch => 'Keine Rezepte gefunden';
 
   @override
-  String get editCycleWarning => 'Wuerde einen Zyklus erzeugen';
+  String get editCycleWarning => 'Würde einen Zyklus erzeugen';
 
   @override
   String get editNoRecipesAvailable =>
-      'Keine Rezepte zum Verknuepfen verfuegbar';
+      'Keine Rezepte zum Verknüpfen verfügbar';
 
   @override
   String get editStepsInOrder =>
-      'Schritte innerhalb eines Rezepts muessen in Reihenfolge bleiben';
+      'Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben';
 
   @override
-  String get editChangePhoto => 'Foto aendern';
+  String get editChangePhoto => 'Foto ändern';
 
   @override
-  String get editAddPhoto => 'Foto hinzufuegen';
+  String get editAddPhoto => 'Foto hinzufügen';
 
   @override
   String get editPleaseAddTitle => 'Bitte Titel eingeben';
@@ -422,10 +422,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editVoiceInputBody =>
-      'Erlaube Mikrofonzugriff, um Spracheingabe fuer Rezeptschritte zu nutzen.';
+      'Erlaube Mikrofonzugriff, um Spracheingabe für Rezeptschritte zu nutzen.';
 
   @override
-  String get mealPlanSubtitle => 'Tage fuer die Einkaufsliste auswaehlen';
+  String get mealPlanSubtitle => 'Tage für die Einkaufsliste auswählen';
 
   @override
   String get mealPlanClearPlan => 'Plan leeren';
@@ -437,16 +437,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealPlanClearBody => 'Alle Rezeptzuweisungen werden entfernt.';
 
   @override
-  String get mealPlanAddMeal => 'Mahlzeit hinzufuegen';
+  String get mealPlanAddMeal => 'Mahlzeit hinzufügen';
 
   @override
   String get mealPlanRemoveMeal => 'Mahlzeit entfernen';
 
   @override
-  String get mealPlanChangeRecipe => 'Rezept aendern';
+  String get mealPlanChangeRecipe => 'Rezept ändern';
 
   @override
-  String get mealPlanChooseRecipe => 'Rezept auswaehlen';
+  String get mealPlanChooseRecipe => 'Rezept auswählen';
 
   @override
   String get mealPlanSearchRecipes => 'Rezepte durchsuchen...';
@@ -456,7 +456,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get mealPlanNoRecipesSubtitle =>
-      'Fuege zuerst Rezepte hinzu, dann plane deine Mahlzeiten hier';
+      'Füge zuerst Rezepte hinzu, dann plane deine Mahlzeiten hier';
 
   @override
   String mealPlanToday(String date) {
@@ -476,7 +476,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shoppingShareTooltip => 'Liste teilen';
 
   @override
-  String get shoppingClearCheckedTooltip => 'Erledigte loeschen';
+  String get shoppingClearCheckedTooltip => 'Erledigte löschen';
 
   @override
   String get shoppingEmptyTitle => 'Noch keine Einkaufsliste';
@@ -495,7 +495,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shoppingClearCheckedBody =>
-      'Alle abgehakten Artikel werden geloescht.';
+      'Alle abgehakten Artikel werden gelöscht.';
 
   @override
   String get shoppingShareCheckedOff => 'Alles wurde abgehakt!';
@@ -524,11 +524,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dein Essensplan hat keine Zutaten.';
 
   @override
-  String get tagSelectorTitle => 'Tags auswaehlen';
+  String get tagSelectorTitle => 'Tags auswählen';
 
   @override
   String get tagSelectorTapHint =>
-      'Einmal tippen zum Einschliessen, zweimal zum Ausschliessen';
+      'Einmal tippen zum Einschließen, zweimal zum Ausschließen';
 
   @override
   String get tagSelectorSearchHint => 'Tags durchsuchen...';
@@ -552,13 +552,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get categoryManagerTitle => 'Kategorien verwalten';
 
   @override
-  String get categoryManagerAddCategory => 'Kategorie hinzufuegen';
+  String get categoryManagerAddCategory => 'Kategorie hinzufügen';
 
   @override
   String get categoryManagerRenameHint => 'Kategoriename';
 
   @override
-  String get categoryManagerAddTag => 'Tag hinzufuegen';
+  String get categoryManagerAddTag => 'Tag hinzufügen';
 
   @override
   String get categoryManagerTagHint => 'Tag-Name';
@@ -579,11 +579,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get categoryManagerNoTags => 'Keine Tags';
 
   @override
-  String get categoryManagerDeleteCatTitle => 'Kategorie loeschen?';
+  String get categoryManagerDeleteCatTitle => 'Kategorie löschen?';
 
   @override
   String categoryManagerDeleteCatPermanent(String name) {
-    return '\"$name\" wird dauerhaft geloescht.';
+    return '"$name" wird dauerhaft gelöscht.';
   }
 
   @override
@@ -591,8 +591,8 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Loescht auch $count Tags.',
-      one: 'Loescht auch 1 Tag.',
+      other: 'Löscht auch $count Tags.',
+      one: 'Löscht auch 1 Tag.',
       zero: 'Keine Tags betroffen.',
     );
     return '$_temp0';
@@ -611,11 +611,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get categoryManagerDeleteTagTitle => 'Tag loeschen?';
+  String get categoryManagerDeleteTagTitle => 'Tag löschen?';
 
   @override
   String categoryManagerDeleteTagPermanent(String name) {
-    return '\"$name\" wird dauerhaft geloescht.';
+    return '"$name" wird dauerhaft gelöscht.';
   }
 
   @override
@@ -631,11 +631,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get addToMealPlanTitle => 'Zum Essensplan hinzufuegen';
+  String get addToMealPlanTitle => 'Zum Essensplan hinzufügen';
 
   @override
   String addToMealPlanChooseDay(String title) {
-    return 'Wähle einen Tag für \"$title\"';
+    return 'Wähle einen Tag für "$title"';
   }
 
   @override
@@ -645,7 +645,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String addToMealPlanAdded(String date) {
-    return 'Hinzugefuegt zu $date';
+    return 'Hinzugefügt zu $date';
   }
 
   @override
@@ -660,7 +660,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get imagePickFromLibrary => 'Aus Bibliothek auswaehlen';
+  String get imagePickFromLibrary => 'Aus Bibliothek auswählen';
 
   @override
   String get imagePickTakePhoto => 'Foto aufnehmen';
@@ -700,4 +700,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pdfAppName => 'Recipea';
+
+  @override
+  String get settingsTitle => 'Einstellungen';
+
+  @override
+  String get settingsLanguageLabel => 'Sprache';
+
+  @override
+  String get settingsLanguageEn => 'Englisch';
+
+  @override
+  String get settingsLanguageDe => 'Deutsch';
 }

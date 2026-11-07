@@ -10,16 +10,16 @@
   "update": "Aktualisieren",
   "@update": {},
 
-  "delete": "Loeschen",
+  "delete": "Löschen",
   "@delete": {},
 
-  "confirm": "Bestaetigen",
+  "confirm": "Bestätigen",
   "@confirm": {},
 
   "replace": "Ersetzen",
   "@replace": {},
 
-  "skip": "Ueberspringen",
+  "skip": "Überspringen",
   "@skip": {},
 
   "clear": "Leeren",
@@ -31,7 +31,7 @@
   "import": "Importieren",
   "@import": {},
 
-  "add": "Hinzufuegen",
+  "add": "Hinzufügen",
   "@add": {},
 
   "remove": "Entfernen",
@@ -40,7 +40,7 @@
   "edit": "Bearbeiten",
   "@edit": {},
 
-  "close": "Schliessen",
+  "close": "Schließen",
   "@close": {},
 
   "ok": "OK",
@@ -61,7 +61,7 @@
   "allow": "Erlauben",
   "@allow": {},
 
-  "openSettings": "Einstellungen oeffnen",
+  "openSettings": "Einstellungen öffnen",
   "@openSettings": {},
 
   "noRecipesFound": "Keine Rezepte gefunden",
@@ -85,10 +85,10 @@
   "browseEmptyTitle": "Noch keine Rezepte",
   "@browseEmptyTitle": {},
 
-  "browseEmptySubtitle": "Tippe auf + um dein erstes Rezept hinzuzufuegen",
+  "browseEmptySubtitle": "Tippe auf + um dein erstes Rezept hinzuzufügen",
   "@browseEmptySubtitle": {},
 
-  "browseSearchEmptyTitle": "Keine Rezepte fuer \"{query}\"",
+  "browseSearchEmptyTitle": "Keine Rezepte für \"{query}\"",
   "@browseSearchEmptyTitle": {
     "placeholders": {
       "query": { "type": "String" }
@@ -98,34 +98,34 @@
   "browseSearchEmptySubtitle": "Anderen Suchbegriff versuchen",
   "@browseSearchEmptySubtitle": {},
 
-  "browseFilterEmptyTitle": "Keine Rezepte fuer diese Filter",
+  "browseFilterEmptyTitle": "Keine Rezepte für diese Filter",
   "@browseFilterEmptyTitle": {},
 
   "browseFilterEmptySubtitle": "Versuche, einige Filter zu entfernen",
   "@browseFilterEmptySubtitle": {},
 
-  "browseNoRecipesFoundSubtitle": "Suche oder Filter zuruecksetzen",
+  "browseNoRecipesFoundSubtitle": "Suche oder Filter zurücksetzen",
   "@browseNoRecipesFoundSubtitle": {},
 
-  "browseClearSearch": "Suche zuruecksetzen",
+  "browseClearSearch": "Suche zurücksetzen",
   "@browseClearSearch": {},
 
-  "browseClearFilters": "Filter zuruecksetzen",
+  "browseClearFilters": "Filter zurücksetzen",
   "@browseClearFilters": {},
 
-  "browseClearAll": "Alles zuruecksetzen",
+  "browseClearAll": "Alles zurücksetzen",
   "@browseClearAll": {},
 
-  "browseExportBackup": "Vollstaendige Sicherung exportieren",
+  "browseExportBackup": "Vollständige Sicherung exportieren",
   "@browseExportBackup": {},
 
   "browseImportRecipes": "Rezepte importieren",
   "@browseImportRecipes": {},
 
-  "browseExportBackupTitle": "Vollstaendige Sicherung exportieren",
+  "browseExportBackupTitle": "Vollständige Sicherung exportieren",
   "@browseExportBackupTitle": {},
 
-  "browseExportBackupBody": "Exportiert alle Rezepte, Kategorien, Tags und Essensplanverlauf. Zum Sichern oder Uebertragen auf ein neues Geraet.",
+  "browseExportBackupBody": "Exportiert alle Rezepte, Kategorien, Tags und Essensplanverlauf. Zum Sichern oder Übertragen auf ein neues Gerät.",
   "@browseExportBackupBody": {},
 
   "browseExportFailed": "Export fehlgeschlagen: {error}",
@@ -170,13 +170,13 @@
   "sortNewestFirst": "Neueste zuerst",
   "@sortNewestFirst": {},
 
-  "sortOldestFirst": "Aelteste zuerst",
+  "sortOldestFirst": "Älteste zuerst",
   "@sortOldestFirst": {},
 
   "sortLastCookedDesc": "Zuletzt gekocht",
   "@sortLastCookedDesc": {},
 
-  "sortLastCookedAsc": "Als naechstes kochen",
+  "sortLastCookedAsc": "Als nächstes kochen",
   "@sortLastCookedAsc": {},
 
   "goToRecipes": "Zu den Rezepten",
@@ -188,7 +188,7 @@
   "detailHomeTooltip": "Alle Rezepte",
   "@detailHomeTooltip": {},
 
-  "detailAddToMealPlan": "Zum Essensplan hinzufuegen",
+  "detailAddToMealPlan": "Zum Essensplan hinzufügen",
   "@detailAddToMealPlan": {},
 
   "detailExportRecipe": "Rezept exportieren",
@@ -200,17 +200,17 @@
   "detailDuplicate": "Duplizieren",
   "@detailDuplicate": {},
 
-  "detailDeleteMenuLabel": "Loeschen",
+  "detailDeleteMenuLabel": "Löschen",
   "@detailDeleteMenuLabel": {},
 
-  "detailDeleteTitle": "\"{title}\" loeschen?",
+  "detailDeleteTitle": "\"{title}\" löschen?",
   "@detailDeleteTitle": {
     "placeholders": {
       "title": { "type": "String" }
     }
   },
 
-  "detailDeleteBody": "Das kann nicht rueckgaengig gemacht werden.",
+  "detailDeleteBody": "Das kann nicht rückgängig gemacht werden.",
   "@detailDeleteBody": {},
 
   "detailExportFailed": "Export fehlgeschlagen: {error}",
@@ -268,7 +268,7 @@
   "detailRecipeNotFound": "Rezept nicht gefunden",
   "@detailRecipeNotFound": {},
 
-  "detailDeletedComponent": "Geloeschte Komponente",
+  "detailDeletedComponent": "Gelöschte Komponente",
   "@detailDeletedComponent": {},
 
   "editNewRecipe": "Neues Rezept",
@@ -286,16 +286,16 @@
   "editServingsLabel": "Portionen",
   "@editServingsLabel": {},
 
-  "editDescriptionHint": "Spezielle Ausruestung, Tipps, alles Wissenswerte (optional)",
+  "editDescriptionHint": "Spezielle Ausrüstung, Tipps, alles Wissenswerte (optional)",
   "@editDescriptionHint": {},
 
   "editTagsLabel": "Tags",
   "@editTagsLabel": {},
 
-  "editAddTagsButton": "Tags hinzufuegen",
+  "editAddTagsButton": "Tags hinzufügen",
   "@editAddTagsButton": {},
 
-  "editNoTagsSelected": "Keine Tags ausgewaehlt",
+  "editNoTagsSelected": "Keine Tags ausgewählt",
   "@editNoTagsSelected": {},
 
   "editFromComponents": "Von Komponenten",
@@ -313,10 +313,10 @@
   "editComponentsLabel": "Komponenten",
   "@editComponentsLabel": {},
 
-  "editComponentsDescription": "Verknuepfe andere Rezepte als Bausteine. Ihre Schritte und Zutaten werden in dieses Rezept kombiniert.",
+  "editComponentsDescription": "Verknüpfe andere Rezepte als Bausteine. Ihre Schritte und Zutaten werden in dieses Rezept kombiniert.",
   "@editComponentsDescription": {},
 
-  "editAddComponent": "Komponente hinzufuegen",
+  "editAddComponent": "Komponente hinzufügen",
   "@editAddComponent": {},
 
   "editSaveFailed": "Speichern fehlgeschlagen: {error}",
@@ -326,10 +326,10 @@
     }
   },
 
-  "editUnsavedTitle": "Ungespeicherte Aenderungen",
+  "editUnsavedTitle": "Ungespeicherte Änderungen",
   "@editUnsavedTitle": {},
 
-  "editUnsavedBody": "Aenderungen verwerfen?",
+  "editUnsavedBody": "Änderungen verwerfen?",
   "@editUnsavedBody": {},
 
   "editDiscard": "Verwerfen",
@@ -347,7 +347,7 @@
   "editNoteHint": "Hinweis (z. B. nach Geschmack, fein gehackt)",
   "@editNoteHint": {},
 
-  "editAddIngredient": "Zutat hinzufuegen",
+  "editAddIngredient": "Zutat hinzufügen",
   "@editAddIngredient": {},
 
   "editStepHint": "Schritt {number}...",
@@ -357,22 +357,22 @@
     }
   },
 
-  "editAddStep": "Schritt hinzufuegen",
+  "editAddStep": "Schritt hinzufügen",
   "@editAddStep": {},
 
   "editNoStepsYet": "Noch keine Schritte",
   "@editNoStepsYet": {},
 
-  "editAddStepToRecipe": "Schritt zu diesem Rezept hinzufuegen",
+  "editAddStepToRecipe": "Schritt zu diesem Rezept hinzufügen",
   "@editAddStepToRecipe": {},
 
   "editComponentSelf": "Dieses Rezept",
   "@editComponentSelf": {},
 
-  "editComponentDeleted": "(geloescht)",
+  "editComponentDeleted": "(gelöscht)",
   "@editComponentDeleted": {},
 
-  "editPickComponent": "Komponente auswaehlen",
+  "editPickComponent": "Komponente auswählen",
   "@editPickComponent": {},
 
   "editSearchRecipesHint": "Suchen…",
@@ -381,19 +381,19 @@
   "editNoRecipesMatch": "Keine Rezepte gefunden",
   "@editNoRecipesMatch": {},
 
-  "editCycleWarning": "Wuerde einen Zyklus erzeugen",
+  "editCycleWarning": "Würde einen Zyklus erzeugen",
   "@editCycleWarning": {},
 
-  "editNoRecipesAvailable": "Keine Rezepte zum Verknuepfen verfuegbar",
+  "editNoRecipesAvailable": "Keine Rezepte zum Verknüpfen verfügbar",
   "@editNoRecipesAvailable": {},
 
-  "editStepsInOrder": "Schritte innerhalb eines Rezepts muessen in Reihenfolge bleiben",
+  "editStepsInOrder": "Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben",
   "@editStepsInOrder": {},
 
-  "editChangePhoto": "Foto aendern",
+  "editChangePhoto": "Foto ändern",
   "@editChangePhoto": {},
 
-  "editAddPhoto": "Foto hinzufuegen",
+  "editAddPhoto": "Foto hinzufügen",
   "@editAddPhoto": {},
 
   "editPleaseAddTitle": "Bitte Titel eingeben",
@@ -408,10 +408,10 @@
   "editVoiceInputTitle": "Spracheingabe",
   "@editVoiceInputTitle": {},
 
-  "editVoiceInputBody": "Erlaube Mikrofonzugriff, um Spracheingabe fuer Rezeptschritte zu nutzen.",
+  "editVoiceInputBody": "Erlaube Mikrofonzugriff, um Spracheingabe für Rezeptschritte zu nutzen.",
   "@editVoiceInputBody": {},
 
-  "mealPlanSubtitle": "Tage fuer die Einkaufsliste auswaehlen",
+  "mealPlanSubtitle": "Tage für die Einkaufsliste auswählen",
   "@mealPlanSubtitle": {},
 
   "mealPlanClearPlan": "Plan leeren",
@@ -423,16 +423,16 @@
   "mealPlanClearBody": "Alle Rezeptzuweisungen werden entfernt.",
   "@mealPlanClearBody": {},
 
-  "mealPlanAddMeal": "Mahlzeit hinzufuegen",
+  "mealPlanAddMeal": "Mahlzeit hinzufügen",
   "@mealPlanAddMeal": {},
 
   "mealPlanRemoveMeal": "Mahlzeit entfernen",
   "@mealPlanRemoveMeal": {},
 
-  "mealPlanChangeRecipe": "Rezept aendern",
+  "mealPlanChangeRecipe": "Rezept ändern",
   "@mealPlanChangeRecipe": {},
 
-  "mealPlanChooseRecipe": "Rezept auswaehlen",
+  "mealPlanChooseRecipe": "Rezept auswählen",
   "@mealPlanChooseRecipe": {},
 
   "mealPlanSearchRecipes": "Rezepte durchsuchen...",
@@ -441,7 +441,7 @@
   "mealPlanNoRecipes": "Noch keine Rezepte",
   "@mealPlanNoRecipes": {},
 
-  "mealPlanNoRecipesSubtitle": "Fuege zuerst Rezepte hinzu, dann plane deine Mahlzeiten hier",
+  "mealPlanNoRecipesSubtitle": "Füge zuerst Rezepte hinzu, dann plane deine Mahlzeiten hier",
   "@mealPlanNoRecipesSubtitle": {},
 
   "mealPlanToday": "Heute — {date}",
@@ -463,7 +463,7 @@
   "shoppingShareTooltip": "Liste teilen",
   "@shoppingShareTooltip": {},
 
-  "shoppingClearCheckedTooltip": "Erledigte loeschen",
+  "shoppingClearCheckedTooltip": "Erledigte löschen",
   "@shoppingClearCheckedTooltip": {},
 
   "shoppingEmptyTitle": "Noch keine Einkaufsliste",
@@ -482,7 +482,7 @@
   "shoppingClearCheckedTitle": "Erledigte Artikel entfernen?",
   "@shoppingClearCheckedTitle": {},
 
-  "shoppingClearCheckedBody": "Alle abgehakten Artikel werden geloescht.",
+  "shoppingClearCheckedBody": "Alle abgehakten Artikel werden gelöscht.",
   "@shoppingClearCheckedBody": {},
 
   "shoppingShareCheckedOff": "Alles wurde abgehakt!",
@@ -509,10 +509,10 @@
   "shoppingEmptyGeneratedSubtitle": "Dein Essensplan hat keine Zutaten.",
   "@shoppingEmptyGeneratedSubtitle": {},
 
-  "tagSelectorTitle": "Tags auswaehlen",
+  "tagSelectorTitle": "Tags auswählen",
   "@tagSelectorTitle": {},
 
-  "tagSelectorTapHint": "Einmal tippen zum Einschliessen, zweimal zum Ausschliessen",
+  "tagSelectorTapHint": "Einmal tippen zum Einschließen, zweimal zum Ausschließen",
   "@tagSelectorTapHint": {},
 
   "tagSelectorSearchHint": "Tags durchsuchen...",
@@ -536,13 +536,13 @@
   "categoryManagerTitle": "Kategorien verwalten",
   "@categoryManagerTitle": {},
 
-  "categoryManagerAddCategory": "Kategorie hinzufuegen",
+  "categoryManagerAddCategory": "Kategorie hinzufügen",
   "@categoryManagerAddCategory": {},
 
   "categoryManagerRenameHint": "Kategoriename",
   "@categoryManagerRenameHint": {},
 
-  "categoryManagerAddTag": "Tag hinzufuegen",
+  "categoryManagerAddTag": "Tag hinzufügen",
   "@categoryManagerAddTag": {},
 
   "categoryManagerTagHint": "Tag-Name",
@@ -563,17 +563,17 @@
   "categoryManagerNoTags": "Keine Tags",
   "@categoryManagerNoTags": {},
 
-  "categoryManagerDeleteCatTitle": "Kategorie loeschen?",
+  "categoryManagerDeleteCatTitle": "Kategorie löschen?",
   "@categoryManagerDeleteCatTitle": {},
 
-  "categoryManagerDeleteCatPermanent": "\"{name}\" wird dauerhaft geloescht.",
+  "categoryManagerDeleteCatPermanent": "\"{name}\" wird dauerhaft gelöscht.",
   "@categoryManagerDeleteCatPermanent": {
     "placeholders": {
       "name": { "type": "String" }
     }
   },
 
-  "categoryManagerDeleteCatTagsLine": "{count, plural, =0{Keine Tags betroffen.} =1{Loescht auch 1 Tag.} other{Loescht auch {count} Tags.}}",
+  "categoryManagerDeleteCatTagsLine": "{count, plural, =0{Keine Tags betroffen.} =1{Löscht auch 1 Tag.} other{Löscht auch {count} Tags.}}",
   "@categoryManagerDeleteCatTagsLine": {
     "placeholders": {
       "count": { "type": "int" }
@@ -587,10 +587,10 @@
     }
   },
 
-  "categoryManagerDeleteTagTitle": "Tag loeschen?",
+  "categoryManagerDeleteTagTitle": "Tag löschen?",
   "@categoryManagerDeleteTagTitle": {},
 
-  "categoryManagerDeleteTagPermanent": "\"{name}\" wird dauerhaft geloescht.",
+  "categoryManagerDeleteTagPermanent": "\"{name}\" wird dauerhaft gelöscht.",
   "@categoryManagerDeleteTagPermanent": {
     "placeholders": {
       "name": { "type": "String" }
@@ -604,7 +604,7 @@
     }
   },
 
-  "addToMealPlanTitle": "Zum Essensplan hinzufuegen",
+  "addToMealPlanTitle": "Zum Essensplan hinzufügen",
   "@addToMealPlanTitle": {},
 
   "addToMealPlanChooseDay": "Wähle einen Tag für \"{title}\"",
@@ -621,7 +621,7 @@
     }
   },
 
-  "addToMealPlanAdded": "Hinzugefuegt zu {date}",
+  "addToMealPlanAdded": "Hinzugefügt zu {date}",
   "@addToMealPlanAdded": {
     "placeholders": {
       "date": { "type": "String" }
@@ -635,7 +635,7 @@
     }
   },
 
-  "imagePickFromLibrary": "Aus Bibliothek auswaehlen",
+  "imagePickFromLibrary": "Aus Bibliothek auswählen",
   "@imagePickFromLibrary": {},
 
   "imagePickTakePhoto": "Foto aufnehmen",
@@ -676,5 +676,17 @@
   },
 
   "pdfAppName": "Recipea",
-  "@pdfAppName": {}
+  "@pdfAppName": {},
+
+  "settingsTitle": "Einstellungen",
+  "@settingsTitle": {},
+
+  "settingsLanguageLabel": "Sprache",
+  "@settingsLanguageLabel": {},
+
+  "settingsLanguageEn": "Englisch",
+  "@settingsLanguageEn": {},
+
+  "settingsLanguageDe": "Deutsch",
+  "@settingsLanguageDe": {}
 }
