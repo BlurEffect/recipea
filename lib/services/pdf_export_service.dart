@@ -142,11 +142,11 @@ List<pw.Widget> _buildTags(
       margin: const pw.EdgeInsets.only(right: 6, bottom: 4),
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: pw.BoxDecoration(
-        color: _lightenPdfColor(tagColor),
+        color: tagColor,
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
       ),
       child: pw.Text(tag.label,
-          style: pw.TextStyle(fontSize: 9, color: tagColor)),
+          style: pw.TextStyle(fontSize: 9, color: PdfColors.white)),
     ));
   }
   return [pw.Wrap(children: chips), pw.SizedBox(height: 8)];
@@ -421,10 +421,3 @@ String _formatAmount(Ingredient ing) {
 
 PdfColor _toPdfColor(Color color) =>
     PdfColor(color.r, color.g, color.b, color.a);
-
-// Blends a PdfColor toward white (factor = how much white to mix in).
-PdfColor _lightenPdfColor(PdfColor c, {double factor = 0.82}) => PdfColor(
-      c.red + (1.0 - c.red) * factor,
-      c.green + (1.0 - c.green) * factor,
-      c.blue + (1.0 - c.blue) * factor,
-    );
