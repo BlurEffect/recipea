@@ -675,7 +675,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       final comp = recipeMap[id];
       if (comp == null) continue;
       for (final tagId in comp.tagIds) {
-        if (!_selectedTagIds.contains(tagId) && !linkedTagIds.contains(tagId)) {
+        if (!linkedTagIds.contains(tagId)) {
           linkedTagIds.add(tagId);
         }
       }
