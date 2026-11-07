@@ -98,7 +98,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String browseSearchEmptyTitle(String query) {
-    return 'Keine Rezepte für "$query"';
+    return 'Keine Rezepte für \"$query\"';
   }
 
   @override
@@ -220,7 +220,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String detailDeleteTitle(String title) {
-    return '"$title" löschen?';
+    return '\"$title\" löschen?';
   }
 
   @override
@@ -394,8 +394,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editCycleWarning => 'Würde einen Zyklus erzeugen';
 
   @override
-  String get editNoRecipesAvailable =>
-      'Keine Rezepte zum Verknüpfen verfügbar';
+  String get editNoRecipesAvailable => 'Keine Rezepte zum Verknüpfen verfügbar';
 
   @override
   String get editStepsInOrder =>
@@ -583,7 +582,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String categoryManagerDeleteCatPermanent(String name) {
-    return '"$name" wird dauerhaft gelöscht.';
+    return '\"$name\" wird dauerhaft gelöscht.';
   }
 
   @override
@@ -615,7 +614,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String categoryManagerDeleteTagPermanent(String name) {
-    return '"$name" wird dauerhaft gelöscht.';
+    return '\"$name\" wird dauerhaft gelöscht.';
   }
 
   @override
@@ -635,7 +634,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String addToMealPlanChooseDay(String title) {
-    return 'Wähle einen Tag für "$title"';
+    return 'Wähle einen Tag für \"$title\"';
   }
 
   @override
