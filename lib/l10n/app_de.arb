@@ -694,5 +694,17 @@
   "@settingsLanguageEn": {},
 
   "settingsLanguageDe": "Deutsch",
-  "@settingsLanguageDe": {}
+  "@settingsLanguageDe": {},
+
+  "browseCharacters": "Charaktere",
+  "@browseCharacters": {},
+
+  "achievementsTitle": "Charaktere",
+  "@achievementsTitle": {},
+
+  "achievementsHintUnlock": "Schließe Herausforderungen ab, um weitere Charaktere freizuschalten",
+  "@achievementsHintUnlock": {},
+
+  "achievementsFavoriteHint": "Tippe auf einen enthüllten Charakter, um ihn als Favoriten festzulegen",
+  "@achievementsFavoriteHint": {}
 }

@@ -717,4 +717,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsLanguageDe => 'Deutsch';
+
+  @override
+  String get browseCharacters => 'Charaktere';
+
+  @override
+  String get achievementsTitle => 'Charaktere';
+
+  @override
+  String get achievementsHintUnlock =>
+      'Schließe Herausforderungen ab, um weitere Charaktere freizuschalten';
+
+  @override
+  String get achievementsFavoriteHint =>
+      'Tippe auf einen enthüllten Charakter, um ihn als Favoriten festzulegen';
 }

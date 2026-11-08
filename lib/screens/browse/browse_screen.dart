@@ -119,12 +119,15 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 await _importRecipes(context, ref);
               } else if (value == 'settings') {
                 if (context.mounted) showSettingsSheet(context);
+              } else if (value == 'characters') {
+                if (context.mounted) context.push('/achievements');
               }
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'export_all', child: Text(l.browseExportBackup)),
               PopupMenuItem(value: 'import', child: Text(l.browseImportRecipes)),
               PopupMenuItem(value: 'settings', child: Text(l.settingsTitle)),
+              PopupMenuItem(value: 'characters', child: Text(l.browseCharacters)),
             ],
           ),
         ],

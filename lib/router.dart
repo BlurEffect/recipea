@@ -5,6 +5,7 @@ import 'screens/detail/detail_screen.dart';
 import 'screens/edit/edit_screen.dart';
 import 'screens/meal_plan/meal_plan_screen.dart';
 import 'screens/shopping_list/shopping_list_screen.dart';
+import 'screens/achievements/achievements_screen.dart';
 import 'screens/splash/splash_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -41,6 +42,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/shopping-list',
       builder: (context, state) => const ShoppingListScreen(),
+    ),
+    GoRoute(
+      path: '/achievements',
+      builder: (context, state) => const AchievementsScreen(),
     ),
   ],
 );

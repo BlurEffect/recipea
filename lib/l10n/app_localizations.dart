@@ -789,9 +789,15 @@ abstract class AppLocalizations {
   String get editStepsInOrder;
 
   /// No description provided for @editStepOrderCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom step order'**
   String get editStepOrderCustom;
 
   /// No description provided for @editStepOrderReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset order'**
   String get editStepOrderReset;
 
   /// No description provided for @editChangePhoto.
@@ -1279,6 +1285,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'German'**
   String get settingsLanguageDe;
+
+  /// No description provided for @browseCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get browseCharacters;
+
+  /// No description provided for @achievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get achievementsTitle;
+
+  /// No description provided for @achievementsHintUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete challenges to unlock additional characters'**
+  String get achievementsHintUnlock;
+
+  /// No description provided for @achievementsFavoriteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a revealed character to set it as your favorite'**
+  String get achievementsFavoriteHint;
 }
 
 class _AppLocalizationsDelegate

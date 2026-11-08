@@ -694,5 +694,17 @@
   "@settingsLanguageEn": {},
 
   "settingsLanguageDe": "German",
-  "@settingsLanguageDe": {}
+  "@settingsLanguageDe": {},
+
+  "browseCharacters": "Characters",
+  "@browseCharacters": {},
+
+  "achievementsTitle": "Characters",
+  "@achievementsTitle": {},
+
+  "achievementsHintUnlock": "Complete challenges to unlock additional characters",
+  "@achievementsHintUnlock": {},
+
+  "achievementsFavoriteHint": "Tap a revealed character to set it as your favorite",
+  "@achievementsFavoriteHint": {}
 }

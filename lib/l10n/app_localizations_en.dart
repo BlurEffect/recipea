@@ -713,4 +713,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageDe => 'German';
+
+  @override
+  String get browseCharacters => 'Characters';
+
+  @override
+  String get achievementsTitle => 'Characters';
+
+  @override
+  String get achievementsHintUnlock =>
+      'Complete challenges to unlock additional characters';
+
+  @override
+  String get achievementsFavoriteHint =>
+      'Tap a revealed character to set it as your favorite';
 }
