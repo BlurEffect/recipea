@@ -582,7 +582,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   hintText: l.editDescriptionHint,
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintStyle: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
               const SizedBox(height: 24),
