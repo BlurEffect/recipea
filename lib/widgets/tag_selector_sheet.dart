@@ -19,6 +19,7 @@ void showTagSelectorSheet({
   required BuildContext context,
   required TagFilterState currentFilter,
   required void Function(TagFilterState) onChanged,
+  bool allowExclusion = true,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -30,6 +31,7 @@ void showTagSelectorSheet({
     builder: (_) => _TagSelectorSheet(
       currentFilter: currentFilter,
       onChanged: onChanged,
+      allowExclusion: allowExclusion,
     ),
   );
 }
@@ -37,10 +39,12 @@ void showTagSelectorSheet({
 class _TagSelectorSheet extends ConsumerStatefulWidget {
   final TagFilterState currentFilter;
   final void Function(TagFilterState) onChanged;
+  final bool allowExclusion;
 
   const _TagSelectorSheet({
     required this.currentFilter,
     required this.onChanged,
+    required this.allowExclusion,
   });
 
   @override
@@ -63,7 +67,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
     setState(() {
       if (_included.contains(id)) {
         _included.remove(id);
-        _excluded.add(id);
+        if (widget.allowExclusion) _excluded.add(id);
       } else if (_excluded.contains(id)) {
         _excluded.remove(id);
       } else {
@@ -158,7 +162,8 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
       grouped.putIfAbsent(tag.category, () => []).add(tag);
     }
 
-    final hasSelection = _included.isNotEmpty || _excluded.isNotEmpty;
+    final hasSelection = _included.isNotEmpty ||
+        (widget.allowExclusion && _excluded.isNotEmpty);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -197,13 +202,14 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          l.tagSelectorTapHint,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                        if (widget.allowExclusion)
+                          Text(
+                            l.tagSelectorTapHint,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -261,7 +267,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                         return TagChip(
                           tag: tag,
                           isSelected: _included.contains(tag.id),
-                          isExcluded: _excluded.contains(tag.id),
+                          isExcluded: widget.allowExclusion && _excluded.contains(tag.id),
                           onTap: () => _toggle(tag.id),
                         );
                       }).toList(),

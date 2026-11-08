@@ -1,31 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../../data/tag_definitions.dart';
 import '../../../models/recipe.dart';
 import '../../../theme/app_colors.dart';
-import '../../../widgets/tag_chip.dart';
 
 class RecipeListTile extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
-  final List<TagDefinition> allTags;
 
   const RecipeListTile({
     super.key,
     required this.recipe,
     required this.onTap,
-    required this.allTags,
   });
 
   @override
   Widget build(BuildContext context) {
-    final firstTags = recipe.tagIds
-        .take(3)
-        .map((id) => tagByIdAll(id, allTags))
-        .whereType<TagDefinition>()
-        .toList();
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -44,20 +34,21 @@ class RecipeListTile extends StatelessWidget {
         child: Row(
           children: [
             // Thumbnail
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
-              ),
-              child: SizedBox(
-                width: 88,
-                height: 88,
-                child: recipe.imagePath != null
-                    ? Image.file(
-                        File(recipe.imagePath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _placeholder(),
-                      )
-                    : _placeholder(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: recipe.imagePath != null
+                      ? Image.file(
+                          File(recipe.imagePath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _placeholder(),
+                        )
+                      : _placeholder(),
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -78,15 +69,6 @@ class RecipeListTile extends StatelessWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    if (firstTags.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        children: firstTags
-                            .map((t) => TagChip(tag: t, isSelected: false))
-                            .toList(),
-                      ),
-                    ],
                   ],
                 ),
               ),

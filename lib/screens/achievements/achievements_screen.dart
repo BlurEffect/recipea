@@ -195,6 +195,15 @@ class _CharacterCardState extends State<_CharacterCard>
   }
 
   @override
+  void didUpdateWidget(_CharacterCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((oldWidget.isRevealed && !widget.isRevealed) ||
+        (oldWidget.isUnlocked && !widget.isUnlocked)) {
+      _controller.reset();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

@@ -149,6 +149,8 @@ class ShoppingListScreen extends ConsumerWidget {
                         onChanged: (_) =>
                             ref.read(shoppingListProvider.notifier).toggle(index),
                         activeColor: AppColors.primary,
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -2),
                         title: Text(
                           item.name,
                           style: TextStyle(

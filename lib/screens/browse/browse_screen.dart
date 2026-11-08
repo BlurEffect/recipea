@@ -177,7 +177,6 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                       final recipe = recipes[index];
                       return RecipeListTile(
                         recipe: recipe,
-                        allTags: allTags,
                         onTap: () => context.go('/recipes/${recipe.id}'),
                       );
                     },

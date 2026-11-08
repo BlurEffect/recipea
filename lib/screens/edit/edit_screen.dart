@@ -600,6 +600,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       currentFilter: TagFilterState(included: _selectedTagIds),
                       onChanged: (f) =>
                           setState(() => _selectedTagIds = f.included),
+                      allowExclusion: false,
                     ),
                     icon: const Icon(Icons.add, size: 16),
                     label: Text(l.editAddTagsButton),
