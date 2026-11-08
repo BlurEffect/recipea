@@ -84,6 +84,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navShopping => 'Shopping';
 
   @override
+  String get navCharacters => 'Characters';
+
+  @override
   String get browseSearchHint => 'Search recipes…';
 
   @override

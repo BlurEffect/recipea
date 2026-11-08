@@ -110,25 +110,20 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) async {
-              if (value == 'export_all') {
-                await _exportAll(context, ref);
-              } else if (value == 'import') {
-                await _importRecipes(context, ref);
-              } else if (value == 'settings') {
-                if (context.mounted) showSettingsSheet(context);
-              } else if (value == 'characters') {
-                if (context.mounted) context.push('/achievements');
-              }
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(value: 'export_all', child: Text(l.browseExportBackup)),
-              PopupMenuItem(value: 'import', child: Text(l.browseImportRecipes)),
-              PopupMenuItem(value: 'settings', child: Text(l.settingsTitle)),
-              PopupMenuItem(value: 'characters', child: Text(l.browseCharacters)),
-            ],
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: l.browseExportBackup,
+            onPressed: () => _exportAll(context, ref),
+          ),
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: l.browseImportRecipes,
+            onPressed: () => _importRecipes(context, ref),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l.settingsTitle,
+            onPressed: () => showSettingsSheet(context),
           ),
         ],
       ),

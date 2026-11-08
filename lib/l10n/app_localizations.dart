@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'Shopping'**
   String get navShopping;
 
+  /// No description provided for @navCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get navCharacters;
+
   /// No description provided for @browseSearchHint.
   ///
   /// In en, this message translates to:

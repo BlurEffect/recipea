@@ -76,6 +76,9 @@
   "navShopping": "Einkaufen",
   "@navShopping": {},
 
+  "navCharacters": "Charaktere",
+  "@navCharacters": {},
+
   "browseSearchHint": "Rezepte durchsuchen…",
   "@browseSearchHint": {},
 

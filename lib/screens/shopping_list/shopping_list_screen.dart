@@ -11,6 +11,7 @@ import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/settings_sheet.dart';
 
 class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({super.key});
@@ -51,6 +52,11 @@ class ShoppingListScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l.settingsTitle,
+            onPressed: () => showSettingsSheet(context),
+          ),
           if (items.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.share_outlined),

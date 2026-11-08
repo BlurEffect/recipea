@@ -7,6 +7,8 @@ import '../../data/character_definitions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/achievement_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_bottom_nav_bar.dart';
+import '../../widgets/settings_sheet.dart';
 
 class AchievementsScreen extends ConsumerWidget {
   const AchievementsScreen({super.key});
@@ -18,10 +20,18 @@ class AchievementsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 3),
       appBar: AppBar(
         title: Text(l.achievementsTitle),
         backgroundColor: AppColors.background,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l.settingsTitle,
+            onPressed: () => showSettingsSheet(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
