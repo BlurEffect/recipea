@@ -709,5 +709,32 @@
   "@achievementsHintUnlock": {},
 
   "achievementsFavoriteHint": "Tap a revealed character to set it as your favorite",
-  "@achievementsFavoriteHint": {}
+  "@achievementsFavoriteHint": {},
+
+  "unitTeaspoon": "tsp",
+  "@unitTeaspoon": {},
+  "unitTablespoon": "tbsp",
+  "@unitTablespoon": {},
+  "unitCup": "cup",
+  "@unitCup": {},
+  "unitPiece": "piece",
+  "@unitPiece": {},
+  "unitSlice": "slice",
+  "@unitSlice": {},
+  "unitClove": "clove",
+  "@unitClove": {},
+  "unitBunch": "bunch",
+  "@unitBunch": {},
+  "unitPinch": "pinch",
+  "@unitPinch": {},
+  "unitCan": "can",
+  "@unitCan": {},
+  "unitSprig": "sprig",
+  "@unitSprig": {},
+  "unitHead": "head",
+  "@unitHead": {},
+  "unitStalk": "stalk",
+  "@unitStalk": {},
+  "unitHandful": "handful",
+  "@unitHandful": {}
 }

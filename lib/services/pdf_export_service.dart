@@ -186,7 +186,7 @@ List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes, AppLoc
         style: pw.TextStyle(
             fontSize: 14, fontWeight: pw.FontWeight.bold, color: _green)),
     pw.SizedBox(height: 8),
-    ...ingredients.map(_buildIngredientRow),
+    ...ingredients.map((ing) => _buildIngredientRow(ing, l)),
     pw.SizedBox(height: 12),
     pw.Divider(color: _green, thickness: 0.5),
     pw.SizedBox(height: 12),
@@ -230,8 +230,8 @@ List<pw.Widget> _buildSteps(
 
 // ── Row widgets ───────────────────────────────────────────────────────────────
 
-pw.Widget _buildIngredientRow(Ingredient ing) {
-  final amountStr = _formatAmount(ing);
+pw.Widget _buildIngredientRow(Ingredient ing, AppLocalizations l) {
+  final amountStr = _formatAmount(ing, l);
   return pw.Padding(
     padding: const pw.EdgeInsets.only(bottom: 6),
     child: pw.Row(
@@ -410,13 +410,13 @@ pw.Widget _buildFooter(pw.Context context, AppLocalizations l) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-String _formatAmount(Ingredient ing) {
+String _formatAmount(Ingredient ing, AppLocalizations l) {
   if (ing.quantity == null) return '';
   final v = ing.quantity!;
   final s = v == v.truncateToDouble()
       ? v.toInt().toString()
       : v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-  return ing.unit != null ? '$s ${ing.unit}' : s;
+  return ing.unit != null ? '$s ${localizeUnit(ing.unit!, l)}' : s;
 }
 
 PdfColor _toPdfColor(Color color) =>

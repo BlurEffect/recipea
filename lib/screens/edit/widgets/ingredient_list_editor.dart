@@ -30,6 +30,17 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
     super.initState();
     _rows = widget.ingredients.map(_IngredientRow.fromIngredient).toList();
     if (_rows.isEmpty) _addRow();
+    // Localize any existing stored unit values after first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
+      for (final row in _rows) {
+        final raw = row.unitController.text;
+        if (raw.isEmpty) continue;
+        final localized = localizeUnit(raw, l);
+        if (localized != raw) row.unitController.text = localized;
+      }
+    });
   }
 
   @override
@@ -220,9 +231,12 @@ class _UnitField extends StatelessWidget {
         focusNode: focusNode,
         optionsBuilder: (TextEditingValue value) {
           if (value.text.isEmpty) return const Iterable.empty();
-          return (ingredientUnits.where(
-            (u) => u.startsWith(value.text.toLowerCase()),
-          ).toList()..sort());
+          final l = AppLocalizations.of(context)!;
+          final langCode = Localizations.localeOf(context).languageCode;
+          final units = ingredientUnits(l, langCode);
+          return units.where(
+            (u) => u.toLowerCase().startsWith(value.text.toLowerCase()),
+          );
         },
         onSelected: (_) => onChanged(),
         fieldViewBuilder: (context, textController, fn, _) {

@@ -1315,6 +1315,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a revealed character to set it as your favorite'**
   String get achievementsFavoriteHint;
+
+  /// No description provided for @unitTeaspoon.
+  ///
+  /// In en, this message translates to:
+  /// **'tsp'**
+  String get unitTeaspoon;
+
+  /// No description provided for @unitTablespoon.
+  ///
+  /// In en, this message translates to:
+  /// **'tbsp'**
+  String get unitTablespoon;
+
+  /// No description provided for @unitCup.
+  ///
+  /// In en, this message translates to:
+  /// **'cup'**
+  String get unitCup;
+
+  /// No description provided for @unitPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'piece'**
+  String get unitPiece;
+
+  /// No description provided for @unitSlice.
+  ///
+  /// In en, this message translates to:
+  /// **'slice'**
+  String get unitSlice;
+
+  /// No description provided for @unitClove.
+  ///
+  /// In en, this message translates to:
+  /// **'clove'**
+  String get unitClove;
+
+  /// No description provided for @unitBunch.
+  ///
+  /// In en, this message translates to:
+  /// **'bunch'**
+  String get unitBunch;
+
+  /// No description provided for @unitPinch.
+  ///
+  /// In en, this message translates to:
+  /// **'pinch'**
+  String get unitPinch;
+
+  /// No description provided for @unitCan.
+  ///
+  /// In en, this message translates to:
+  /// **'can'**
+  String get unitCan;
+
+  /// No description provided for @unitSprig.
+  ///
+  /// In en, this message translates to:
+  /// **'sprig'**
+  String get unitSprig;
+
+  /// No description provided for @unitHead.
+  ///
+  /// In en, this message translates to:
+  /// **'head'**
+  String get unitHead;
+
+  /// No description provided for @unitStalk.
+  ///
+  /// In en, this message translates to:
+  /// **'stalk'**
+  String get unitStalk;
+
+  /// No description provided for @unitHandful.
+  ///
+  /// In en, this message translates to:
+  /// **'handful'**
+  String get unitHandful;
 }
 
 class _AppLocalizationsDelegate

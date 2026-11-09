@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../data/tag_definitions.dart';
 
@@ -78,13 +79,52 @@ final List<TagDefinition> seedTags = [
 // ── Ingredient units ─────────────────────────────────────────────────────────
 // Metric-first list shown in the unit picker when editing ingredients.
 
-const List<String> ingredientUnits = [
-  'g', 'kg', 'ml', 'l',
-  'tsp', 'tbsp', 'cup',
-  'oz', 'lb',
-  'piece', 'slice', 'clove', 'bunch', 'pinch',
-  'can', 'sprig', 'head', 'stalk', 'handful',
-];
+/// Returns a locale-aware ordered list of unit display strings for the
+/// ingredient editor autocomplete.
+List<String> ingredientUnits(AppLocalizations l, String languageCode) {
+  final metric = ['g', 'kg', 'ml', 'l'];
+  if (languageCode == 'de') {
+    return [
+      ...metric,
+      l.unitTablespoon, l.unitTeaspoon,
+      l.unitPiece, l.unitPinch, l.unitCan, l.unitBunch,
+      l.unitSlice, l.unitClove, l.unitSprig, l.unitHead,
+      l.unitStalk, l.unitHandful,
+      l.unitCup, 'oz', 'lb',
+    ];
+  }
+  return [
+    ...metric,
+    l.unitTeaspoon, l.unitTablespoon, l.unitCup, 'oz', 'lb',
+    l.unitPiece, l.unitSlice, l.unitClove, l.unitBunch, l.unitPinch,
+    l.unitCan, l.unitSprig, l.unitHead, l.unitStalk, l.unitHandful,
+  ];
+}
+
+/// Maps a stored (lowercase) unit value to the proper display string for the
+/// current locale. Handles old English canonical values and new localized
+/// lowercase values. Unknown / free-text units pass through unchanged.
+String localizeUnit(String stored, AppLocalizations l) {
+  final map = <String, String>{
+    // English canonical → locale display
+    'tsp': l.unitTeaspoon,   'tbsp': l.unitTablespoon,
+    'cup': l.unitCup,
+    'piece': l.unitPiece,    'slice': l.unitSlice,
+    'clove': l.unitClove,    'bunch': l.unitBunch,
+    'pinch': l.unitPinch,    'can': l.unitCan,
+    'sprig': l.unitSprig,    'head': l.unitHead,
+    'stalk': l.unitStalk,    'handful': l.unitHandful,
+    // German lowercase → locale display (new data created in DE)
+    'tl': l.unitTeaspoon,    'el': l.unitTablespoon,
+    'tasse': l.unitCup,
+    'stück': l.unitPiece,    'scheibe': l.unitSlice,
+    'zehe': l.unitClove,     'bund': l.unitBunch,
+    'prise': l.unitPinch,    'dose': l.unitCan,
+    'zweig': l.unitSprig,    'kopf': l.unitHead,
+    'stiel': l.unitStalk,    'handvoll': l.unitHandful,
+  };
+  return map[stored.toLowerCase()] ?? stored;
+}
 
 const List<Color> componentColors = [
   Color(0xFF1976D2), // blue

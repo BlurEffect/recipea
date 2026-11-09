@@ -730,4 +730,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get achievementsFavoriteHint =>
       'Tap a revealed character to set it as your favorite';
+
+  @override
+  String get unitTeaspoon => 'tsp';
+
+  @override
+  String get unitTablespoon => 'tbsp';
+
+  @override
+  String get unitCup => 'cup';
+
+  @override
+  String get unitPiece => 'piece';
+
+  @override
+  String get unitSlice => 'slice';
+
+  @override
+  String get unitClove => 'clove';
+
+  @override
+  String get unitBunch => 'bunch';
+
+  @override
+  String get unitPinch => 'pinch';
+
+  @override
+  String get unitCan => 'can';
+
+  @override
+  String get unitSprig => 'sprig';
+
+  @override
+  String get unitHead => 'head';
+
+  @override
+  String get unitStalk => 'stalk';
+
+  @override
+  String get unitHandful => 'handful';
 }

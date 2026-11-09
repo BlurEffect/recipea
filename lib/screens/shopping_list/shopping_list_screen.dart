@@ -117,7 +117,8 @@ class ShoppingListScreen extends ConsumerWidget {
               }
               ref.read(shoppingListProvider.notifier).generate(
                   ref.read(mealPlanRecipesProvider),
-                  ref.read(recipeListProvider));
+                  ref.read(recipeListProvider),
+                  AppLocalizations.of(context)!);
             },
           ),
         ],

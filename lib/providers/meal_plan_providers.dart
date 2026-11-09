@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/seed_data.dart';
+import '../l10n/app_localizations.dart';
 import '../models/meal_plan.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
@@ -90,9 +92,9 @@ class ShoppingListNotifier extends StateNotifier<ShoppingList> {
 
   final MealPlanRepository _repo;
 
-  void generate(List<Recipe> planRecipes, List<Recipe> allRecipes) {
+  void generate(List<Recipe> planRecipes, List<Recipe> allRecipes, AppLocalizations l) {
     state = ShoppingList(
-      items: _buildShoppingItems(planRecipes, allRecipes),
+      items: _buildShoppingItems(planRecipes, allRecipes, l),
       generatedAt: DateTime.now(),
     );
     _repo.saveShoppingList(state);
@@ -169,8 +171,8 @@ final lastCookedMapProvider = Provider<Map<String, DateTime>>((ref) {
 // ---------------------------------------------------------------------------
 
 List<ShoppingItem> _buildShoppingItems(
-    List<Recipe> recipes, List<Recipe> allRecipes) {
-  // Key: (name, unit, note) — ingredients with different notes stay separate.
+    List<Recipe> recipes, List<Recipe> allRecipes, AppLocalizations l) {
+  // Key: (name, normalizedUnit, note) — normalized so "can"/"dose" group together.
   final Map<(String, String, String), double> numeric = {};
   // Key: (name, note) — note-only ingredients, deduplicated.
   final Set<(String, String)> noteOnly = {};
@@ -180,7 +182,8 @@ List<ShoppingItem> _buildShoppingItems(
       final name = ing.name.trim().toLowerCase();
       final note = (ing.note ?? '').trim();
       if (ing.quantity != null) {
-        final unit = (ing.unit ?? '').toLowerCase();
+        // Normalize unit so old "can" and new "dose" (DE) group together.
+        final unit = localizeUnit((ing.unit ?? '').toLowerCase(), l).toLowerCase();
         final key = (name, unit, note);
         numeric[key] = (numeric[key] ?? 0.0) + ing.quantity!;
       } else {
@@ -193,7 +196,9 @@ List<ShoppingItem> _buildShoppingItems(
 
   for (final entry in numeric.entries) {
     final (name, unit, note) = entry.key;
-    final amountStr = _formatValue(entry.value, unit);
+    // unit is lowercase normalized — localizeUnit produces proper display form.
+    final displayUnit = localizeUnit(unit, l);
+    final amountStr = _formatValue(entry.value, displayUnit);
     items.add(ShoppingItem(
       name: _toTitleCase(name),
       amount: note.isNotEmpty ? '$amountStr ($note)' : amountStr,

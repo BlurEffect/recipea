@@ -709,5 +709,32 @@
   "@achievementsHintUnlock": {},
 
   "achievementsFavoriteHint": "Tippe auf einen enthüllten Charakter, um ihn als Favoriten festzulegen",
-  "@achievementsFavoriteHint": {}
+  "@achievementsFavoriteHint": {},
+
+  "unitTeaspoon": "TL",
+  "@unitTeaspoon": {},
+  "unitTablespoon": "EL",
+  "@unitTablespoon": {},
+  "unitCup": "Tasse",
+  "@unitCup": {},
+  "unitPiece": "Stück",
+  "@unitPiece": {},
+  "unitSlice": "Scheibe",
+  "@unitSlice": {},
+  "unitClove": "Zehe",
+  "@unitClove": {},
+  "unitBunch": "Bund",
+  "@unitBunch": {},
+  "unitPinch": "Prise",
+  "@unitPinch": {},
+  "unitCan": "Dose",
+  "@unitCan": {},
+  "unitSprig": "Zweig",
+  "@unitSprig": {},
+  "unitHead": "Kopf",
+  "@unitHead": {},
+  "unitStalk": "Stiel",
+  "@unitStalk": {},
+  "unitHandful": "Handvoll",
+  "@unitHandful": {}
 }

@@ -450,9 +450,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   List<Widget> _ingredientRows(List<Ingredient> ingredients,
       {double scaleFactor = 1.0}) {
+    final l = AppLocalizations.of(context)!;
     return ingredients
         .map((ing) {
-          final amountStr = _buildAmountStr(ing, scaleFactor);
+          final amountStr = _buildAmountStr(ing, scaleFactor, l);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -872,7 +873,8 @@ class _IngredientBlock extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         ...ingredients.map((ing) {
-          final amountStr = _buildAmountStr(ing, scaleFactor);
+          final l = AppLocalizations.of(context)!;
+          final amountStr = _buildAmountStr(ing, scaleFactor, l);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -1071,11 +1073,14 @@ String _fmtQty(double v) {
   return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 }
 
-String _buildAmountStr(Ingredient ing, double scaleFactor) {
+String _buildAmountStr(Ingredient ing, double scaleFactor, AppLocalizations l) {
   if (ing.quantity != null) {
     final scaled = ing.quantity! * scaleFactor;
     final qtyStr = _fmtQty(scaled);
-    return ing.unit != null ? '$qtyStr ${ing.unit}' : qtyStr;
+    if (ing.unit != null) {
+      return '$qtyStr ${localizeUnit(ing.unit!, l)}';
+    }
+    return qtyStr;
   }
   return '';
 }

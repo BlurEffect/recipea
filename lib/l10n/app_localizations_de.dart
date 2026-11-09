@@ -734,4 +734,43 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get achievementsFavoriteHint =>
       'Tippe auf einen enthüllten Charakter, um ihn als Favoriten festzulegen';
+
+  @override
+  String get unitTeaspoon => 'TL';
+
+  @override
+  String get unitTablespoon => 'EL';
+
+  @override
+  String get unitCup => 'Tasse';
+
+  @override
+  String get unitPiece => 'Stück';
+
+  @override
+  String get unitSlice => 'Scheibe';
+
+  @override
+  String get unitClove => 'Zehe';
+
+  @override
+  String get unitBunch => 'Bund';
+
+  @override
+  String get unitPinch => 'Prise';
+
+  @override
+  String get unitCan => 'Dose';
+
+  @override
+  String get unitSprig => 'Zweig';
+
+  @override
+  String get unitHead => 'Kopf';
+
+  @override
+  String get unitStalk => 'Stiel';
+
+  @override
+  String get unitHandful => 'Handvoll';
 }
