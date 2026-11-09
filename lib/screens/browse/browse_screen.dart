@@ -133,7 +133,10 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
         tooltip: l.create,
         child: const Icon(Icons.add),
       ),
-      body: Column(
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SearchField(
@@ -178,6 +181,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }

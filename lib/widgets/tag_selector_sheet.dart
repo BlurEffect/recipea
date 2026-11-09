@@ -104,6 +104,17 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(hintText: l.tagSelectorTagNameHint),
                 ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    l.tagSelectorCategoryLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<CategoryDefinition>(
                   initialValue: selectedCategory,
@@ -114,7 +125,10 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           ))
                       .toList(),
                   onChanged: (v) => setDialogState(() => selectedCategory = v!),
-                  decoration: InputDecoration(labelText: l.tagSelectorCategoryLabel),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
                 ),
               ],
             ),
@@ -171,7 +185,10 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (sheetContext, scrollController) {
-        return Column(
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Column(
           children: [
             // Handle
             const SizedBox(height: 12),
@@ -305,6 +322,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
               ),
             ),
           ],
+          ),
         );
       },
     );

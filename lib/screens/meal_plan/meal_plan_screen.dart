@@ -393,7 +393,10 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return Column(
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -490,6 +493,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                     ),
             ),
           ],
+          ),
         );
       },
     );
