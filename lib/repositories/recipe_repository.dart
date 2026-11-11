@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../data/hive_boxes.dart';
 import '../data/tag_definitions.dart';
 import '../models/category_definition.dart';
+import '../models/meal_plan.dart';
 import '../models/recipe.dart';
 import '../utils/recipe_graph.dart';
 
@@ -71,7 +72,7 @@ class RecipeRepository {
     List<String> ids,
     List<TagDefinition> allTags,
     List<CategoryDefinition> allCategories, {
-    Map<String, List<String?>>? mealPlanHistory,
+    Map<String, List<MealSlot?>>? mealPlanHistory,
   }) async {
     final allStored = getAll();
     final baseRecipes = ids.isEmpty
@@ -112,8 +113,10 @@ class RecipeRepository {
           .map((t) => {'id': t.id, 'label': t.label, 'category': t.category, 'isCustom': t.isCustom})
           .toList(),
       'recipes': jsonList,
-      // ignore: use_null_aware_elements
-      if (mealPlanHistory != null) 'mealPlanHistory': mealPlanHistory,
+      if (mealPlanHistory != null)
+        'mealPlanHistory': mealPlanHistory.map(
+          (k, v) => MapEntry(k, v.map((s) => s?.toJson()).toList()),
+        ),
     });
   }
 
@@ -192,7 +195,7 @@ class RecipeRepository {
     List<dynamic> recipes,
     List<Map<String, dynamic>> customTags,
     List<Map<String, dynamic>> categories,
-    Map<String, List<String?>>? mealPlanHistory,
+    Map<String, List<MealSlot?>>? mealPlanHistory,
   }) _parseImportJson(String jsonString) {
     final dynamic decoded;
     try {
@@ -215,13 +218,15 @@ class RecipeRepository {
     final customTagsRaw = decoded['customTags'] as List<dynamic>? ?? [];
     final categoriesRaw = decoded['categories'] as List<dynamic>? ?? [];
 
-    Map<String, List<String?>>? history;
+    Map<String, List<MealSlot?>>? history;
     final rawHistory = decoded['mealPlanHistory'] as Map<String, dynamic>?;
     if (rawHistory != null) {
       history = rawHistory.map(
         (k, v) => MapEntry(
           k,
-          (v as List<dynamic>).map((e) => e as String?).toList(),
+          (v as List<dynamic>)
+              .map((e) => e == null ? null : MealSlot.fromJson(e))
+              .toList(),
         ),
       );
     }
@@ -245,7 +250,7 @@ class ImportResult {
   final List<String> conflictIds;
   final List<Map<String, dynamic>> customTags;
   final List<Map<String, dynamic>> categories;
-  final Map<String, List<String?>>? mealPlanHistory;
+  final Map<String, List<MealSlot?>>? mealPlanHistory;
 
   const ImportResult({
     required this.imported,

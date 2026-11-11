@@ -116,7 +116,7 @@ class ShoppingListScreen extends ConsumerWidget {
                 if (confirmed != true || !context.mounted) return;
               }
               ref.read(shoppingListProvider.notifier).generate(
-                  ref.read(mealPlanRecipesProvider),
+                  ref.read(mealPlanSlotEntriesProvider),
                   ref.read(recipeListProvider),
                   AppLocalizations.of(context)!);
             },

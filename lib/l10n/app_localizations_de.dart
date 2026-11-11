@@ -475,6 +475,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealPlanNoResults => 'Keine Rezepte gefunden';
 
   @override
+  String get mealPlanSetServings => 'Portionen ändern';
+
+  @override
+  String get mealPlanResetServings => 'Auf Standard zurücksetzen';
+
+  @override
   String get shoppingListTitle => 'Einkaufsliste';
 
   @override

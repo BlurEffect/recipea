@@ -162,17 +162,17 @@ class MealPlanScreen extends ConsumerWidget {
                       if (slots.isNotEmpty) const Divider(height: 1),
                       // Slot rows
                       ...List.generate(slots.length, (slotIndex) {
-                        final recipeId = slots[slotIndex];
-                        final recipe = recipeId == null
-                            ? null
-                            : allRecipes.cast<Recipe?>().firstWhere(
-                                  (r) => r?.id == recipeId,
-                                  orElse: () => null,
-                                );
+                        final slot = slots[slotIndex];
+                        if (slot == null) return const SizedBox.shrink();
+                        final recipe = allRecipes.cast<Recipe?>().firstWhere(
+                              (r) => r?.id == slot.recipeId,
+                              orElse: () => null,
+                            );
                         if (recipe == null) return const SizedBox.shrink();
                         return _SlotRow(
-                          key: ValueKey(recipeId),
+                          key: ValueKey('${day}_$slotIndex'),
                           recipe: recipe,
+                          slotServings: slot.servings,
                           onEdit: () => _showRecipePicker(
                             context,
                             ref,
@@ -186,6 +186,9 @@ class MealPlanScreen extends ConsumerWidget {
                               .removeSlot(day, slotIndex),
                           onNavigate: () =>
                               context.push('/recipes/${recipe.id}'),
+                          onServingsChanged: (servings) => ref
+                              .read(mealPlanProvider.notifier)
+                              .setSlotServings(day, slotIndex, servings),
                         );
                       }),
                       // Add slot button
@@ -231,7 +234,7 @@ class MealPlanScreen extends ConsumerWidget {
     MealPlan plan,
     List<Recipe> allRecipes,
   ) {
-    final currentRecipeId = plan.getSlotsForDay(day)[slotIndex];
+    final currentSlot = plan.getSlotsForDay(day)[slotIndex];
 
     return showModalBottomSheet(
       context: context,
@@ -241,7 +244,7 @@ class MealPlanScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) => _RecipePickerSheet(
-        currentRecipeId: currentRecipeId,
+        currentRecipeId: currentSlot?.recipeId,
         allRecipes: allRecipes,
         onPick: (recipeId) => ref
             .read(mealPlanProvider.notifier)
@@ -281,22 +284,28 @@ class MealPlanScreen extends ConsumerWidget {
 
 class _SlotRow extends StatelessWidget {
   final Recipe recipe;
+  final int? slotServings;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
   final VoidCallback onNavigate;
+  final ValueChanged<int?> onServingsChanged;
 
   const _SlotRow({
     super.key,
     required this.recipe,
+    required this.slotServings,
     required this.onEdit,
     required this.onRemove,
     required this.onNavigate,
+    required this.onServingsChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final hasImage = recipe.imagePath != null;
+    final effectiveServings = slotServings ?? recipe.servings;
+    final hasOverride = slotServings != null && slotServings != recipe.servings;
 
     return InkWell(
       onTap: onNavigate,
@@ -319,14 +328,34 @@ class _SlotRow extends StatelessWidget {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: Text(
-                recipe.title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    recipe.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  GestureDetector(
+                    onTap: () =>
+                        _showServingsDialog(context, l, effectiveServings),
+                    child: Text(
+                      l.detailServings(effectiveServings),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: hasOverride
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             IconButton(
@@ -348,6 +377,80 @@ class _SlotRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showServingsDialog(
+      BuildContext context, AppLocalizations l, int current) async {
+    int value = current;
+
+    final result = await showDialog<int?>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(l.mealPlanSetServings),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline),
+                    iconSize: 28,
+                    color: value > 1 ? AppColors.primary : AppColors.divider,
+                    onPressed: value > 1
+                        ? () => setState(() => value--)
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '$value',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    iconSize: 28,
+                    color: value < 99 ? AppColors.primary : AppColors.divider,
+                    onPressed: value < 99
+                        ? () => setState(() => value++)
+                        : null,
+                  ),
+                ],
+              ),
+              if (recipe.servings != value) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, recipe.servings),
+                  child: Text(
+                    l.mealPlanResetServings,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, value),
+              child: Text(l.save),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      // null override means "use recipe default"
+      onServingsChanged(result == recipe.servings ? null : result);
+    }
   }
 }
 

@@ -474,6 +474,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealPlanNoResults => 'No recipes found';
 
   @override
+  String get mealPlanSetServings => 'Change servings';
+
+  @override
+  String get mealPlanResetServings => 'Reset to default';
+
+  @override
   String get shoppingListTitle => 'Shopping List';
 
   @override

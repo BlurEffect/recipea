@@ -926,6 +926,18 @@ abstract class AppLocalizations {
   /// **'No recipes found'**
   String get mealPlanNoResults;
 
+  /// No description provided for @mealPlanSetServings.
+  ///
+  /// In en, this message translates to:
+  /// **'Change servings'**
+  String get mealPlanSetServings;
+
+  /// No description provided for @mealPlanResetServings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get mealPlanResetServings;
+
   /// No description provided for @shoppingListTitle.
   ///
   /// In en, this message translates to:

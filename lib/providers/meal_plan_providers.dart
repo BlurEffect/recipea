@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/seed_data.dart';
 import '../l10n/app_localizations.dart';
+import '../models/ingredient.dart';
 import '../models/meal_plan.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
@@ -35,6 +36,9 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
   void setSlotRecipe(DateTime date, int index, String? recipeId) =>
       _save(state.setSlotRecipe(date, index, recipeId));
 
+  void setSlotServings(DateTime date, int index, int? servings) =>
+      _save(state.setSlotServings(date, index, servings));
+
   /// Adds the recipe as a new slot at the end of the day's list.
   void addRecipeToDay(DateTime date, String recipeId) =>
       _save(state.addRecipeToDay(date, recipeId));
@@ -46,12 +50,12 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
 
   /// Merges historical past-date slots from an imported backup.
   /// Only adds date keys not already present locally; never touches today/future.
-  void mergeHistory(Map<String, List<String?>> importedSlots) {
+  void mergeHistory(Map<String, List<MealSlot?>> importedSlots) {
     final today = DateTime.now();
     final todayKey = '${today.year}-'
         '${today.month.toString().padLeft(2, '0')}-'
         '${today.day.toString().padLeft(2, '0')}';
-    final merged = Map<String, List<String?>>.from(state.daySlots);
+    final merged = Map<String, List<MealSlot?>>.from(state.daySlots);
     bool changed = false;
     for (final entry in importedSlots.entries) {
       if (entry.key.compareTo(todayKey) >= 0) continue;
@@ -75,12 +79,37 @@ final mealPlanRecipesProvider = Provider<List<Recipe>>((ref) {
   final allIds = List.generate(7, (i) => today.add(Duration(days: i)))
       .where((d) => plan.isDayIncluded(d))
       .expand((d) => plan.getSlotsForDay(d))
-      .whereType<String>()
+      .whereType<MealSlot>()
+      .map((s) => s.recipeId)
       .toList();
   final recipeMap = {
     for (final r in ref.watch(recipeListProvider)) r.id: r,
   };
   return allIds.map((id) => recipeMap[id]).whereType<Recipe>().toList();
+});
+
+/// All (recipe, slotServings?) entries for included days in the 7-day window.
+/// Used by shopping list generation to apply correct per-slot serving scale.
+final mealPlanSlotEntriesProvider =
+    Provider<List<({Recipe recipe, int? slotServings})>>((ref) {
+  final plan = ref.watch(mealPlanProvider);
+  final today = DateTime.now();
+  final recipeMap = {
+    for (final r in ref.watch(recipeListProvider)) r.id: r,
+  };
+  final entries = <({Recipe recipe, int? slotServings})>[];
+  for (int i = 0; i < 7; i++) {
+    final d = today.add(Duration(days: i));
+    final day = DateTime(d.year, d.month, d.day);
+    if (!plan.isDayIncluded(day)) continue;
+    for (final slot in plan.getSlotsForDay(day)) {
+      if (slot == null) continue;
+      final recipe = recipeMap[slot.recipeId];
+      if (recipe == null) continue;
+      entries.add((recipe: recipe, slotServings: slot.servings));
+    }
+  }
+  return entries;
 });
 
 // ---------------------------------------------------------------------------
@@ -92,9 +121,13 @@ class ShoppingListNotifier extends StateNotifier<ShoppingList> {
 
   final MealPlanRepository _repo;
 
-  void generate(List<Recipe> planRecipes, List<Recipe> allRecipes, AppLocalizations l) {
+  void generate(
+    List<({Recipe recipe, int? slotServings})> slotEntries,
+    List<Recipe> allRecipes,
+    AppLocalizations l,
+  ) {
     state = ShoppingList(
-      items: _buildShoppingItems(planRecipes, allRecipes, l),
+      items: _buildShoppingItems(slotEntries, allRecipes, l),
       generatedAt: DateTime.now(),
     );
     _repo.saveShoppingList(state);
@@ -153,7 +186,8 @@ final lastCookedMapProvider = Provider<Map<String, DateTime>>((ref) {
   for (final entry in plan.daySlots.entries) {
     final date = DateTime.tryParse(entry.key);
     if (date == null || !date.isBefore(todayMidnight)) continue;
-    for (final recipeId in entry.value.whereType<String>()) {
+    for (final slot in entry.value.whereType<MealSlot>()) {
+      final recipeId = slot.recipeId;
       final recipe = recipeMap[recipeId];
       final ids = <String>{recipeId};
       if (recipe != null) ids.addAll(allLinkedRecipeIds(recipe, allRecipes));
@@ -167,29 +201,24 @@ final lastCookedMapProvider = Provider<Map<String, DateTime>>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// Ingredient accumulation
+// Ingredient accumulation with correct composite/serving scaling
 // ---------------------------------------------------------------------------
 
 List<ShoppingItem> _buildShoppingItems(
-    List<Recipe> recipes, List<Recipe> allRecipes, AppLocalizations l) {
+    List<({Recipe recipe, int? slotServings})> slotEntries,
+    List<Recipe> allRecipes,
+    AppLocalizations l) {
   // Key: (name, normalizedUnit, note) — normalized so "can"/"dose" group together.
   final Map<(String, String, String), double> numeric = {};
-  // Key: (name, note) — note-only ingredients, deduplicated.
+  // Key: (name, note) — no-quantity ingredients, deduplicated.
   final Set<(String, String)> noteOnly = {};
 
-  for (final recipe in recipes) {
-    for (final ing in allIngredients(recipe, allRecipes)) {
-      final name = ing.name.trim().toLowerCase();
-      final note = (ing.note ?? '').trim();
-      if (ing.quantity != null) {
-        // Normalize unit so old "can" and new "dose" (DE) group together.
-        final unit = localizeUnit((ing.unit ?? '').toLowerCase(), l).toLowerCase();
-        final key = (name, unit, note);
-        numeric[key] = (numeric[key] ?? 0.0) + ing.quantity!;
-      } else {
-        noteOnly.add((name, note));
-      }
-    }
+  for (final entry in slotEntries) {
+    final recipe = entry.recipe;
+    final effectiveServings = entry.slotServings ?? recipe.servings;
+    final topScale =
+        recipe.servings > 0 ? effectiveServings / recipe.servings : 1.0;
+    _accumulateIngredients(recipe, allRecipes, topScale, numeric, noteOnly, l, {});
   }
 
   final items = <ShoppingItem>[];
@@ -214,6 +243,57 @@ List<ShoppingItem> _buildShoppingItems(
 
   items.sort((a, b) => a.name.compareTo(b.name));
   return items;
+}
+
+/// Recursively accumulates scaled ingredients from [recipe] and its linked
+/// components. [scale] is the multiplier relative to the recipe's own serving
+/// count (1.0 = cook exactly as written).
+void _accumulateIngredients(
+    Recipe recipe,
+    List<Recipe> allRecipes,
+    double scale,
+    Map<(String, String, String), double> numeric,
+    Set<(String, String)> noteOnly,
+    AppLocalizations l,
+    Set<String> visited) {
+  if (visited.contains(recipe.id)) return;
+  visited.add(recipe.id);
+
+  for (final ing in recipe.ingredients) {
+    _addIngredient(ing, scale, numeric, noteOnly, l);
+  }
+
+  for (final linkedId in recipe.linkedRecipeIds) {
+    final linked = allRecipes.cast<Recipe?>().firstWhere(
+          (r) => r?.id == linkedId,
+          orElse: () => null,
+        );
+    if (linked == null) continue;
+    // Per-component scale mirrors the detail-screen formula:
+    // composite uses (composite.servings / component.servings) fraction of each component.
+    final componentScale =
+        linked.servings > 0 ? scale * recipe.servings / linked.servings : scale;
+    _accumulateIngredients(
+        linked, allRecipes, componentScale, numeric, noteOnly, l, visited);
+  }
+}
+
+void _addIngredient(
+    Ingredient ing,
+    double scale,
+    Map<(String, String, String), double> numeric,
+    Set<(String, String)> noteOnly,
+    AppLocalizations l) {
+  final name = ing.name.trim().toLowerCase();
+  final note = (ing.note ?? '').trim();
+  if (ing.quantity != null) {
+    // Normalize unit so old "can" and new "dose" (DE) group together.
+    final unit = localizeUnit((ing.unit ?? '').toLowerCase(), l).toLowerCase();
+    final key = (name, unit, note);
+    numeric[key] = (numeric[key] ?? 0.0) + ing.quantity! * scale;
+  } else {
+    noteOnly.add((name, note));
+  }
 }
 
 String _toTitleCase(String s) =>

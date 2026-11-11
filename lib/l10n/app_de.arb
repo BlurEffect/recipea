@@ -463,6 +463,12 @@
   "mealPlanNoResults": "Keine Rezepte gefunden",
   "@mealPlanNoResults": {},
 
+  "mealPlanSetServings": "Portionen ändern",
+  "@mealPlanSetServings": {},
+
+  "mealPlanResetServings": "Auf Standard zurücksetzen",
+  "@mealPlanResetServings": {},
+
   "shoppingListTitle": "Einkaufsliste",
   "@shoppingListTitle": {},
 
