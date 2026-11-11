@@ -225,19 +225,20 @@ List<ShoppingItem> _buildShoppingItems(
 
   for (final entry in numeric.entries) {
     final (name, unit, note) = entry.key;
-    // unit is lowercase normalized — localizeUnit produces proper display form.
-    final displayUnit = localizeUnit(unit, l);
-    final amountStr = _formatValue(entry.value, displayUnit);
+    // Store structured data so the screen can re-localize on locale change.
     items.add(ShoppingItem(
       name: _toTitleCase(name),
-      amount: note.isNotEmpty ? '$amountStr ($note)' : amountStr,
+      quantity: entry.value,
+      unitKey: unit,
+      note: note.isNotEmpty ? note : null,
     ));
   }
 
   for (final (name, note) in noteOnly) {
     items.add(ShoppingItem(
       name: _toTitleCase(name),
-      amount: note,
+      unitKey: '',
+      note: note.isNotEmpty ? note : null,
     ));
   }
 
@@ -298,10 +299,3 @@ void _addIngredient(
 
 String _toTitleCase(String s) =>
     s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
-
-String _formatValue(double value, String unit) {
-  final s = value == value.truncateToDouble()
-      ? value.toInt().toString()
-      : value.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-  return unit.isEmpty ? s : '$s $unit';
-}

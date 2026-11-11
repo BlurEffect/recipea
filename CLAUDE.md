@@ -2,6 +2,10 @@
 
 A personal Flutter recipe app for Android & iOS. Clean, minimalistic design with green branding.
 
+## Agent Rules
+
+- **Never commit or push** unless the user explicitly says to (e.g. "commit and push", "push it"). Finish the work, report it, then stop.
+
 ## Tech Stack
 
 | Layer | Package |

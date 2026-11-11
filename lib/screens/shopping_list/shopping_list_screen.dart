@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../data/seed_data.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 import '../../providers/meal_plan_providers.dart';
@@ -147,8 +148,10 @@ class ShoppingListScreen extends ConsumerWidget {
                   .reorder(oldIndex, newIndex),
               itemBuilder: (context, index) {
                 final item = items[index];
+                final displayAmount =
+                    item.localizedAmount((key) => localizeUnit(key, l));
                 return Row(
-                  key: ValueKey('${item.name}_${item.amount}_$index'),
+                  key: ValueKey('${item.name}_${item.unitKey ?? item.amount}_$index'),
                   children: [
                     Expanded(
                       child: CheckboxListTile(
@@ -169,9 +172,9 @@ class ShoppingListScreen extends ConsumerWidget {
                                 item.checked ? TextDecoration.lineThrough : null,
                           ),
                         ),
-                        subtitle: item.amount.isNotEmpty
+                        subtitle: displayAmount.isNotEmpty
                             ? Text(
-                                item.amount,
+                                displayAmount,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: item.checked
@@ -210,8 +213,8 @@ void _shareList(BuildContext context, ShoppingList list) {
     body = l.shoppingShareCheckedOff;
   } else {
     body = pending.map((i) {
-      final amount = i.amount.isNotEmpty ? '${i.amount}  ' : '';
-      return '• $amount${i.name}';
+      final amount = i.localizedAmount((key) => localizeUnit(key, l));
+      return '• ${amount.isNotEmpty ? '$amount  ' : ''}${i.name}';
     }).join('\n');
   }
   Share.share('${l.shoppingShareHeader}\n${'─' * 20}\n$body');
