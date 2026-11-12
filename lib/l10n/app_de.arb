@@ -79,6 +79,21 @@
   "navCharacters": "Charaktere",
   "@navCharacters": {},
 
+  "navMore": "Mehr",
+  "@navMore": {},
+
+  "moreDataProtection": "Datenschutz",
+  "@moreDataProtection": {},
+
+  "moreImprint": "Impressum",
+  "@moreImprint": {},
+
+  "legalDataProtectionPlaceholder": "Datenschutzerklärung folgt in Kürze.",
+  "@legalDataProtectionPlaceholder": {},
+
+  "legalImprintPlaceholder": "Impressum folgt in Kürze.",
+  "@legalImprintPlaceholder": {},
+
   "browseSearchHint": "Rezepte durchsuchen…",
   "@browseSearchHint": {},
 

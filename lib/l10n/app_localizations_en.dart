@@ -87,6 +87,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCharacters => 'Characters';
 
   @override
+  String get navMore => 'More';
+
+  @override
+  String get moreDataProtection => 'Data Protection';
+
+  @override
+  String get moreImprint => 'Imprint';
+
+  @override
+  String get legalDataProtectionPlaceholder =>
+      'Data protection statement coming soon.';
+
+  @override
+  String get legalImprintPlaceholder => 'Imprint coming soon.';
+
+  @override
   String get browseSearchHint => 'Search recipes…';
 
   @override

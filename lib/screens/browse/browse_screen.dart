@@ -18,7 +18,6 @@ import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/tag_chip.dart';
-import '../../widgets/settings_sheet.dart';
 import '../../widgets/tag_selector_sheet.dart';
 import 'widgets/recipe_list_tile.dart';
 
@@ -110,20 +109,33 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.file_upload_outlined),
-            tooltip: l.browseExportBackup,
-            onPressed: () => _exportAll(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.file_download_outlined),
-            tooltip: l.browseImportRecipes,
-            onPressed: () => _importRecipes(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l.settingsTitle,
-            onPressed: () => showSettingsSheet(context),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'export') _exportAll(context, ref);
+              if (value == 'import') _importRecipes(context, ref);
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    const Icon(Icons.file_upload_outlined, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l.browseExportBackup),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    const Icon(Icons.file_download_outlined, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l.browseImportRecipes),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

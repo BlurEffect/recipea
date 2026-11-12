@@ -13,7 +13,6 @@ import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/settings_sheet.dart';
 
 class MealPlanScreen extends ConsumerWidget {
   const MealPlanScreen({super.key});
@@ -53,41 +52,50 @@ class MealPlanScreen extends ConsumerWidget {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: l.mealPlanClearPlan,
-            color: AppColors.error,
-            onPressed: () {
-              showDialog<bool>(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: Text(l.mealPlanClearTitle),
-                  content: Text(l.mealPlanClearBody),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text(l.cancel),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text(
-                        l.clear,
-                        style: const TextStyle(color: AppColors.error),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'clear') {
+                showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: Text(l.mealPlanClearTitle),
+                    content: Text(l.mealPlanClearBody),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(l.cancel),
                       ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          l.clear,
+                          style: const TextStyle(color: AppColors.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).then((confirmed) {
+                  if (confirmed == true) {
+                    ref.read(mealPlanProvider.notifier).clear();
+                  }
+                });
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'clear',
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_sweep_outlined, size: 20, color: AppColors.error),
+                    const SizedBox(width: 12),
+                    Text(
+                      l.mealPlanClearPlan,
+                      style: const TextStyle(color: AppColors.error),
                     ),
                   ],
                 ),
-              ).then((confirmed) {
-                if (confirmed == true) {
-                  ref.read(mealPlanProvider.notifier).clear();
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l.settingsTitle,
-            onPressed: () => showSettingsSheet(context),
+              ),
+            ],
           ),
         ],
       ),

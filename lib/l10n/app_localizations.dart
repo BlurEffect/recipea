@@ -254,6 +254,36 @@ abstract class AppLocalizations {
   /// **'Characters'**
   String get navCharacters;
 
+  /// No description provided for @navMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMore;
+
+  /// No description provided for @moreDataProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Protection'**
+  String get moreDataProtection;
+
+  /// No description provided for @moreImprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Imprint'**
+  String get moreImprint;
+
+  /// No description provided for @legalDataProtectionPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Data protection statement coming soon.'**
+  String get legalDataProtectionPlaceholder;
+
+  /// No description provided for @legalImprintPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Imprint coming soon.'**
+  String get legalImprintPlaceholder;
+
   /// No description provided for @browseSearchHint.
   ///
   /// In en, this message translates to:

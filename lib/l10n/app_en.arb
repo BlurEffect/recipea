@@ -79,6 +79,21 @@
   "navCharacters": "Characters",
   "@navCharacters": {},
 
+  "navMore": "More",
+  "@navMore": {},
+
+  "moreDataProtection": "Data Protection",
+  "@moreDataProtection": {},
+
+  "moreImprint": "Imprint",
+  "@moreImprint": {},
+
+  "legalDataProtectionPlaceholder": "Data protection statement coming soon.",
+  "@legalDataProtectionPlaceholder": {},
+
+  "legalImprintPlaceholder": "Imprint coming soon.",
+  "@legalImprintPlaceholder": {},
+
   "browseSearchHint": "Search recipes…",
   "@browseSearchHint": {},
 

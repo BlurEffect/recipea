@@ -6,6 +6,9 @@ import 'screens/edit/edit_screen.dart';
 import 'screens/meal_plan/meal_plan_screen.dart';
 import 'screens/shopping_list/shopping_list_screen.dart';
 import 'screens/achievements/achievements_screen.dart';
+import 'screens/more/more_screen.dart';
+import 'screens/legal/data_protection_screen.dart';
+import 'screens/legal/imprint_screen.dart';
 import 'screens/splash/splash_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -46,6 +49,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/achievements',
       builder: (context, state) => const AchievementsScreen(),
+    ),
+    GoRoute(
+      path: '/more',
+      builder: (context, state) => const MoreScreen(),
+    ),
+    GoRoute(
+      path: '/legal/data-protection',
+      builder: (context, state) => const DataProtectionScreen(),
+    ),
+    GoRoute(
+      path: '/legal/imprint',
+      builder: (context, state) => const ImprintScreen(),
     ),
   ],
 );

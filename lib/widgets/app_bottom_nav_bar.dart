@@ -9,7 +9,7 @@ class AppBottomNavBar extends StatelessWidget {
 
   const AppBottomNavBar({super.key, required this.currentIndex});
 
-  static const _routes = ['/recipes', '/meal-plan', '/shopping-list', '/achievements'];
+  static const _routes = ['/recipes', '/meal-plan', '/shopping-list', '/more'];
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +38,9 @@ class AppBottomNavBar extends StatelessWidget {
           label: l.navShopping,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.eco_outlined),
-          activeIcon: const Icon(Icons.eco),
-          label: l.navCharacters,
+          icon: const Icon(Icons.apps_outlined),
+          activeIcon: const Icon(Icons.apps),
+          label: l.navMore,
         ),
       ],
     );

@@ -87,6 +87,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navCharacters => 'Charaktere';
 
   @override
+  String get navMore => 'Mehr';
+
+  @override
+  String get moreDataProtection => 'Datenschutz';
+
+  @override
+  String get moreImprint => 'Impressum';
+
+  @override
+  String get legalDataProtectionPlaceholder =>
+      'Datenschutzerklärung folgt in Kürze.';
+
+  @override
+  String get legalImprintPlaceholder => 'Impressum folgt in Kürze.';
+
+  @override
   String get browseSearchHint => 'Rezepte durchsuchen…';
 
   @override
