@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
-import '../../widgets/settings_sheet.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -34,7 +33,7 @@ class MoreScreen extends ConsumerWidget {
           _MoreTile(
             icon: Icons.settings_outlined,
             label: l.settingsTitle,
-            onTap: () => showSettingsSheet(context),
+            onTap: () => context.push('/settings'),
           ),
           const Divider(height: 1, indent: 56),
           _MoreTile(

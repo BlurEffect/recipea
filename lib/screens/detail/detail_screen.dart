@@ -294,7 +294,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         blocks.add(_IngredientBlock(
           title: l.detailThisRecipe,
           ingredients: recipe.ingredients,
-          color: null,
+          color: AppColors.primary,
           scaleFactor: scaleFactor,
         ));
       } else {

@@ -7,6 +7,7 @@ import 'screens/meal_plan/meal_plan_screen.dart';
 import 'screens/shopping_list/shopping_list_screen.dart';
 import 'screens/achievements/achievements_screen.dart';
 import 'screens/more/more_screen.dart';
+import 'screens/settings/settings_screen.dart';
 import 'screens/legal/data_protection_screen.dart';
 import 'screens/legal/imprint_screen.dart';
 import 'screens/splash/splash_screen.dart';
@@ -53,6 +54,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/more',
       builder: (context, state) => const MoreScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
       path: '/legal/data-protection',
