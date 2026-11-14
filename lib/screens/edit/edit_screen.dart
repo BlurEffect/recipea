@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
@@ -47,6 +51,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   List<String> _compositeStepOrder = [];
   Map<String, TextEditingController> _ownStepControllerMap = {};
 
+  Map<String, String?> _ownStepImageMap = {};
+  Map<String, String> _originalStepImages = {};
+
   bool get _isNew => widget.recipeId == 'new';
   bool get _isComposite => _componentOrder.isNotEmpty;
 
@@ -69,10 +76,17 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         _steps = List.from(recipe.steps);
         _componentOrder = List.from(recipe.componentOrder);
         _compositeStepOrder = List.from(recipe.compositeStepOrder);
+        _originalStepImages = {
+          for (final s in recipe.steps)
+            if (s.imagePath != null) s.id: s.imagePath!,
+        };
         if (recipe.isComposite) {
           _ownStepControllerMap = {
             for (final s in recipe.steps)
               s.id: TextEditingController(text: s.instruction),
+          };
+          _ownStepImageMap = {
+            for (final s in recipe.steps) s.id: s.imagePath,
           };
         }
       }
@@ -294,6 +308,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           id: step.id,
           order: i,
           instruction: controller.text.trim(),
+          imagePath: _ownStepImageMap[step.id],
         ));
       }
     }
@@ -303,6 +318,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   void _addOwnStep() {
     final newId = const Uuid().v4();
     _ownStepControllerMap[newId] = TextEditingController();
+    _ownStepImageMap[newId] = null;
     setState(() {
       _steps = [
         ..._steps,
@@ -317,11 +333,90 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   void _deleteOwnStep(String stepId) {
     final controller = _ownStepControllerMap.remove(stepId);
     controller?.dispose();
+    final imagePath = _ownStepImageMap.remove(stepId);
+    if (imagePath != null) {
+      ref.read(recipeRepositoryProvider).deleteImageFile(imagePath);
+    }
     setState(() {
       _steps = _steps.where((s) => s.id != stepId).toList();
       _compositeStepOrder =
           _compositeStepOrder.where((id) => id != stepId).toList();
     });
+  }
+
+  Future<void> _pickOwnStepImage(String stepId, BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
+    final hasImage = _ownStepImageMap[stepId] != null;
+    final source = await showModalBottomSheet<_StepImageAction>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l.imagePickFromLibrary),
+              onTap: () => Navigator.pop(context, _StepImageAction.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: Text(l.imagePickTakePhoto),
+              onTap: () => Navigator.pop(context, _StepImageAction.camera),
+            ),
+            if (hasImage)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                title: Text(l.imagePickRemove,
+                    style: const TextStyle(color: AppColors.error)),
+                onTap: () => Navigator.pop(context, _StepImageAction.remove),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    if (source == _StepImageAction.remove) {
+      final old = _ownStepImageMap[stepId];
+      setState(() => _ownStepImageMap[stepId] = null);
+      if (old != null) ref.read(recipeRepositoryProvider).deleteImageFile(old);
+      return;
+    }
+
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(
+      source: source == _StepImageAction.gallery
+          ? ImageSource.gallery
+          : ImageSource.camera,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+    if (xFile == null) return;
+
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: xFile.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: l.imagePickCropTitle,
+          toolbarColor: AppColors.primary,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: true,
+          hideBottomControls: true,
+        ),
+        IOSUiSettings(
+          title: l.imagePickCropTitle,
+          aspectRatioLockEnabled: true,
+        ),
+      ],
+    );
+    if (cropped == null) return;
+    setState(() => _ownStepImageMap[stepId] = cropped.path);
   }
 
   void _reorderCompositeStep(
@@ -400,14 +495,34 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       final repo = ref.read(recipeRepositoryProvider);
       String? finalImagePath = _imagePath;
 
+      final docDir = await getApplicationDocumentsDirectory();
+      final imagesDir = '${docDir.path}/recipea_images';
+
       if (_imagePath != null && _imagePath != _existingImagePath) {
-        final docDir = await getApplicationDocumentsDirectory();
-        final imagesDir = '${docDir.path}/recipea_images';
         if (!_imagePath!.startsWith(imagesDir)) {
           finalImagePath = await repo.saveImage(_imagePath!);
           if (_existingImagePath != null) {
             repo.deleteImageFile(_existingImagePath!);
           }
+        }
+      }
+
+      // Save any step images not yet in the app images dir.
+      final finalSteps = <RecipeStep>[];
+      for (final step in _steps) {
+        if (step.imagePath != null && !step.imagePath!.startsWith(imagesDir)) {
+          final saved = await repo.saveImage(step.imagePath!);
+          finalSteps.add(step.copyWith(imagePath: saved));
+        } else {
+          finalSteps.add(step);
+        }
+      }
+
+      // Delete original step images that were replaced or removed.
+      for (final entry in _originalStepImages.entries) {
+        final current = finalSteps.where((s) => s.id == entry.key).firstOrNull;
+        if (current == null || current.imagePath != entry.value) {
+          repo.deleteImageFile(entry.value);
         }
       }
 
@@ -422,7 +537,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               imagePath: finalImagePath,
               tagIds: _selectedTagIds.toList(),
               ingredients: _ingredients,
-              steps: _steps,
+              steps: finalSteps,
               createdAt: now,
               updatedAt: now,
               componentOrder: _componentOrder,
@@ -438,7 +553,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 imagePath: finalImagePath,
                 tagIds: _selectedTagIds.toList(),
                 ingredients: _ingredients,
-                steps: _steps,
+                steps: finalSteps,
                 updatedAt: now,
                 componentOrder: _componentOrder,
                 compositeStepOrder: _compositeStepOrder,
@@ -658,6 +773,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   : StepsListEditor(
                       steps: _steps,
                       onChanged: (list) => setState(() => _steps = list),
+                      onImageRemoved: (path) =>
+                          ref.read(recipeRepositoryProvider).deleteImageFile(path),
                     ),
               const SizedBox(height: 40),
             ],
@@ -1012,6 +1129,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
     if (isOwn) {
       final controller = _ownStepControllerMap[entry.step.id];
+      final stepImagePath = _ownStepImageMap[entry.step.id];
       return Container(
         key: key,
         decoration: BoxDecoration(
@@ -1030,14 +1148,58 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               child: badge,
             ),
             Expanded(
-              child: TextField(
-                controller: controller,
-                maxLines: null,
-                decoration: InputDecoration(
-                  hintText: l.editStepHint(index + 1),
-                  isDense: true,
-                ),
-                textInputAction: TextInputAction.newline,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      hintText: l.editStepHint(index + 1),
+                      isDense: true,
+                    ),
+                    textInputAction: TextInputAction.newline,
+                  ),
+                  const SizedBox(height: 6),
+                  if (stepImagePath != null) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _pickOwnStepImage(entry.step.id, context),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Image.file(
+                          File(stepImagePath),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ] else
+                    TextButton.icon(
+                      onPressed: () => _pickOwnStepImage(entry.step.id, context),
+                      icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
+                      label: Text(l.editAddPhoto),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 28),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        textStyle: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(
@@ -1108,6 +1270,8 @@ String _fmtQty(double v) {
   if (v == v.truncateToDouble()) return v.toInt().toString();
   return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 }
+
+enum _StepImageAction { gallery, camera, remove }
 
 class _FieldLabel extends StatelessWidget {
   final String text;

@@ -432,6 +432,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editAddPhoto => 'Foto hinzufügen';
 
   @override
+  String get editStepImagesLabel => 'Schritt-Bilder';
+
+  @override
+  String get editHideImages => 'Ausblenden';
+
+  @override
+  String get editShowImages => 'Einblenden';
+
+  @override
   String get editPleaseAddTitle => 'Bitte Titel eingeben';
 
   @override

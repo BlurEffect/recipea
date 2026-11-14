@@ -420,6 +420,15 @@
   "editAddPhoto": "Foto hinzufügen",
   "@editAddPhoto": {},
 
+  "editStepImagesLabel": "Schritt-Bilder",
+  "@editStepImagesLabel": {},
+
+  "editHideImages": "Ausblenden",
+  "@editHideImages": {},
+
+  "editShowImages": "Einblenden",
+  "@editShowImages": {},
+
   "editPleaseAddTitle": "Bitte Titel eingeben",
   "@editPleaseAddTitle": {},
 

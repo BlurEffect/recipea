@@ -42,6 +42,19 @@ Future<File> exportRecipeToPdf(
     } catch (_) {}
   }
 
+  // Pre-load step images (all recipes involved in composite).
+  final stepImages = <String, pw.MemoryImage>{};
+  for (final r in [recipe, ...allRecipes]) {
+    for (final step in r.steps) {
+      if (step.imagePath != null && !stepImages.containsKey(step.id)) {
+        try {
+          stepImages[step.id] =
+              pw.MemoryImage(await File(step.imagePath!).readAsBytes());
+        } catch (_) {}
+      }
+    }
+  }
+
   final content = <pw.Widget>[
     ..._buildHeader(recipe, heroImage),
     ..._buildComponentChips(recipe, recipeMap),
@@ -53,7 +66,7 @@ Future<File> exportRecipeToPdf(
     pw.Divider(color: _green, thickness: 0.5),
     pw.SizedBox(height: 12),
     ..._buildIngredients(recipe, allRecipes, l),
-    ..._buildSteps(recipe, allRecipes, recipeMap, l),
+    ..._buildSteps(recipe, allRecipes, recipeMap, stepImages, l),
   ];
 
   doc.addPage(pw.MultiPage(
@@ -194,7 +207,11 @@ List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes, AppLoc
 }
 
 List<pw.Widget> _buildSteps(
-    Recipe recipe, List<Recipe> allRecipes, Map<String, Recipe> recipeMap, AppLocalizations l) {
+    Recipe recipe,
+    List<Recipe> allRecipes,
+    Map<String, Recipe> recipeMap,
+    Map<String, pw.MemoryImage> stepImages,
+    AppLocalizations l) {
   if (recipe.isComposite) {
     final ordered = resolveStepOrder(recipe, allRecipes);
     if (ordered.isEmpty) return [];
@@ -211,6 +228,7 @@ List<pw.Widget> _buildSteps(
           ordered[i].sourceRecipeId,
           linkedIds,
           recipeMap,
+          stepImages[ordered[i].step.id],
           l,
         ),
     ];
@@ -223,7 +241,7 @@ List<pw.Widget> _buildSteps(
               fontSize: 14, fontWeight: pw.FontWeight.bold, color: _green)),
       pw.SizedBox(height: 8),
       for (int i = 0; i < sorted.length; i++)
-        _buildStepRow(i + 1, sorted[i].instruction),
+        _buildStepRow(i + 1, sorted[i].instruction, stepImages[sorted[i].id]),
     ];
   }
 }
@@ -284,7 +302,7 @@ pw.Widget _buildIngredientRow(Ingredient ing, AppLocalizations l) {
   );
 }
 
-pw.Widget _buildStepRow(int number, String instruction) {
+pw.Widget _buildStepRow(int number, String instruction, pw.MemoryImage? stepImage) {
   return pw.Padding(
     padding: const pw.EdgeInsets.only(bottom: 10),
     child: pw.Row(
@@ -307,8 +325,20 @@ pw.Widget _buildStepRow(int number, String instruction) {
           ),
         ),
         pw.Expanded(
-          child: pw.Text(instruction,
-              style: const pw.TextStyle(fontSize: 11, color: _textDark)),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(instruction,
+                  style: const pw.TextStyle(fontSize: 11, color: _textDark)),
+              if (stepImage != null) ...[
+                pw.SizedBox(height: 6),
+                pw.AspectRatio(
+                  aspectRatio: 1,
+                  child: pw.Image(stepImage, fit: pw.BoxFit.cover),
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     ),
@@ -321,6 +351,7 @@ pw.Widget _buildCompositeStepRow(
   String sourceRecipeId,
   List<String> linkedIds,
   Map<String, Recipe> recipeMap,
+  pw.MemoryImage? stepImage,
   AppLocalizations l,
 ) {
   final isOwn = sourceRecipeId == 'self';
@@ -368,6 +399,13 @@ pw.Widget _buildCompositeStepRow(
                           fontSize: 9,
                           color: _textGray,
                           fontStyle: pw.FontStyle.italic)),
+                if (stepImage != null) ...[
+                  pw.SizedBox(height: 6),
+                  pw.AspectRatio(
+                    aspectRatio: 1,
+                    child: pw.Image(stepImage, fit: pw.BoxFit.cover),
+                  ),
+                ],
               ],
             ),
           ),

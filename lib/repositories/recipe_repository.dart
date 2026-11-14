@@ -40,8 +40,11 @@ class RecipeRepository {
 
   Future<void> delete(String id) async {
     final recipe = getById(id);
-    if (recipe?.imagePath != null) {
-      _deleteImageFile(recipe!.imagePath!);
+    if (recipe != null) {
+      if (recipe.imagePath != null) _deleteImageFile(recipe.imagePath!);
+      for (final step in recipe.steps) {
+        if (step.imagePath != null) _deleteImageFile(step.imagePath!);
+      }
     }
     await _box.delete(id);
   }
@@ -103,6 +106,17 @@ class RecipeRepository {
           }
         } catch (_) {}
       }
+      // Encode step images.
+      final stepsList = (map['steps'] as List).cast<Map<String, dynamic>>();
+      for (final stepMap in stepsList) {
+        final stepImagePath = stepMap['imagePath'] as String?;
+        if (stepImagePath != null) {
+          try {
+            final bytes = await File(stepImagePath).readAsBytes();
+            stepMap['imageData'] = base64Encode(bytes);
+          } catch (_) {}
+        }
+      }
       jsonList.add(map);
     }
 
@@ -151,6 +165,7 @@ class RecipeRepository {
       }
 
       map['imagePath'] = imagePath;
+      await _decodeStepImages(map);
       final recipe = Recipe.fromJson(map);
       await save(recipe);
       imported++;
@@ -185,7 +200,30 @@ class RecipeRepository {
         } catch (_) {}
       }
       map['imagePath'] = imagePath;
+      await _decodeStepImages(map);
       await save(Recipe.fromJson(map));
+    }
+  }
+
+  // ── Import helpers ────────────────────────────────────────────────────────
+
+  Future<void> _decodeStepImages(Map<String, dynamic> recipeMap) async {
+    final steps = (recipeMap['steps'] as List<dynamic>?)
+        ?.cast<Map<String, dynamic>>() ??
+        [];
+    for (final stepMap in steps) {
+      final imageData = stepMap.remove('imageData') as String?;
+      if (imageData != null) {
+        try {
+          final bytes = base64Decode(imageData);
+          final docDir = await getApplicationDocumentsDirectory();
+          final imagesDir = Directory('${docDir.path}/recipea_images');
+          await imagesDir.create(recursive: true);
+          final path = '${imagesDir.path}/${_uuid.v4()}.jpg';
+          await File(path).writeAsBytes(bytes);
+          stepMap['imagePath'] = path;
+        } catch (_) {}
+      }
     }
   }
 

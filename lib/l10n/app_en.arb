@@ -420,6 +420,15 @@
   "editAddPhoto": "Add a photo",
   "@editAddPhoto": {},
 
+  "editStepImagesLabel": "Step images",
+  "@editStepImagesLabel": {},
+
+  "editHideImages": "Hide",
+  "@editHideImages": {},
+
+  "editShowImages": "Show",
+  "@editShowImages": {},
+
   "editPleaseAddTitle": "Please add a title",
   "@editPleaseAddTitle": {},
 

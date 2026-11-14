@@ -431,6 +431,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editAddPhoto => 'Add a photo';
 
   @override
+  String get editStepImagesLabel => 'Step images';
+
+  @override
+  String get editHideImages => 'Hide';
+
+  @override
+  String get editShowImages => 'Show';
+
+  @override
   String get editPleaseAddTitle => 'Please add a title';
 
   @override

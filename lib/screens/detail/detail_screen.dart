@@ -11,6 +11,7 @@ import '../../data/tag_definitions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/ingredient.dart';
 import '../../models/recipe.dart';
+import '../../models/recipe_step.dart';
 import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
@@ -33,6 +34,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   bool _showCombinedIngredients = false;
   int _targetServings = 1;
   int? _lastRecipeServings;
+  bool _stepImagesVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -146,12 +148,14 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   if (recipe.isComposite)
                     _buildCompositeSteps(recipe, allRecipes, recipeMap)
                   else if (recipe.steps.isNotEmpty) ...[
-                    _SectionHeader(title: AppLocalizations.of(context)!.detailSteps),
+                    _buildStepsHeader(recipe.steps),
                     const SizedBox(height: 12),
                     ...recipe.steps.map(
                       (step) => _StandalonStepTile(
                         number: step.order + 1,
                         instruction: step.instruction,
+                        imagePath: step.imagePath,
+                        globalImagesVisible: _stepImagesVisible,
                       ),
                     ),
                   ],
@@ -187,6 +191,32 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           ),
         );
       },
+    );
+  }
+
+  // ── Steps header with optional image toggle ───────────────────────────────
+
+  Widget _buildStepsHeader(List<RecipeStep> steps) {
+    final l = AppLocalizations.of(context)!;
+    final hasImages = steps.any((s) => s.imagePath != null);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: _SectionHeader(title: l.detailSteps)),
+        if (hasImages)
+          TextButton(
+            onPressed: () => setState(() => _stepImagesVisible = !_stepImagesVisible),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              padding: const EdgeInsets.only(left: 8),
+              minimumSize: const Size(0, 32),
+            ),
+            child: Text(
+              _stepImagesVisible ? l.editHideImages : l.editShowImages,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 
@@ -428,15 +458,18 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       tiles.add(_CompositeStepTile(
         number: i + 1,
         instruction: entry.step.instruction,
+        imagePath: entry.step.imagePath,
         color: color,
         sourceTitle: sourceTitle,
+        globalImagesVisible: _stepImagesVisible,
       ));
     }
 
+    final allSteps = ordered.map((e) => e.step).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(title: AppLocalizations.of(context)!.detailSteps),
+        _buildStepsHeader(allSteps),
         const SizedBox(height: 12),
         ...tiles,
       ],
@@ -671,14 +704,32 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _StandalonStepTile extends StatelessWidget {
+class _StandalonStepTile extends StatefulWidget {
   final int number;
   final String instruction;
+  final String? imagePath;
+  final bool globalImagesVisible;
 
-  const _StandalonStepTile({required this.number, required this.instruction});
+  const _StandalonStepTile({
+    required this.number,
+    required this.instruction,
+    required this.globalImagesVisible,
+    this.imagePath,
+  });
+
+  @override
+  State<_StandalonStepTile> createState() => _StandalonStepTileState();
+}
+
+class _StandalonStepTileState extends State<_StandalonStepTile> {
+  bool _localExpanded = true;
 
   @override
   Widget build(BuildContext context) {
+    final showImage = widget.imagePath != null &&
+        widget.globalImagesVisible &&
+        _localExpanded;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
@@ -704,7 +755,7 @@ class _StandalonStepTile extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '$number',
+                    '${widget.number}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -717,13 +768,53 @@ class _StandalonStepTile extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    instruction,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.5,
-                      color: AppColors.textPrimary,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.instruction,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.5,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (widget.imagePath != null && widget.globalImagesVisible)
+                            GestureDetector(
+                              onTap: () => setState(() => _localExpanded = !_localExpanded),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 8, top: 2),
+                                child: Icon(
+                                  _localExpanded
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  size: 18,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (showImage) ...[
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: Image.file(
+                              File(widget.imagePath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -735,31 +826,46 @@ class _StandalonStepTile extends StatelessWidget {
   }
 }
 
-class _CompositeStepTile extends StatelessWidget {
+class _CompositeStepTile extends StatefulWidget {
   final int number;
   final String instruction;
+  final String? imagePath;
   final Color? color;
   final String? sourceTitle;
+  final bool globalImagesVisible;
 
   const _CompositeStepTile({
     required this.number,
     required this.instruction,
     required this.color,
     required this.sourceTitle,
+    required this.globalImagesVisible,
+    this.imagePath,
   });
 
   @override
+  State<_CompositeStepTile> createState() => _CompositeStepTileState();
+}
+
+class _CompositeStepTileState extends State<_CompositeStepTile> {
+  bool _localExpanded = true;
+
+  @override
   Widget build(BuildContext context) {
-    final badgeColor = color ?? AppColors.primary;
+    final badgeColor = widget.color ?? AppColors.primary;
+    final showImage = widget.imagePath != null &&
+        widget.globalImagesVisible &&
+        _localExpanded;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
         decoration: BoxDecoration(
-          color: color?.withValues(alpha: 0.06),
-          border: color != null
-              ? Border(left: BorderSide(color: color!, width: 3))
+          color: widget.color?.withValues(alpha: 0.06),
+          border: widget.color != null
+              ? Border(left: BorderSide(color: widget.color!, width: 3))
               : null,
-          borderRadius: color != null
+          borderRadius: widget.color != null
               ? const BorderRadius.only(
                   topRight: Radius.circular(4),
                   bottomRight: Radius.circular(4),
@@ -779,7 +885,7 @@ class _CompositeStepTile extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  '$number',
+                  '${widget.number}',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -795,27 +901,62 @@ class _CompositeStepTile extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      instruction,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        height: 1.5,
-                        color: AppColors.textPrimary,
-                      ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.instruction,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.5,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (widget.imagePath != null && widget.globalImagesVisible)
+                          GestureDetector(
+                            onTap: () => setState(() => _localExpanded = !_localExpanded),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8, top: 2),
+                              child: Icon(
+                                _localExpanded
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                size: 18,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  if (sourceTitle != null)
+                  if (widget.sourceTitle != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        AppLocalizations.of(context)!.detailFromComponent(sourceTitle!),
+                        AppLocalizations.of(context)!.detailFromComponent(widget.sourceTitle!),
                         style: TextStyle(
                           fontSize: 12,
-                          color: color ?? AppColors.textSecondary,
+                          color: widget.color ?? AppColors.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
                     ),
+                  if (showImage) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Image.file(
+                          File(widget.imagePath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

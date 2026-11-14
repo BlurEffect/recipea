@@ -848,6 +848,24 @@ abstract class AppLocalizations {
   /// **'Add a photo'**
   String get editAddPhoto;
 
+  /// No description provided for @editStepImagesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step images'**
+  String get editStepImagesLabel;
+
+  /// No description provided for @editHideImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get editHideImages;
+
+  /// No description provided for @editShowImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get editShowImages;
+
   /// No description provided for @editPleaseAddTitle.
   ///
   /// In en, this message translates to:
