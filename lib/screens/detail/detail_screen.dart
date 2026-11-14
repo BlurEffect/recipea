@@ -36,14 +36,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final recipe = ref
-        .watch(recipeListProvider)
-        .cast<Recipe?>()
-        .firstWhere((r) => r?.id == widget.recipeId, orElse: () => null);
+    final recipe = ref.watch(recipeByIdProvider(widget.recipeId));
 
     final allTags = ref.watch(allTagsProvider);
-    final allRecipes = ref.watch(recipeListProvider);
-    final recipeMap = {for (final r in allRecipes) r.id: r};
+    final recipeMap = ref.watch(recipeMapProvider);
+    final allRecipes = recipeMap.values.toList();
 
     if (recipe == null) {
       final l = AppLocalizations.of(context)!;

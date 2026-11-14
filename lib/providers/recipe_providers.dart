@@ -181,6 +181,17 @@ int _compareByLastCooked(
   return cmp != 0 ? cmp : a.title.compareTo(b.title);
 }
 
+// ── Recipe map (id → recipe) ──────────────────────────────────────────────────
+
+final recipeMapProvider = Provider<Map<String, Recipe>>((ref) {
+  final recipes = ref.watch(recipeListProvider);
+  return {for (final r in recipes) r.id: r};
+});
+
+final recipeByIdProvider = Provider.family<Recipe?, String>((ref, id) {
+  return ref.watch(recipeMapProvider)[id];
+});
+
 // ── New recipe ID generator ───────────────────────────────────────────────────
 
 const _uuid = Uuid();

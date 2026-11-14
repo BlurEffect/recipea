@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
@@ -399,12 +400,14 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       final repo = ref.read(recipeRepositoryProvider);
       String? finalImagePath = _imagePath;
 
-      if (_imagePath != null &&
-          _imagePath != _existingImagePath &&
-          !_imagePath!.contains('recipea_images')) {
-        finalImagePath = await repo.saveImage(_imagePath!);
-        if (_existingImagePath != null) {
-          repo.deleteImageFile(_existingImagePath!);
+      if (_imagePath != null && _imagePath != _existingImagePath) {
+        final docDir = await getApplicationDocumentsDirectory();
+        final imagesDir = '${docDir.path}/recipea_images';
+        if (!_imagePath!.startsWith(imagesDir)) {
+          finalImagePath = await repo.saveImage(_imagePath!);
+          if (_existingImagePath != null) {
+            repo.deleteImageFile(_existingImagePath!);
+          }
         }
       }
 
