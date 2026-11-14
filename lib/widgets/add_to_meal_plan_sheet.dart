@@ -115,7 +115,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
                     onTap: () {
                       ref
                           .read(mealPlanProvider.notifier)
-                          .addRecipeToDay(day, recipeId);
+                          .addRecipeToDay(day, recipeId, recipeTitle: recipeTitle);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

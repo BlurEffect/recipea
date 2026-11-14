@@ -444,6 +444,31 @@
   "editVoiceInputBody": "Erlaube Mikrofonzugriff, um Spracheingabe für Rezeptschritte zu nutzen.",
   "@editVoiceInputBody": {},
 
+  "mealPlanHistoryTitle": "Mahlzeiten-Verlauf",
+  "@mealPlanHistoryTitle": {},
+
+  "mealPlanHistoryTooltip": "Verlauf",
+  "@mealPlanHistoryTooltip": {},
+
+  "mealPlanHistoryEmpty": "Noch kein Verlauf. Hier erscheinen Mahlzeiten, nachdem ihr Tag vergangen ist.",
+  "@mealPlanHistoryEmpty": {},
+
+  "mealPlanHistoryDeleted": "Gelöscht",
+  "@mealPlanHistoryDeleted": {},
+
+  "mealPlanHistoryRenamed": "Umbenannt",
+  "@mealPlanHistoryRenamed": {},
+
+  "mealPlanHistoryUpdated": "Aktualisiert",
+  "@mealPlanHistoryUpdated": {},
+
+  "detailLastCooked": "Zuletzt gekocht: {date}",
+  "@detailLastCooked": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
   "mealPlanSubtitle": "Tage für die Einkaufsliste auswählen",
   "@mealPlanSubtitle": {},
 

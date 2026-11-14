@@ -33,15 +33,15 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
   void removeSlot(DateTime date, int index) =>
       _save(state.removeSlot(date, index));
 
-  void setSlotRecipe(DateTime date, int index, String? recipeId) =>
-      _save(state.setSlotRecipe(date, index, recipeId));
+  void setSlotRecipe(DateTime date, int index, String? recipeId, {String? recipeTitle}) =>
+      _save(state.setSlotRecipe(date, index, recipeId, recipeTitle: recipeTitle));
 
   void setSlotServings(DateTime date, int index, int? servings) =>
       _save(state.setSlotServings(date, index, servings));
 
   /// Adds the recipe as a new slot at the end of the day's list.
-  void addRecipeToDay(DateTime date, String recipeId) =>
-      _save(state.addRecipeToDay(date, recipeId));
+  void addRecipeToDay(DateTime date, String recipeId, {String? recipeTitle}) =>
+      _save(state.addRecipeToDay(date, recipeId, recipeTitle: recipeTitle));
 
   void toggleDayExcluded(DateTime date) =>
       _save(state.toggleExcludedDate(date));
@@ -198,6 +198,29 @@ final lastCookedMapProvider = Provider<Map<String, DateTime>>((ref) {
     }
   }
   return result;
+});
+
+// ---------------------------------------------------------------------------
+// Meal plan history (past-date slots, newest first)
+// ---------------------------------------------------------------------------
+
+/// Returns past day entries (before today midnight) sorted newest-first.
+/// Each entry is a `(date, List<MealSlot>)` record — empty-slot days are omitted.
+final mealPlanHistoryProvider = Provider<List<(DateTime, List<MealSlot>)>>((ref) {
+  final plan = ref.watch(mealPlanProvider);
+  final today = DateTime.now();
+  final todayMidnight = DateTime(today.year, today.month, today.day);
+
+  final entries = <(DateTime, List<MealSlot>)>[];
+  for (final entry in plan.daySlots.entries) {
+    final date = DateTime.tryParse(entry.key);
+    if (date == null || !date.isBefore(todayMidnight)) continue;
+    final slots = entry.value.whereType<MealSlot>().toList();
+    if (slots.isEmpty) continue;
+    entries.add((date, slots));
+  }
+  entries.sort((a, b) => b.$1.compareTo(a.$1));
+  return entries;
 });
 
 // ---------------------------------------------------------------------------

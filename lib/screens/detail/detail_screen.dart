@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -14,6 +15,7 @@ import '../../models/recipe.dart';
 import '../../models/recipe_step.dart';
 import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
+import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../services/pdf_export_service.dart';
 import '../../theme/app_colors.dart';
@@ -126,6 +128,21 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                         ? () => setState(() => _targetServings++)
                         : null,
                   ),
+                  // Last cooked date (from meal plan history)
+                  ...() {
+                    final lastCookedMap = ref.watch(lastCookedMapProvider);
+                    final date = lastCookedMap[recipe.id];
+                    if (date == null) return <Widget>[];
+                    final locale = Localizations.localeOf(context).languageCode;
+                    final l2 = AppLocalizations.of(context)!;
+                    return [
+                      const SizedBox(height: 4),
+                      Text(
+                        l2.detailLastCooked(DateFormat.yMMMd(locale).format(date)),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                    ];
+                  }(),
                   // Cook's notes
                   if (recipe.description != null &&
                       recipe.description!.isNotEmpty) ...[

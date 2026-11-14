@@ -457,6 +457,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow microphone access so you can use voice input to dictate recipe steps and other fields.';
 
   @override
+  String get mealPlanHistoryTitle => 'Meal Plan History';
+
+  @override
+  String get mealPlanHistoryTooltip => 'History';
+
+  @override
+  String get mealPlanHistoryEmpty =>
+      'No history yet. Meals you plan will appear here after their day passes.';
+
+  @override
+  String get mealPlanHistoryDeleted => 'Deleted';
+
+  @override
+  String get mealPlanHistoryRenamed => 'Renamed';
+
+  @override
+  String get mealPlanHistoryUpdated => 'Updated';
+
+  @override
+  String detailLastCooked(String date) {
+    return 'Last cooked: $date';
+  }
+
+  @override
   String get mealPlanSubtitle => 'Check days to include in shopping list';
 
   @override

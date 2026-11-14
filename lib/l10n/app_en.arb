@@ -444,6 +444,31 @@
   "editVoiceInputBody": "Allow microphone access so you can use voice input to dictate recipe steps and other fields.",
   "@editVoiceInputBody": {},
 
+  "mealPlanHistoryTitle": "Meal Plan History",
+  "@mealPlanHistoryTitle": {},
+
+  "mealPlanHistoryTooltip": "History",
+  "@mealPlanHistoryTooltip": {},
+
+  "mealPlanHistoryEmpty": "No history yet. Meals you plan will appear here after their day passes.",
+  "@mealPlanHistoryEmpty": {},
+
+  "mealPlanHistoryDeleted": "Deleted",
+  "@mealPlanHistoryDeleted": {},
+
+  "mealPlanHistoryRenamed": "Renamed",
+  "@mealPlanHistoryRenamed": {},
+
+  "mealPlanHistoryUpdated": "Updated",
+  "@mealPlanHistoryUpdated": {},
+
+  "detailLastCooked": "Last cooked: {date}",
+  "@detailLastCooked": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
   "mealPlanSubtitle": "Check days to include in shopping list",
   "@mealPlanSubtitle": {},
 

@@ -896,6 +896,48 @@ abstract class AppLocalizations {
   /// **'Allow microphone access so you can use voice input to dictate recipe steps and other fields.'**
   String get editVoiceInputBody;
 
+  /// No description provided for @mealPlanHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Plan History'**
+  String get mealPlanHistoryTitle;
+
+  /// No description provided for @mealPlanHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get mealPlanHistoryTooltip;
+
+  /// No description provided for @mealPlanHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet. Meals you plan will appear here after their day passes.'**
+  String get mealPlanHistoryEmpty;
+
+  /// No description provided for @mealPlanHistoryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get mealPlanHistoryDeleted;
+
+  /// No description provided for @mealPlanHistoryRenamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed'**
+  String get mealPlanHistoryRenamed;
+
+  /// No description provided for @mealPlanHistoryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get mealPlanHistoryUpdated;
+
+  /// No description provided for @detailLastCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Last cooked: {date}'**
+  String detailLastCooked(String date);
+
   /// No description provided for @mealPlanSubtitle.
   ///
   /// In en, this message translates to:

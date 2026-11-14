@@ -1,12 +1,14 @@
 class MealSlot {
   final String recipeId;
   final int? servings;
+  final String? recipeTitle;
 
-  const MealSlot({required this.recipeId, this.servings});
+  const MealSlot({required this.recipeId, this.servings, this.recipeTitle});
 
   Map<String, dynamic> toJson() => {
         'recipeId': recipeId,
         if (servings != null) 'servings': servings,
+        if (recipeTitle != null) 'recipeTitle': recipeTitle,
       };
 
   factory MealSlot.fromJson(dynamic json) {
@@ -15,6 +17,7 @@ class MealSlot {
     return MealSlot(
       recipeId: map['recipeId'] as String,
       servings: map['servings'] as int?,
+      recipeTitle: map['recipeTitle'] as String?,
     );
   }
 }
@@ -77,14 +80,14 @@ class MealPlan {
 
   /// Sets (or clears) the recipe assigned to slot [index] on [date].
   /// Preserves any existing serving override for that slot.
-  MealPlan setSlotRecipe(DateTime date, int index, String? recipeId) {
+  MealPlan setSlotRecipe(DateTime date, int index, String? recipeId, {String? recipeTitle}) {
     final key = _dateKey(date);
     final slots = <MealSlot?>[...(daySlots[key] ?? [])];
     if (index < 0 || index >= slots.length) return this;
     final existing = slots[index];
     slots[index] = recipeId == null
         ? null
-        : MealSlot(recipeId: recipeId, servings: existing?.servings);
+        : MealSlot(recipeId: recipeId, servings: existing?.servings, recipeTitle: recipeTitle);
     return MealPlan(daySlots: {...daySlots, key: slots}, excludedDates: excludedDates);
   }
 
@@ -101,9 +104,9 @@ class MealPlan {
   }
 
   /// Adds a new slot at the end of [date]'s list and assigns [recipeId] to it.
-  MealPlan addRecipeToDay(DateTime date, String recipeId) {
+  MealPlan addRecipeToDay(DateTime date, String recipeId, {String? recipeTitle}) {
     final key = _dateKey(date);
-    final slots = <MealSlot?>[...(daySlots[key] ?? []), MealSlot(recipeId: recipeId)];
+    final slots = <MealSlot?>[...(daySlots[key] ?? []), MealSlot(recipeId: recipeId, recipeTitle: recipeTitle)];
     return MealPlan(daySlots: {...daySlots, key: slots}, excludedDates: excludedDates);
   }
 

@@ -458,6 +458,30 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erlaube Mikrofonzugriff, um Spracheingabe für Rezeptschritte zu nutzen.';
 
   @override
+  String get mealPlanHistoryTitle => 'Mahlzeiten-Verlauf';
+
+  @override
+  String get mealPlanHistoryTooltip => 'Verlauf';
+
+  @override
+  String get mealPlanHistoryEmpty =>
+      'Noch kein Verlauf. Hier erscheinen Mahlzeiten, nachdem ihr Tag vergangen ist.';
+
+  @override
+  String get mealPlanHistoryDeleted => 'Gelöscht';
+
+  @override
+  String get mealPlanHistoryRenamed => 'Umbenannt';
+
+  @override
+  String get mealPlanHistoryUpdated => 'Aktualisiert';
+
+  @override
+  String detailLastCooked(String date) {
+    return 'Zuletzt gekocht: $date';
+  }
+
+  @override
   String get mealPlanSubtitle => 'Tage für die Einkaufsliste auswählen';
 
   @override

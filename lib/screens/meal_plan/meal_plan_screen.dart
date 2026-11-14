@@ -52,6 +52,11 @@ class MealPlanScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_outlined),
+            tooltip: AppLocalizations.of(context)!.mealPlanHistoryTooltip,
+            onPressed: () => context.push('/meal-plan/history'),
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'clear') {
@@ -254,9 +259,9 @@ class MealPlanScreen extends ConsumerWidget {
       builder: (_) => _RecipePickerSheet(
         currentRecipeId: currentSlot?.recipeId,
         allRecipes: allRecipes,
-        onPick: (recipeId) => ref
+        onPick: (recipe) => ref
             .read(mealPlanProvider.notifier)
-            .setSlotRecipe(day, slotIndex, recipeId),
+            .setSlotRecipe(day, slotIndex, recipe?.id, recipeTitle: recipe?.title),
         onRemoveSlot: () => ref
             .read(mealPlanProvider.notifier)
             .removeSlot(day, slotIndex),
@@ -280,9 +285,9 @@ class MealPlanScreen extends ConsumerWidget {
       builder: (_) => _RecipePickerSheet(
         currentRecipeId: null,
         allRecipes: allRecipes,
-        onPick: (recipeId) {
-          if (recipeId != null) {
-            ref.read(mealPlanProvider.notifier).addRecipeToDay(day, recipeId);
+        onPick: (recipe) {
+          if (recipe != null) {
+            ref.read(mealPlanProvider.notifier).addRecipeToDay(day, recipe.id, recipeTitle: recipe.title);
           }
         },
       ),
@@ -465,7 +470,7 @@ class _SlotRow extends StatelessWidget {
 class _RecipePickerSheet extends StatefulWidget {
   final String? currentRecipeId;
   final List<Recipe> allRecipes;
-  final void Function(String? recipeId) onPick;
+  final void Function(Recipe? recipe) onPick;
   final VoidCallback? onRemoveSlot;
 
   const _RecipePickerSheet({
@@ -596,7 +601,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                                   color: AppColors.primary)
                               : null,
                           onTap: () {
-                            widget.onPick(recipe.id);
+                            widget.onPick(recipe);
                             Navigator.pop(context);
                           },
                         );
