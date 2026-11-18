@@ -48,6 +48,25 @@ class MealPlanNotifier extends StateNotifier<MealPlan> {
 
   void clear() => _save(MealPlan.empty());
 
+  /// Overwrites past-date slots with [pastSlots]. Only for debug use.
+  void seedDebugHistory(Map<String, List<MealSlot?>> pastSlots) {
+    final merged = Map<String, List<MealSlot?>>.from(state.daySlots)
+      ..addAll(pastSlots);
+    _save(state.copyWith(daySlots: merged));
+  }
+
+  /// Removes all past-date slots from the plan. Only for debug use.
+  void clearHistory() {
+    final today = DateTime.now();
+    final todayMidnight = DateTime(today.year, today.month, today.day);
+    final filtered = Map<String, List<MealSlot?>>.from(state.daySlots)
+      ..removeWhere((key, _) {
+        final date = DateTime.tryParse(key);
+        return date != null && date.isBefore(todayMidnight);
+      });
+    _save(state.copyWith(daySlots: filtered));
+  }
+
   /// Merges historical past-date slots from an imported backup.
   /// Only adds date keys not already present locally; never touches today/future.
   void mergeHistory(Map<String, List<MealSlot?>> importedSlots) {

@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +61,11 @@ class MealPlanScreen extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'clear') {
+              if (value == 'seed_history') {
+                _seedHistory(ref, allRecipes);
+              } else if (value == 'clear_history') {
+                ref.read(mealPlanProvider.notifier).clearHistory();
+              } else if (value == 'clear') {
                 showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
@@ -87,6 +93,24 @@ class MealPlanScreen extends ConsumerWidget {
               }
             },
             itemBuilder: (_) => [
+              if (kDebugMode) ...[
+                const PopupMenuItem(
+                  value: 'seed_history',
+                  child: Row(children: [
+                    Icon(Icons.science_outlined, size: 20, color: AppColors.textSecondary),
+                    SizedBox(width: 12),
+                    Text('Seed 2y history'),
+                  ]),
+                ),
+                const PopupMenuItem(
+                  value: 'clear_history',
+                  child: Row(children: [
+                    Icon(Icons.history_toggle_off_outlined, size: 20, color: AppColors.textSecondary),
+                    SizedBox(width: 12),
+                    Text('Clear history'),
+                  ]),
+                ),
+              ],
               PopupMenuItem(
                 value: 'clear',
                 child: Row(
@@ -292,6 +316,27 @@ class MealPlanScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  void _seedHistory(WidgetRef ref, List<Recipe> allRecipes) {
+    if (allRecipes.isEmpty) return;
+    final rng = Random();
+    final today = DateTime.now();
+    final todayMidnight = DateTime(today.year, today.month, today.day);
+    final slots = <String, List<MealSlot?>>{};
+    for (int i = 1; i <= 730; i++) {
+      final day = todayMidnight.subtract(Duration(days: i));
+      final count = rng.nextInt(4); // 0–3 meals per day
+      if (count == 0) continue;
+      final key = '${day.year}-'
+          '${day.month.toString().padLeft(2, '0')}-'
+          '${day.day.toString().padLeft(2, '0')}';
+      slots[key] = List.generate(count, (_) {
+        final recipe = allRecipes[rng.nextInt(allRecipes.length)];
+        return MealSlot(recipeId: recipe.id, recipeTitle: recipe.title);
+      });
+    }
+    ref.read(mealPlanProvider.notifier).seedDebugHistory(slots);
   }
 }
 
