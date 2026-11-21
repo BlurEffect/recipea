@@ -16,12 +16,13 @@ class RecipeListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -45,9 +46,9 @@ class RecipeListTile extends StatelessWidget {
                       ? Image.file(
                           File(recipe.imagePath!),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _placeholder(),
+                          errorBuilder: (_, _, _) => _placeholder(colors),
                         )
-                      : _placeholder(),
+                      : _placeholder(colors),
                 ),
               ),
             ),
@@ -63,10 +64,10 @@ class RecipeListTile extends StatelessWidget {
                       recipe.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ],
@@ -74,9 +75,9 @@ class RecipeListTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -86,10 +87,10 @@ class RecipeListTile extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() => Container(
-        color: AppColors.divider,
-        child: const Center(
-          child: Icon(Icons.restaurant, color: AppColors.textSecondary, size: 28),
+  Widget _placeholder(AppColors colors) => Container(
+        color: colors.divider,
+        child: Center(
+          child: Icon(Icons.restaurant, color: colors.textSecondary, size: 28),
         ),
       );
 }

@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'models/recipe.dart';
 import 'screens/browse/browse_screen.dart';
 import 'screens/detail/detail_screen.dart';
 import 'screens/edit/edit_screen.dart';
@@ -12,9 +14,25 @@ import 'screens/settings/settings_screen.dart';
 import 'screens/legal/data_protection_screen.dart';
 import 'screens/legal/imprint_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'l10n/app_localizations.dart';
+import 'widgets/empty_state.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
+  errorBuilder: (context, state) {
+    final l = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(),
+      body: EmptyState(
+        icon: Icons.error_outline,
+        message: l.detailRecipeNotFound,
+        action: TextButton(
+          onPressed: () => context.go('/recipes'),
+          child: Text(l.navRecipes),
+        ),
+      ),
+    );
+  },
   routes: [
     GoRoute(
       path: '/',
@@ -34,6 +52,7 @@ final GoRouter appRouter = GoRouter(
               path: 'edit',
               builder: (context, state) => EditScreen(
                 recipeId: state.pathParameters['id']!,
+                initialRecipe: state.extra as Recipe?,
               ),
             ),
           ],

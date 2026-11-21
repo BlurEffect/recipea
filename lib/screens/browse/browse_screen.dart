@@ -101,8 +101,9 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
       );
     }
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
           l.navRecipes,
@@ -357,8 +358,9 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     return Container(
-      color: AppColors.surface,
+      color: colors.surface,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       child: TextField(
         controller: controller,
@@ -367,14 +369,14 @@ class _SearchField extends StatelessWidget {
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: l.browseSearchHint,
-          hintStyle:
-              const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+          hintStyle: TextStyle(color: colors.textSecondary, fontSize: 14),
+          prefixIcon: Icon(Icons.search, size: 20, color: colors.textSecondary),
           suffixIcon: query.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.close, size: 18),
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   onPressed: onClear,
+                  tooltip: AppLocalizations.of(context)!.clear,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 )
@@ -383,7 +385,7 @@ class _SearchField extends StatelessWidget {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           filled: true,
-          fillColor: AppColors.background,
+          fillColor: colors.background,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -394,8 +396,7 @@ class _SearchField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:
-                const BorderSide(color: AppColors.primary, width: 1.5),
+            borderSide: BorderSide(color: colors.primary, width: 1.5),
           ),
         ),
       ),
@@ -427,8 +428,9 @@ class _TagFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     return Container(
-      color: AppColors.surface,
+      color: colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
@@ -436,11 +438,11 @@ class _TagFilterBar extends StatelessWidget {
             child: filter.isEmpty
                 ? Row(
                     children: [
-                      const Icon(Icons.filter_list, size: 18, color: AppColors.textSecondary),
+                      Icon(Icons.filter_list, size: 18, color: colors.textSecondary),
                       const SizedBox(width: 8),
                       Text(
                         l.browseFilterHint,
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        style: TextStyle(color: colors.textSecondary, fontSize: 14),
                       ),
                     ],
                   )
@@ -482,36 +484,39 @@ class _TagFilterBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           PopupMenuButton<SortOption>(
-            tooltip: 'Sort',
+            tooltip: AppLocalizations.of(context)!.browseSortTooltip,
             padding: EdgeInsets.zero,
             onSelected: onSort,
             itemBuilder: (_) => [
-              _sortMenuItem(SortOption.titleAsc,       l.sortTitleAsc,       sort),
-              _sortMenuItem(SortOption.titleDesc,      l.sortTitleDesc,      sort),
-              _sortMenuItem(SortOption.newestFirst,    l.sortNewestFirst,    sort),
-              _sortMenuItem(SortOption.oldestFirst,    l.sortOldestFirst,    sort),
-              _sortMenuItem(SortOption.lastCookedDesc, l.sortLastCookedDesc, sort),
-              _sortMenuItem(SortOption.lastCookedAsc,  l.sortLastCookedAsc,  sort),
+              _sortMenuItem(SortOption.titleAsc,       l.sortTitleAsc,       sort, colors),
+              _sortMenuItem(SortOption.titleDesc,      l.sortTitleDesc,      sort, colors),
+              _sortMenuItem(SortOption.newestFirst,    l.sortNewestFirst,    sort, colors),
+              _sortMenuItem(SortOption.oldestFirst,    l.sortOldestFirst,    sort, colors),
+              _sortMenuItem(SortOption.lastCookedDesc, l.sortLastCookedDesc, sort, colors),
+              _sortMenuItem(SortOption.lastCookedAsc,  l.sortLastCookedAsc,  sort, colors),
             ],
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
+                color: colors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.sort, size: 18, color: AppColors.primary),
+              child: Icon(Icons.sort, size: 18, color: colors.primary),
             ),
           ),
           const SizedBox(width: 8),
-          GestureDetector(
-            onTap: onAddTags,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
+          Tooltip(
+            message: AppLocalizations.of(context)!.browseFilterTooltip,
+            child: GestureDetector(
+              onTap: onAddTags,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.tune, size: 18, color: colors.primary),
               ),
-              child: const Icon(Icons.tune, size: 18, color: AppColors.primary),
             ),
           ),
         ],
@@ -521,14 +526,14 @@ class _TagFilterBar extends StatelessWidget {
 }
 
 PopupMenuItem<SortOption> _sortMenuItem(
-    SortOption opt, String label, SortOption current) =>
+    SortOption opt, String label, SortOption current, AppColors colors) =>
     PopupMenuItem(
       value: opt,
       child: Row(
         children: [
           Expanded(child: Text(label)),
           if (current == opt)
-            const Icon(Icons.check, size: 16, color: AppColors.primary),
+            Icon(Icons.check, size: 16, color: colors.primary),
         ],
       ),
     );

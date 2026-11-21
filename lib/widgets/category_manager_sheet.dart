@@ -15,7 +15,7 @@ void showCategoryManagerSheet({required BuildContext context}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.background,
+    backgroundColor: AppColors.of(context).background,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -60,10 +60,10 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                 const SizedBox(height: 12),
                 Text(
                   l.categoryManagerColorLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: AppColors.of(ctx).textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -81,7 +81,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                           color: color,
                           shape: BoxShape.circle,
                           border: isSelected
-                              ? Border.all(color: AppColors.textPrimary, width: 2.5)
+                              ? Border.all(color: AppColors.of(ctx).textPrimary, width: 2.5)
                               : null,
                         ),
                         child: isSelected
@@ -152,7 +152,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               await _cascadeDeleteCategory(
                   category, tagsInCategory, tagIds, affectedRecipes);
             },
-            child: Text(l.delete, style: const TextStyle(color: AppColors.error)),
+            child: Text(l.delete, style: TextStyle(color: AppColors.of(ctx).error)),
           ),
         ],
       ),
@@ -208,7 +208,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               Navigator.pop(ctx);
               await _deleteSingleTag(tag, affectedRecipes);
             },
-            child: Text(l.delete, style: const TextStyle(color: AppColors.error)),
+            child: Text(l.delete, style: TextStyle(color: AppColors.of(ctx).error)),
           ),
         ],
       ),
@@ -232,6 +232,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final categories = ref.watch(categoryProvider);
     final allTags = ref.watch(allTagsProvider);
 
@@ -248,7 +249,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.divider,
+                color: colors.divider,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -276,7 +277,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
                   ? Center(
                       child: Text(
                         l.categoryManagerNoCats,
-                        style: const TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: colors.textSecondary),
                       ),
                     )
                   : ListView.builder(
@@ -322,6 +323,7 @@ class _CategorySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -353,8 +355,8 @@ class _CategorySection extends StatelessWidget {
               onPressed: onEdit,
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline,
-                  size: 18, color: AppColors.error),
+              icon: Icon(Icons.delete_outline,
+                  size: 18, color: colors.error),
               tooltip: l.categoryManagerDeleteCatTitle,
               visualDensity: VisualDensity.compact,
               onPressed: onDelete,
@@ -375,10 +377,10 @@ class _CategorySection extends StatelessWidget {
                     style: const TextStyle(fontSize: 12),
                   ),
                   onDeleted: () => onDeleteTag(tag),
-                  deleteIconColor: AppColors.textSecondary,
+                  deleteIconColor: colors.textSecondary,
                   visualDensity: VisualDensity.compact,
-                  backgroundColor: AppColors.surface,
-                  side: const BorderSide(color: AppColors.divider),
+                  backgroundColor: colors.surface,
+                  side: BorderSide(color: colors.divider),
                 );
               }).toList(),
             ),
@@ -388,9 +390,9 @@ class _CategorySection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
             child: Text(
               l.categoryManagerNoTags,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),

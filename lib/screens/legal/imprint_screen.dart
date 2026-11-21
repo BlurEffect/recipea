@@ -10,16 +10,17 @@ class ImprintScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(title: Text(l.moreImprint)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Text(
           l.legalImprintPlaceholder,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             height: 1.6,
           ),
         ),

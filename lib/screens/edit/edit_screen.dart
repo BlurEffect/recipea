@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/seed_data.dart';
@@ -28,8 +27,10 @@ import 'widgets/steps_list_editor.dart';
 
 class EditScreen extends ConsumerStatefulWidget {
   final String recipeId;
+  // Pre-populated data for the duplicate-as-new flow; treated as a new recipe.
+  final Recipe? initialRecipe;
 
-  const EditScreen({super.key, required this.recipeId});
+  const EditScreen({super.key, required this.recipeId, this.initialRecipe});
 
   @override
   ConsumerState<EditScreen> createState() => _EditScreenState();
@@ -39,12 +40,18 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   final _titleController = TextEditingController();
   final _servingsController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _servingsFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
+  final _scrollController = ScrollController();
+  bool _titleHasError = false;
   String? _imagePath;
   String? _existingImagePath;
   Set<String> _selectedTagIds = {};
   List<Ingredient> _ingredients = [];
   List<RecipeStep> _steps = [];
   bool _saving = false;
+
+  bool _showComponentsInfo = false;
 
   // Composite recipe state
   List<String> _componentOrder = [];
@@ -57,87 +64,48 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   bool get _isNew => widget.recipeId == 'new';
   bool get _isComposite => _componentOrder.isNotEmpty;
 
+  late String _initialSnapshot;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _requestMicIfNeeded());
     if (!_isNew) {
       final recipe = ref
           .read(recipeListProvider)
           .cast<Recipe?>()
           .firstWhere((r) => r?.id == widget.recipeId, orElse: () => null);
-      if (recipe != null) {
-        _titleController.text = recipe.title;
-        _servingsController.text = recipe.servings.toString();
-        _descriptionController.text = recipe.description ?? '';
-        _imagePath = recipe.imagePath;
-        _selectedTagIds = {...recipe.tagIds};
-        _ingredients = List.from(recipe.ingredients);
-        _steps = List.from(recipe.steps);
-        _componentOrder = List.from(recipe.componentOrder);
-        _compositeStepOrder = List.from(recipe.compositeStepOrder);
-        _originalStepImages = {
-          for (final s in recipe.steps)
-            if (s.imagePath != null) s.id: s.imagePath!,
-        };
-        if (recipe.isComposite) {
-          _ownStepControllerMap = {
-            for (final s in recipe.steps)
-              s.id: TextEditingController(text: s.instruction),
-          };
-          _ownStepImageMap = {
-            for (final s in recipe.steps) s.id: s.imagePath,
-          };
-        }
-      }
+      if (recipe != null) _populateFrom(recipe);
+    } else if (widget.initialRecipe != null) {
+      _populateFrom(widget.initialRecipe!);
+    } else {
+      _servingsController.text = '1';
     }
+    _initialSnapshot = _snapshot();
   }
 
-  Future<void> _requestMicIfNeeded() async {
-    if (!mounted) return;
-    final status = await Permission.microphone.status;
-    if (status.isGranted || !mounted) return;
-
-    final l = AppLocalizations.of(context)!;
-
-    if (status.isPermanentlyDenied) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text(l.editMicTitle),
-          content: Text(l.editMicDeniedBody),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.notNow)),
-            TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  openAppSettings();
-                },
-                child: Text(l.openSettings)),
-          ],
-        ),
-      );
-      return;
+  void _populateFrom(Recipe recipe) {
+    _titleController.text = recipe.title;
+    _servingsController.text = recipe.servings.toString();
+    _descriptionController.text = recipe.description ?? '';
+    _imagePath = recipe.imagePath;
+    _selectedTagIds = {...recipe.tagIds};
+    _ingredients = List.from(recipe.ingredients);
+    _steps = List.from(recipe.steps);
+    _componentOrder = List.from(recipe.componentOrder);
+    _compositeStepOrder = List.from(recipe.compositeStepOrder);
+    _originalStepImages = {
+      for (final s in recipe.steps)
+        if (s.imagePath != null) s.id: s.imagePath!,
+    };
+    if (recipe.isComposite) {
+      _ownStepControllerMap = {
+        for (final s in recipe.steps)
+          s.id: TextEditingController(text: s.instruction),
+      };
+      _ownStepImageMap = {
+        for (final s in recipe.steps) s.id: s.imagePath,
+      };
     }
-
-    final allow = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.editVoiceInputTitle),
-        content: Text(l.editVoiceInputBody),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l.notNow)),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l.allow)),
-        ],
-      ),
-    );
-    if (allow == true) await Permission.microphone.request();
   }
 
   @override
@@ -145,6 +113,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     _titleController.dispose();
     _servingsController.dispose();
     _descriptionController.dispose();
+    _servingsFocus.dispose();
+    _descriptionFocus.dispose();
+    _scrollController.dispose();
     for (final c in _ownStepControllerMap.values) {
       c.dispose();
     }
@@ -161,11 +132,24 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     });
   }
 
-  void _removeComponent(String recipeId) {
+  Future<void> _removeComponent(String recipeId) async {
     final newOrder =
         List<String>.from(_componentOrder)..removeWhere((id) => id == recipeId);
     final stillHasLinked = newOrder.any((id) => id != 'self');
     if (!stillHasLinked) {
+      final l = AppLocalizations.of(context)!;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.editRemoveComponentTitle),
+          content: Text(l.editRemoveLastComponentBody),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.remove)),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
       _syncOwnSteps();
       for (final c in _ownStepControllerMap.values) {
         c.dispose();
@@ -248,6 +232,16 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     ),
                   ),
                   const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Text(
+                      ll.editNoNestingHint,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.of(ctx).textSecondary,
+                      ),
+                    ),
+                  ),
                   Flexible(
                     child: filtered.isEmpty
                         ? Padding(
@@ -346,6 +340,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
 
   Future<void> _pickOwnStepImage(String stepId, BuildContext context) async {
     final l = AppLocalizations.of(context)!;
+    final primary = AppColors.of(context).primary;
+    final error = AppColors.of(context).error;
     final hasImage = _ownStepImageMap[stepId] != null;
     final source = await showModalBottomSheet<_StepImageAction>(
       context: context,
@@ -369,9 +365,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             ),
             if (hasImage)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                leading: Icon(Icons.delete_outline, color: error),
                 title: Text(l.imagePickRemove,
-                    style: const TextStyle(color: AppColors.error)),
+                    style: TextStyle(color: error)),
                 onTap: () => Navigator.pop(context, _StepImageAction.remove),
               ),
             const SizedBox(height: 8),
@@ -404,7 +400,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: l.imagePickCropTitle,
-          toolbarColor: AppColors.primary,
+          toolbarColor: primary,
           toolbarWidgetColor: Colors.white,
           lockAspectRatio: true,
           hideBottomControls: true,
@@ -480,13 +476,36 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   Future<void> _save() async {
     if (_isComposite) _syncOwnSteps();
 
-    final l = AppLocalizations.of(context)!;
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.editPleaseAddTitle)),
+      setState(() => _titleHasError = true);
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
       return;
+    }
+
+    final allRecipes = ref.read(recipeListProvider);
+    final currentId = _isNew ? null : widget.recipeId;
+    final hasDuplicate = allRecipes.any(
+      (r) => r.title.trim().toLowerCase() == title.toLowerCase() && r.id != currentId,
+    );
+    if (hasDuplicate && mounted) {
+      final l = AppLocalizations.of(context)!;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.editDuplicateTitleTitle),
+          content: Text(l.editDuplicateTitleBody(title)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.editSaveAnyway)),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
     }
 
     setState(() => _saving = true);
@@ -581,6 +600,78 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     }
   }
 
+  // ── Dirty-check / back-navigation ────────────────────────────────────────
+
+  String _snapshot() {
+    final tags = (_selectedTagIds.toList()..sort()).join(',');
+    final ingredients = _ingredients
+        .map((i) => '${i.name}|${i.quantity}|${i.unit ?? ''}|${i.note ?? ''}')
+        .join(',');
+    final steps = _steps.map((s) {
+      final text = _ownStepControllerMap.containsKey(s.id)
+          ? (_ownStepControllerMap[s.id]?.text ?? s.instruction)
+          : s.instruction;
+      return '${s.id}|$text|${s.imagePath ?? ''}';
+    }).join(',');
+    return [
+      _titleController.text,
+      _servingsController.text,
+      _descriptionController.text,
+      _imagePath ?? '',
+      tags,
+      ingredients,
+      steps,
+      _componentOrder.join(','),
+      _compositeStepOrder.join(','),
+    ].join('\n');
+  }
+
+  bool _isDirty() => _snapshot() != _initialSnapshot;
+
+  void _navigateBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/recipes');
+    }
+  }
+
+  Future<void> _handleBack() async {
+    final l = AppLocalizations.of(context)!;
+
+    // New recipe (empty or duplicate): always confirm — user is canceling creation.
+    // Existing recipe edit: only confirm if the form has changed.
+    if (!_isNew && !_isDirty()) {
+      _navigateBack();
+      return;
+    }
+
+    final title = _isNew ? l.editDiscardNewTitle : l.editUnsavedTitle;
+    final body = _isNew ? l.editDiscardNewBody : l.editUnsavedBody;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              l.editDiscard,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) _navigateBack();
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -591,12 +682,12 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     final recipeMap = {for (final r in allRecipes) r.id: r};
 
     return PopScope(
-      canPop: !_isNew,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _isNew) context.go('/recipes');
+        if (!didPop) _handleBack();
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.of(context).background,
         appBar: AppBar(
           title: Text(
             _isNew ? l.editNewRecipe : l.editExistingRecipe,
@@ -619,8 +710,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 onPressed: _save,
                 child: Text(
                   _isNew ? l.save : l.update,
-                  style: const TextStyle(
-                    color: AppColors.primary,
+                  style: TextStyle(
+                    color: AppColors.of(context).primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -632,6 +723,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -659,12 +751,20 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(hintText: l.editTitleHint),
+                decoration: InputDecoration(
+                  hintText: l.editTitleHint,
+                  errorText: _titleHasError ? l.editPleaseAddTitle : null,
+                ),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
                 textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => _servingsFocus.requestFocus(),
+                onChanged: (_) {
+                  if (_titleHasError) setState(() => _titleHasError = false);
+                },
               ),
               const SizedBox(height: 16),
               // Servings
@@ -676,16 +776,18 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     width: 70,
                     child: TextField(
                       controller: _servingsController,
+                      focusNode: _servingsFocus,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         _ServingsRangeFormatter(),
                       ],
                       decoration: const InputDecoration(
-                        hintText: '1',
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 14),
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) => _descriptionFocus.requestFocus(),
                     ),
                   ),
                 ],
@@ -696,11 +798,13 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _descriptionController,
+                focusNode: _descriptionFocus,
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
                 decoration: InputDecoration(
                   hintText: l.editDescriptionHint,
-                  hintStyle: const TextStyle(color: AppColors.textSecondary),
+                  hintStyle: TextStyle(color: AppColors.of(context).textSecondary),
                 ),
               ),
               const SizedBox(height: 24),
@@ -723,7 +827,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     icon: const Icon(Icons.add, size: 16),
                     label: Text(l.editAddTagsButton),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
+                      foregroundColor: AppColors.of(context).primary,
                       padding: EdgeInsets.zero,
                     ),
                   ),
@@ -733,8 +837,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               if (_selectedTagIds.isEmpty)
                 Text(
                   l.editNoTagsSelected,
-                  style:
-                      const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14),
                 )
               else
                 Wrap(
@@ -812,7 +915,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       const SizedBox(height: 8),
       Text(
         l.editFromComponents,
-        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        style: TextStyle(fontSize: 12, color: AppColors.of(context).textSecondary),
       ),
       const SizedBox(height: 6),
       Wrap(spacing: 8, runSpacing: 8, children: chips),
@@ -831,7 +934,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.of(context).primary,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -884,9 +987,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                   width: 90,
                   child: Text(
                     amountStr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                     ),
                   ),
                 ),
@@ -911,15 +1014,31 @@ class _EditScreenState extends ConsumerState<EditScreen> {
   Widget _buildComponentsSection(
       List<Recipe> allRecipes, Map<String, Recipe> recipeMap) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _FieldLabel(text: l.editComponentsLabel),
-        const SizedBox(height: 4),
-        Text(
-          l.editComponentsDescription,
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        Row(
+          children: [
+            _FieldLabel(text: l.editComponentsLabel),
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () => setState(() => _showComponentsInfo = !_showComponentsInfo),
+              child: Icon(
+                _showComponentsInfo ? Icons.info : Icons.info_outline,
+                size: 16,
+                color: _showComponentsInfo ? colors.primary : colors.textSecondary,
+              ),
+            ),
+          ],
         ),
+        if (_showComponentsInfo) ...[
+          const SizedBox(height: 4),
+          Text(
+            l.editComponentsDescription,
+            style: TextStyle(fontSize: 13, color: colors.textSecondary),
+          ),
+        ],
         if (_componentOrder.isNotEmpty) ...[
           const SizedBox(height: 8),
           ReorderableListView.builder(
@@ -942,8 +1061,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 key: ValueKey(entry),
                 contentPadding: const EdgeInsets.symmetric(vertical: 2),
                 leading: isSelf
-                    ? const Icon(Icons.restaurant_menu,
-                        color: AppColors.textSecondary, size: 20)
+                    ? Icon(Icons.restaurant_menu,
+                        color: AppColors.of(context).textSecondary, size: 20)
                     : Container(
                         width: 14,
                         height: 14,
@@ -966,7 +1085,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       IconButton(
                         icon:
                             const Icon(Icons.remove_circle_outline, size: 20),
-                        color: AppColors.textSecondary,
+                        color: AppColors.of(context).textSecondary,
                         onPressed: () => _removeComponent(entry),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -974,8 +1093,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     const SizedBox(width: 8),
                     ReorderableDragStartListener(
                       index: i,
-                      child: const Icon(Icons.drag_handle,
-                          color: AppColors.divider),
+                      child: Icon(Icons.drag_handle,
+                          color: AppColors.of(context).divider),
                     ),
                   ],
                 ),
@@ -990,7 +1109,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             onPressed: () => _showAddComponentDialog(allRecipes),
             icon: const Icon(Icons.add_link, size: 18),
             label: Text(l.editAddComponent),
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            style: TextButton.styleFrom(foregroundColor: AppColors.of(context).primary),
           ),
         ),
       ],
@@ -1023,17 +1142,17 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                const Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                Icon(Icons.swap_vert, size: 14, color: AppColors.of(context).textSecondary),
                 const SizedBox(width: 4),
                 Text(
                   l.editStepOrderCustom,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 12, color: AppColors.of(context).textSecondary),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => setState(() => _compositeStepOrder = []),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
+                    foregroundColor: AppColors.of(context).primary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
                   ),
@@ -1046,7 +1165,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         if (ordered.isEmpty)
           Text(
             l.editNoStepsYet,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14),
           )
         else
           ReorderableListView.builder(
@@ -1080,7 +1199,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             onPressed: _addOwnStep,
             icon: const Icon(Icons.add, size: 18),
             label: Text(l.editAddStepToRecipe),
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            style: TextButton.styleFrom(foregroundColor: AppColors.of(context).primary),
           ),
         ),
       ],
@@ -1096,7 +1215,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     required String? sourceTitle,
   }) {
     final l = AppLocalizations.of(context)!;
-    final badgeColor = color ?? AppColors.primary;
+    final badgeColor = color ?? AppColors.of(context).primary;
     final badge = Container(
       width: 28,
       height: 28,
@@ -1120,9 +1239,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       child: ReorderableDragStartListener(
         index: index,
-        child: const Padding(
-          padding: EdgeInsets.only(top: 8, left: 4, right: 4),
-          child: Icon(Icons.drag_handle, color: AppColors.divider),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+          child: Icon(Icons.drag_handle, color: AppColors.of(context).divider),
         ),
       ),
     );
@@ -1135,7 +1254,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         decoration: BoxDecoration(
           border: Border(
             left: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.25),
+              color: AppColors.of(context).primary.withValues(alpha: 0.25),
               width: 3,
             ),
           ),
@@ -1167,9 +1286,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       children: [
                         GestureDetector(
                           onTap: () => _pickOwnStepImage(entry.step.id, context),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6),
-                            child: Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(Icons.edit_outlined, size: 16, color: AppColors.of(context).textSecondary),
                           ),
                         ),
                       ],
@@ -1192,7 +1311,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
                       label: Text(l.editAddPhoto),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary,
+                        foregroundColor: AppColors.of(context).textSecondary,
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 28),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1206,7 +1325,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
               padding: const EdgeInsets.only(top: 4),
               child: IconButton(
                 icon: const Icon(Icons.remove_circle_outline, size: 20),
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
                 onPressed: () => _deleteOwnStep(entry.step.id),
                 padding: const EdgeInsets.only(left: 8),
                 constraints: const BoxConstraints(),
@@ -1249,7 +1368,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                           l.detailFromComponent(sourceTitle),
                           style: TextStyle(
                             fontSize: 12,
-                            color: color ?? AppColors.textSecondary,
+                            color: color ?? AppColors.of(context).textSecondary,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -1282,10 +1401,10 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
+        color: AppColors.of(context).textSecondary,
         letterSpacing: 0.3,
       ),
     );

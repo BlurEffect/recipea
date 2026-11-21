@@ -32,8 +32,9 @@ class MealPlanScreen extends ConsumerWidget {
       return DateTime(d.year, d.month, d.day);
     });
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,10 +46,10 @@ class MealPlanScreen extends ConsumerWidget {
             ),
             Text(
               l.mealPlanSubtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.normal,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],
@@ -80,7 +81,7 @@ class MealPlanScreen extends ConsumerWidget {
                         onPressed: () => Navigator.pop(context, true),
                         child: Text(
                           l.clear,
-                          style: const TextStyle(color: AppColors.error),
+                          style: TextStyle(color: colors.error),
                         ),
                       ),
                     ],
@@ -94,20 +95,20 @@ class MealPlanScreen extends ConsumerWidget {
             },
             itemBuilder: (_) => [
               if (kDebugMode) ...[
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'seed_history',
                   child: Row(children: [
-                    Icon(Icons.science_outlined, size: 20, color: AppColors.textSecondary),
-                    SizedBox(width: 12),
-                    Text('Seed 2y history'),
+                    Icon(Icons.science_outlined, size: 20, color: colors.textSecondary),
+                    const SizedBox(width: 12),
+                    const Text('Seed 2y history'),
                   ]),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'clear_history',
                   child: Row(children: [
-                    Icon(Icons.history_toggle_off_outlined, size: 20, color: AppColors.textSecondary),
-                    SizedBox(width: 12),
-                    Text('Clear history'),
+                    Icon(Icons.history_toggle_off_outlined, size: 20, color: colors.textSecondary),
+                    const SizedBox(width: 12),
+                    const Text('Clear history'),
                   ]),
                 ),
               ],
@@ -115,11 +116,11 @@ class MealPlanScreen extends ConsumerWidget {
                 value: 'clear',
                 child: Row(
                   children: [
-                    const Icon(Icons.delete_sweep_outlined, size: 20, color: AppColors.error),
+                    Icon(Icons.delete_sweep_outlined, size: 20, color: colors.error),
                     const SizedBox(width: 12),
                     Text(
                       l.mealPlanClearPlan,
-                      style: const TextStyle(color: AppColors.error),
+                      style: TextStyle(color: colors.error),
                     ),
                   ],
                 ),
@@ -159,11 +160,11 @@ class MealPlanScreen extends ConsumerWidget {
                       Container(
                         decoration: isToday
                             ? BoxDecoration(
-                                color: AppColors.primary
+                                color: colors.primary
                                     .withValues(alpha: 0.06),
-                                border: const Border(
+                                border: Border(
                                   left: BorderSide(
-                                      color: AppColors.primary, width: 4),
+                                      color: colors.primary, width: 4),
                                 ),
                               )
                             : null,
@@ -178,56 +179,66 @@ class MealPlanScreen extends ConsumerWidget {
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: isToday
-                                      ? AppColors.primary
-                                      : AppColors.textPrimary,
+                                      ? colors.primary
+                                      : colors.textPrimary,
                                 ),
                               ),
                             ),
-                            Checkbox(
-                              value: plan.isDayIncluded(day),
-                              onChanged: (_) => ref
-                                  .read(mealPlanProvider.notifier)
-                                  .toggleDayExcluded(day),
-                              activeColor: AppColors.primary,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
+                            Tooltip(
+                              message: l.mealPlanIncludeInShopping,
+                              child: Checkbox(
+                                value: plan.isDayIncluded(day),
+                                onChanged: (_) => ref
+                                    .read(mealPlanProvider.notifier)
+                                    .toggleDayExcluded(day),
+                                activeColor: colors.primary,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      if (slots.isNotEmpty) const Divider(height: 1),
-                      // Slot rows
-                      ...List.generate(slots.length, (slotIndex) {
-                        final slot = slots[slotIndex];
-                        if (slot == null) return const SizedBox.shrink();
-                        final recipe = allRecipes.cast<Recipe?>().firstWhere(
-                              (r) => r?.id == slot.recipeId,
-                              orElse: () => null,
-                            );
-                        if (recipe == null) return const SizedBox.shrink();
-                        return _SlotRow(
-                          key: ValueKey('${day}_$slotIndex'),
-                          recipe: recipe,
-                          slotServings: slot.servings,
-                          onEdit: () => _showRecipePicker(
-                            context,
-                            ref,
-                            day,
-                            slotIndex,
-                            plan,
-                            allRecipes,
-                          ),
-                          onRemove: () => ref
-                              .read(mealPlanProvider.notifier)
-                              .removeSlot(day, slotIndex),
-                          onNavigate: () =>
-                              context.push('/recipes/${recipe.id}'),
-                          onServingsChanged: (servings) => ref
-                              .read(mealPlanProvider.notifier)
-                              .setSlotServings(day, slotIndex, servings),
-                        );
-                      }),
+                      // Slot rows — skip null slots and deleted recipes
+                      ...() {
+                        final rows = <Widget>[];
+                        for (var slotIndex = 0; slotIndex < slots.length; slotIndex++) {
+                          final slot = slots[slotIndex];
+                          if (slot == null) continue;
+                          final recipe = allRecipes.cast<Recipe?>().firstWhere(
+                                (r) => r?.id == slot.recipeId,
+                                orElse: () => null,
+                              );
+                          if (recipe == null) continue;
+                          rows.add(_SlotRow(
+                            key: ValueKey('${day}_$slotIndex'),
+                            recipe: recipe,
+                            slotServings: slot.servings,
+                            onEdit: () => _showRecipePicker(
+                              context,
+                              ref,
+                              day,
+                              slotIndex,
+                              plan,
+                              allRecipes,
+                            ),
+                            onRemove: () => _confirmRemoveSlot(
+                              context,
+                              ref,
+                              day,
+                              slotIndex,
+                            ),
+                            onNavigate: () =>
+                                context.push('/recipes/${recipe.id}'),
+                            onServingsChanged: (servings) => ref
+                                .read(mealPlanProvider.notifier)
+                                .setSlotServings(day, slotIndex, servings),
+                          ));
+                        }
+                        if (rows.isNotEmpty) rows.insert(0, const Divider(height: 1));
+                        return rows;
+                      }(),
                       // Add slot button
                       const Divider(height: 1),
                       InkWell(
@@ -240,15 +251,14 @@ class MealPlanScreen extends ConsumerWidget {
                               Icon(
                                 Icons.add,
                                 size: 16,
-                                color: AppColors.primary.withValues(alpha: 0.8),
+                                color: colors.primary.withValues(alpha: 0.8),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 l.mealPlanAddMeal,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.8),
+                                  color: colors.primary.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
@@ -276,7 +286,7 @@ class MealPlanScreen extends ConsumerWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -293,6 +303,38 @@ class MealPlanScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _confirmRemoveSlot(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime day,
+    int slotIndex,
+  ) async {
+    final l = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.mealPlanRemoveSlotTitle),
+        content: Text(l.mealPlanRemoveSlotBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              l.mealPlanRemoveMeal,
+              style: TextStyle(color: AppColors.of(context).error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      ref.read(mealPlanProvider.notifier).removeSlot(day, slotIndex);
+    }
+  }
+
   Future<void> _addMeal(
     BuildContext context,
     WidgetRef ref,
@@ -302,7 +344,7 @@ class MealPlanScreen extends ConsumerWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -361,6 +403,7 @@ class _SlotRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final hasImage = recipe.imagePath != null;
     final effectiveServings = slotServings ?? recipe.servings;
     final hasOverride = slotServings != null && slotServings != recipe.servings;
@@ -392,9 +435,9 @@ class _SlotRow extends StatelessWidget {
                 children: [
                   Text(
                     recipe.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -408,8 +451,8 @@ class _SlotRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: hasOverride
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                            ? colors.primary
+                            : colors.textSecondary,
                       ),
                     ),
                   ),
@@ -418,7 +461,7 @@ class _SlotRow extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 16),
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               onPressed: onEdit,
               tooltip: l.mealPlanChangeRecipe,
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -426,8 +469,9 @@ class _SlotRow extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.close, size: 16),
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               onPressed: onRemove,
+              tooltip: l.mealPlanRemoveMeal,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
@@ -455,7 +499,7 @@ class _SlotRow extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline),
                     iconSize: 28,
-                    color: value > 1 ? AppColors.primary : AppColors.divider,
+                    color: value > 1 ? AppColors.of(context).primary : AppColors.of(context).divider,
                     onPressed: value > 1
                         ? () => setState(() => value--)
                         : null,
@@ -472,7 +516,7 @@ class _SlotRow extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     iconSize: 28,
-                    color: value < 99 ? AppColors.primary : AppColors.divider,
+                    color: value < 99 ? AppColors.of(context).primary : AppColors.of(context).divider,
                     onPressed: value < 99
                         ? () => setState(() => value++)
                         : null,
@@ -542,6 +586,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final filtered = widget.allRecipes
         .where((r) =>
             _query.isEmpty ||
@@ -565,7 +610,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: colors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -576,10 +621,10 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l.mealPlanChooseRecipe,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -600,11 +645,11 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
             const Divider(height: 1),
             if (widget.onRemoveSlot != null) ...[
               ListTile(
-                leading: const Icon(Icons.delete_outline,
-                    size: 20, color: AppColors.error),
+                leading: Icon(Icons.delete_outline,
+                    size: 20, color: colors.error),
                 title: Text(
                   l.mealPlanRemoveMeal,
-                  style: const TextStyle(color: AppColors.error),
+                  style: TextStyle(color: colors.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -618,7 +663,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                   ? Center(
                       child: Text(
                         l.mealPlanNoResults,
-                        style: const TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: colors.textSecondary),
                       ),
                     )
                   : ListView.builder(
@@ -634,16 +679,15 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                             style: TextStyle(
                               fontSize: 15,
                               color: isCurrent
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
+                                  ? colors.primary
+                                  : colors.textPrimary,
                               fontWeight: isCurrent
                                   ? FontWeight.w600
                                   : FontWeight.normal,
                             ),
                           ),
                           trailing: isCurrent
-                              ? const Icon(Icons.check,
-                                  color: AppColors.primary)
+                              ? Icon(Icons.check, color: colors.primary)
                               : null,
                           onTap: () {
                             widget.onPick(recipe);

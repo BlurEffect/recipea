@@ -76,9 +76,6 @@
   "navShopping": "Einkaufen",
   "@navShopping": {},
 
-  "navCharacters": "Charaktere",
-  "@navCharacters": {},
-
   "navMore": "Mehr",
   "@navMore": {},
 
@@ -97,8 +94,14 @@
   "browseSearchHint": "Rezepte durchsuchen…",
   "@browseSearchHint": {},
 
-  "browseFilterHint": "Nach Tags filtern...",
+  "browseFilterHint": "Nach Tags filtern…",
   "@browseFilterHint": {},
+
+  "browseSortTooltip": "Sortieren",
+  "@browseSortTooltip": {},
+
+  "browseFilterTooltip": "Filtern",
+  "@browseFilterTooltip": {},
 
   "browseEmptyTitle": "Noch keine Rezepte",
   "@browseEmptyTitle": {},
@@ -194,7 +197,7 @@
   "sortLastCookedDesc": "Zuletzt gekocht",
   "@sortLastCookedDesc": {},
 
-  "sortLastCookedAsc": "Als nächstes kochen",
+  "sortLastCookedAsc": "Am längsten nicht gekocht",
   "@sortLastCookedAsc": {},
 
   "goToRecipes": "Zu den Rezepten",
@@ -205,6 +208,12 @@
 
   "detailHomeTooltip": "Alle Rezepte",
   "@detailHomeTooltip": {},
+
+  "detailDecrementServings": "Weniger Portionen",
+  "@detailDecrementServings": {},
+
+  "detailIncrementServings": "Mehr Portionen",
+  "@detailIncrementServings": {},
 
   "detailAddToMealPlan": "Zum Essensplan hinzufügen",
   "@detailAddToMealPlan": {},
@@ -217,6 +226,13 @@
 
   "detailDuplicate": "Duplizieren",
   "@detailDuplicate": {},
+
+  "detailDuplicateTitleSuffix": "{title} Kopie",
+  "@detailDuplicateTitleSuffix": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
 
   "detailDeleteMenuLabel": "Löschen",
   "@detailDeleteMenuLabel": {},
@@ -245,7 +261,7 @@
     }
   },
 
-  "detailPartOf": "TEIL VON",
+  "detailPartOf": "Teil von",
   "@detailPartOf": {},
 
   "detailServes": "Portionen",
@@ -337,12 +353,24 @@
   "editAddComponent": "Komponente hinzufügen",
   "@editAddComponent": {},
 
+  "editRemoveComponentTitle": "Komponente entfernen?",
+  "@editRemoveComponentTitle": {},
+
+  "editRemoveLastComponentBody": "Dies ist die letzte verknüpfte Komponente. Das Entfernen wandelt dieses Rezept in ein einfaches Rezept um.",
+  "@editRemoveLastComponentBody": {},
+
   "editSaveFailed": "Speichern fehlgeschlagen: {error}",
   "@editSaveFailed": {
     "placeholders": {
       "error": { "type": "String" }
     }
   },
+
+  "editDiscardNewTitle": "Neues Rezept verwerfen?",
+  "@editDiscardNewTitle": {},
+
+  "editDiscardNewBody": "Dieses Rezept wird nicht gespeichert.",
+  "@editDiscardNewBody": {},
 
   "editUnsavedTitle": "Ungespeicherte Änderungen",
   "@editUnsavedTitle": {},
@@ -368,7 +396,7 @@
   "editAddIngredient": "Zutat hinzufügen",
   "@editAddIngredient": {},
 
-  "editStepHint": "Schritt {number}...",
+  "editStepHint": "Schritt {number}…",
   "@editStepHint": {
     "placeholders": {
       "number": { "type": "int" }
@@ -405,6 +433,9 @@
   "editNoRecipesAvailable": "Keine Rezepte zum Verknüpfen verfügbar",
   "@editNoRecipesAvailable": {},
 
+  "editNoNestingHint": "Zusammengesetzte Rezepte können nicht als Komponenten verwendet werden.",
+  "@editNoNestingHint": {},
+
   "editStepsInOrder": "Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben",
   "@editStepsInOrder": {},
 
@@ -423,14 +454,27 @@
   "editStepImagesLabel": "Schritt-Bilder",
   "@editStepImagesLabel": {},
 
-  "editHideImages": "Ausblenden",
+  "editHideImages": "Schrittbilder ausblenden",
   "@editHideImages": {},
 
-  "editShowImages": "Einblenden",
+  "editShowImages": "Schrittbilder einblenden",
   "@editShowImages": {},
 
   "editPleaseAddTitle": "Bitte Titel eingeben",
   "@editPleaseAddTitle": {},
+
+  "editDuplicateTitleTitle": "Titel bereits vorhanden",
+  "@editDuplicateTitleTitle": {},
+
+  "editDuplicateTitleBody": "Ein Rezept namens \"{title}\" existiert bereits. Trotzdem speichern?",
+  "@editDuplicateTitleBody": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+
+  "editSaveAnyway": "Trotzdem speichern",
+  "@editSaveAnyway": {},
 
   "editMicTitle": "Mikrofonzugriff",
   "@editMicTitle": {},
@@ -469,6 +513,9 @@
     }
   },
 
+  "mealPlanIncludeInShopping": "In Einkaufsliste aufnehmen",
+  "@mealPlanIncludeInShopping": {},
+
   "mealPlanSubtitle": "Tage für die Einkaufsliste auswählen",
   "@mealPlanSubtitle": {},
 
@@ -487,13 +534,19 @@
   "mealPlanRemoveMeal": "Mahlzeit entfernen",
   "@mealPlanRemoveMeal": {},
 
+  "mealPlanRemoveSlotTitle": "Mahlzeit entfernen?",
+  "@mealPlanRemoveSlotTitle": {},
+
+  "mealPlanRemoveSlotBody": "Dieser Slot wird aus deinem Plan entfernt.",
+  "@mealPlanRemoveSlotBody": {},
+
   "mealPlanChangeRecipe": "Rezept ändern",
   "@mealPlanChangeRecipe": {},
 
   "mealPlanChooseRecipe": "Rezept auswählen",
   "@mealPlanChooseRecipe": {},
 
-  "mealPlanSearchRecipes": "Rezepte durchsuchen...",
+  "mealPlanSearchRecipes": "Rezepte durchsuchen…",
   "@mealPlanSearchRecipes": {},
 
   "mealPlanNoRecipes": "Noch keine Rezepte",
@@ -546,7 +599,7 @@
   "shoppingClearCheckedTitle": "Erledigte Artikel entfernen?",
   "@shoppingClearCheckedTitle": {},
 
-  "shoppingClearCheckedBody": "Alle abgehakten Artikel werden gelöscht.",
+  "shoppingClearCheckedBody": "Alle abgehakten Artikel werden entfernt.",
   "@shoppingClearCheckedBody": {},
 
   "shoppingShareCheckedOff": "Alles wurde abgehakt!",
@@ -558,7 +611,7 @@
   "shoppingRegenerateTitle": "Liste neu erstellen?",
   "@shoppingRegenerateTitle": {},
 
-  "shoppingRegenerateBody": "Deine erledigten Artikel gehen verloren.",
+  "shoppingRegenerateBody": "Deine aktuelle Liste und die manuelle Reihenfolge werden ersetzt.",
   "@shoppingRegenerateBody": {},
 
   "shoppingRegenerateAction": "Neu erstellen",
@@ -579,7 +632,7 @@
   "tagSelectorTapHint": "Einmal tippen zum Einschließen, zweimal zum Ausschließen",
   "@tagSelectorTapHint": {},
 
-  "tagSelectorSearchHint": "Tags durchsuchen...",
+  "tagSelectorSearchHint": "Tags durchsuchen…",
   "@tagSelectorSearchHint": {},
 
   "tagSelectorManage": "Kategorien verwalten",
@@ -754,10 +807,22 @@
   "settingsLanguageDe": "Deutsch",
   "@settingsLanguageDe": {},
 
-  "browseCharacters": "Charaktere",
-  "@browseCharacters": {},
+  "settingsAppearanceLabel": "Erscheinungsbild",
+  "@settingsAppearanceLabel": {},
 
-  "achievementsTitle": "Charaktere",
+  "settingsThemeSystem": "Systemstandard",
+  "@settingsThemeSystem": {},
+
+  "settingsThemeLight": "Hell",
+  "@settingsThemeLight": {},
+
+  "settingsThemeDark": "Dunkel",
+  "@settingsThemeDark": {},
+
+  "splashTapToSkip": "Tippen zum Überspringen",
+  "@splashTapToSkip": {},
+
+  "achievementsTitle": "Erfolge",
   "@achievementsTitle": {},
 
   "achievementsHintUnlock": "Schließe Herausforderungen ab, um weitere Charaktere freizuschalten",

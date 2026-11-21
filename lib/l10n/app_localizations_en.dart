@@ -84,9 +84,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navShopping => 'Shopping';
 
   @override
-  String get navCharacters => 'Characters';
-
-  @override
   String get navMore => 'More';
 
   @override
@@ -106,7 +103,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get browseSearchHint => 'Search recipes…';
 
   @override
-  String get browseFilterHint => 'Filter by tags...';
+  String get browseFilterHint => 'Filter by tags…';
+
+  @override
+  String get browseSortTooltip => 'Sort';
+
+  @override
+  String get browseFilterTooltip => 'Filter';
 
   @override
   String get browseEmptyTitle => 'No recipes yet';
@@ -211,7 +214,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortLastCookedDesc => 'Recently cooked';
 
   @override
-  String get sortLastCookedAsc => 'Cook next';
+  String get sortLastCookedAsc => 'Least recently cooked';
 
   @override
   String get goToRecipes => 'Go to Recipes';
@@ -221,6 +224,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get detailHomeTooltip => 'All recipes';
+
+  @override
+  String get detailDecrementServings => 'Fewer servings';
+
+  @override
+  String get detailIncrementServings => 'More servings';
 
   @override
   String get detailAddToMealPlan => 'Add to Meal Plan';
@@ -233,6 +242,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get detailDuplicate => 'Duplicate';
+
+  @override
+  String detailDuplicateTitleSuffix(String title) {
+    return '$title Copy';
+  }
 
   @override
   String get detailDeleteMenuLabel => 'Delete';
@@ -256,7 +270,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get detailPartOf => 'PART OF';
+  String get detailPartOf => 'Part of';
 
   @override
   String get detailServes => 'Serves';
@@ -352,9 +366,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editAddComponent => 'Add component recipe';
 
   @override
+  String get editRemoveComponentTitle => 'Remove component?';
+
+  @override
+  String get editRemoveLastComponentBody =>
+      'This is the last linked component. Removing it will convert this back to a simple recipe.';
+
+  @override
   String editSaveFailed(String error) {
     return 'Failed to save: $error';
   }
+
+  @override
+  String get editDiscardNewTitle => 'Discard new recipe?';
+
+  @override
+  String get editDiscardNewBody => 'This recipe won\'t be saved.';
 
   @override
   String get editUnsavedTitle => 'Unsaved changes';
@@ -366,7 +393,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editDiscard => 'Discard';
 
   @override
-  String get editQtyHint => 'Qty';
+  String get editQtyHint => 'Amount';
 
   @override
   String get editUnitHint => 'Unit';
@@ -382,7 +409,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String editStepHint(int number) {
-    return 'Step $number...';
+    return 'Step $number…';
   }
 
   @override
@@ -416,6 +443,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editNoRecipesAvailable => 'No recipes available to link';
 
   @override
+  String get editNoNestingHint =>
+      'Composite recipes cannot be used as components.';
+
+  @override
   String get editStepsInOrder => 'Steps within a recipe must stay in order';
 
   @override
@@ -434,13 +465,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editStepImagesLabel => 'Step images';
 
   @override
-  String get editHideImages => 'Hide';
+  String get editHideImages => 'Hide step images';
 
   @override
-  String get editShowImages => 'Show';
+  String get editShowImages => 'Show step images';
 
   @override
   String get editPleaseAddTitle => 'Please add a title';
+
+  @override
+  String get editDuplicateTitleTitle => 'Duplicate title';
+
+  @override
+  String editDuplicateTitleBody(String title) {
+    return 'A recipe named \"$title\" already exists. Save anyway?';
+  }
+
+  @override
+  String get editSaveAnyway => 'Save anyway';
 
   @override
   String get editMicTitle => 'Microphone access';
@@ -481,6 +523,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mealPlanIncludeInShopping => 'Include in shopping list';
+
+  @override
   String get mealPlanSubtitle => 'Check days to include in shopping list';
 
   @override
@@ -499,13 +544,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealPlanRemoveMeal => 'Remove meal';
 
   @override
+  String get mealPlanRemoveSlotTitle => 'Remove meal?';
+
+  @override
+  String get mealPlanRemoveSlotBody =>
+      'This slot will be removed from your plan.';
+
+  @override
   String get mealPlanChangeRecipe => 'Change recipe';
 
   @override
   String get mealPlanChooseRecipe => 'Choose a recipe';
 
   @override
-  String get mealPlanSearchRecipes => 'Search recipes...';
+  String get mealPlanSearchRecipes => 'Search recipes…';
 
   @override
   String get mealPlanNoRecipes => 'No recipes yet';
@@ -556,7 +608,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingClearCheckedTitle => 'Remove checked items?';
 
   @override
-  String get shoppingClearCheckedBody => 'All ticked items will be deleted.';
+  String get shoppingClearCheckedBody => 'All ticked items will be removed.';
 
   @override
   String get shoppingShareCheckedOff => 'Everything has been checked off!';
@@ -568,7 +620,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingRegenerateTitle => 'Regenerate list?';
 
   @override
-  String get shoppingRegenerateBody => 'Your checked-off items will be lost.';
+  String get shoppingRegenerateBody =>
+      'Your current list and any manual ordering will be replaced.';
 
   @override
   String get shoppingRegenerateAction => 'Regenerate';
@@ -584,13 +637,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your meal plan has no ingredients to list';
 
   @override
-  String get tagSelectorTitle => 'Select Tags';
+  String get tagSelectorTitle => 'Select tags';
 
   @override
   String get tagSelectorTapHint => 'Tap once to include · tap twice to exclude';
 
   @override
-  String get tagSelectorSearchHint => 'Search tags...';
+  String get tagSelectorSearchHint => 'Search tags…';
 
   @override
   String get tagSelectorManage => 'Manage categories';
@@ -608,7 +661,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tagSelectorCategoryLabel => 'Category';
 
   @override
-  String get categoryManagerTitle => 'Manage Categories';
+  String get categoryManagerTitle => 'Manage categories';
 
   @override
   String get categoryManagerAddCategory => 'Add category';
@@ -773,10 +826,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageDe => 'German';
 
   @override
-  String get browseCharacters => 'Characters';
+  String get settingsAppearanceLabel => 'Appearance';
 
   @override
-  String get achievementsTitle => 'Characters';
+  String get settingsThemeSystem => 'System default';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get splashTapToSkip => 'Tap to skip';
+
+  @override
+  String get achievementsTitle => 'Achievements';
 
   @override
   String get achievementsHintUnlock =>

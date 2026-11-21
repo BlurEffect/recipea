@@ -248,12 +248,6 @@ abstract class AppLocalizations {
   /// **'Shopping'**
   String get navShopping;
 
-  /// No description provided for @navCharacters.
-  ///
-  /// In en, this message translates to:
-  /// **'Characters'**
-  String get navCharacters;
-
   /// No description provided for @navMore.
   ///
   /// In en, this message translates to:
@@ -293,8 +287,20 @@ abstract class AppLocalizations {
   /// No description provided for @browseFilterHint.
   ///
   /// In en, this message translates to:
-  /// **'Filter by tags...'**
+  /// **'Filter by tags…'**
   String get browseFilterHint;
+
+  /// No description provided for @browseSortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get browseSortTooltip;
+
+  /// No description provided for @browseFilterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get browseFilterTooltip;
 
   /// No description provided for @browseEmptyTitle.
   ///
@@ -455,7 +461,7 @@ abstract class AppLocalizations {
   /// No description provided for @sortLastCookedAsc.
   ///
   /// In en, this message translates to:
-  /// **'Cook next'**
+  /// **'Least recently cooked'**
   String get sortLastCookedAsc;
 
   /// No description provided for @goToRecipes.
@@ -475,6 +481,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All recipes'**
   String get detailHomeTooltip;
+
+  /// No description provided for @detailDecrementServings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer servings'**
+  String get detailDecrementServings;
+
+  /// No description provided for @detailIncrementServings.
+  ///
+  /// In en, this message translates to:
+  /// **'More servings'**
+  String get detailIncrementServings;
 
   /// No description provided for @detailAddToMealPlan.
   ///
@@ -499,6 +517,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duplicate'**
   String get detailDuplicate;
+
+  /// No description provided for @detailDuplicateTitleSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} Copy'**
+  String detailDuplicateTitleSuffix(String title);
 
   /// No description provided for @detailDeleteMenuLabel.
   ///
@@ -533,7 +557,7 @@ abstract class AppLocalizations {
   /// No description provided for @detailPartOf.
   ///
   /// In en, this message translates to:
-  /// **'PART OF'**
+  /// **'Part of'**
   String get detailPartOf;
 
   /// No description provided for @detailServes.
@@ -698,11 +722,35 @@ abstract class AppLocalizations {
   /// **'Add component recipe'**
   String get editAddComponent;
 
+  /// No description provided for @editRemoveComponentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove component?'**
+  String get editRemoveComponentTitle;
+
+  /// No description provided for @editRemoveLastComponentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the last linked component. Removing it will convert this back to a simple recipe.'**
+  String get editRemoveLastComponentBody;
+
   /// No description provided for @editSaveFailed.
   ///
   /// In en, this message translates to:
   /// **'Failed to save: {error}'**
   String editSaveFailed(String error);
+
+  /// No description provided for @editDiscardNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard new recipe?'**
+  String get editDiscardNewTitle;
+
+  /// No description provided for @editDiscardNewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This recipe won\'t be saved.'**
+  String get editDiscardNewBody;
 
   /// No description provided for @editUnsavedTitle.
   ///
@@ -725,7 +773,7 @@ abstract class AppLocalizations {
   /// No description provided for @editQtyHint.
   ///
   /// In en, this message translates to:
-  /// **'Qty'**
+  /// **'Amount'**
   String get editQtyHint;
 
   /// No description provided for @editUnitHint.
@@ -755,7 +803,7 @@ abstract class AppLocalizations {
   /// No description provided for @editStepHint.
   ///
   /// In en, this message translates to:
-  /// **'Step {number}...'**
+  /// **'Step {number}…'**
   String editStepHint(int number);
 
   /// No description provided for @editAddStep.
@@ -818,6 +866,12 @@ abstract class AppLocalizations {
   /// **'No recipes available to link'**
   String get editNoRecipesAvailable;
 
+  /// No description provided for @editNoNestingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Composite recipes cannot be used as components.'**
+  String get editNoNestingHint;
+
   /// No description provided for @editStepsInOrder.
   ///
   /// In en, this message translates to:
@@ -857,13 +911,13 @@ abstract class AppLocalizations {
   /// No description provided for @editHideImages.
   ///
   /// In en, this message translates to:
-  /// **'Hide'**
+  /// **'Hide step images'**
   String get editHideImages;
 
   /// No description provided for @editShowImages.
   ///
   /// In en, this message translates to:
-  /// **'Show'**
+  /// **'Show step images'**
   String get editShowImages;
 
   /// No description provided for @editPleaseAddTitle.
@@ -871,6 +925,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please add a title'**
   String get editPleaseAddTitle;
+
+  /// No description provided for @editDuplicateTitleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate title'**
+  String get editDuplicateTitleTitle;
+
+  /// No description provided for @editDuplicateTitleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A recipe named \"{title}\" already exists. Save anyway?'**
+  String editDuplicateTitleBody(String title);
+
+  /// No description provided for @editSaveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get editSaveAnyway;
 
   /// No description provided for @editMicTitle.
   ///
@@ -938,6 +1010,12 @@ abstract class AppLocalizations {
   /// **'Last cooked: {date}'**
   String detailLastCooked(String date);
 
+  /// No description provided for @mealPlanIncludeInShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Include in shopping list'**
+  String get mealPlanIncludeInShopping;
+
   /// No description provided for @mealPlanSubtitle.
   ///
   /// In en, this message translates to:
@@ -974,6 +1052,18 @@ abstract class AppLocalizations {
   /// **'Remove meal'**
   String get mealPlanRemoveMeal;
 
+  /// No description provided for @mealPlanRemoveSlotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove meal?'**
+  String get mealPlanRemoveSlotTitle;
+
+  /// No description provided for @mealPlanRemoveSlotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This slot will be removed from your plan.'**
+  String get mealPlanRemoveSlotBody;
+
   /// No description provided for @mealPlanChangeRecipe.
   ///
   /// In en, this message translates to:
@@ -989,7 +1079,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealPlanSearchRecipes.
   ///
   /// In en, this message translates to:
-  /// **'Search recipes...'**
+  /// **'Search recipes…'**
   String get mealPlanSearchRecipes;
 
   /// No description provided for @mealPlanNoRecipes.
@@ -1079,7 +1169,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingClearCheckedBody.
   ///
   /// In en, this message translates to:
-  /// **'All ticked items will be deleted.'**
+  /// **'All ticked items will be removed.'**
   String get shoppingClearCheckedBody;
 
   /// No description provided for @shoppingShareCheckedOff.
@@ -1103,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingRegenerateBody.
   ///
   /// In en, this message translates to:
-  /// **'Your checked-off items will be lost.'**
+  /// **'Your current list and any manual ordering will be replaced.'**
   String get shoppingRegenerateBody;
 
   /// No description provided for @shoppingRegenerateAction.
@@ -1133,7 +1223,7 @@ abstract class AppLocalizations {
   /// No description provided for @tagSelectorTitle.
   ///
   /// In en, this message translates to:
-  /// **'Select Tags'**
+  /// **'Select tags'**
   String get tagSelectorTitle;
 
   /// No description provided for @tagSelectorTapHint.
@@ -1145,7 +1235,7 @@ abstract class AppLocalizations {
   /// No description provided for @tagSelectorSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search tags...'**
+  /// **'Search tags…'**
   String get tagSelectorSearchHint;
 
   /// No description provided for @tagSelectorManage.
@@ -1181,7 +1271,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoryManagerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage Categories'**
+  /// **'Manage categories'**
   String get categoryManagerTitle;
 
   /// No description provided for @categoryManagerAddCategory.
@@ -1394,16 +1484,40 @@ abstract class AppLocalizations {
   /// **'German'**
   String get settingsLanguageDe;
 
-  /// No description provided for @browseCharacters.
+  /// No description provided for @settingsAppearanceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Characters'**
-  String get browseCharacters;
+  /// **'Appearance'**
+  String get settingsAppearanceLabel;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// No description provided for @splashTapToSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to skip'**
+  String get splashTapToSkip;
 
   /// No description provided for @achievementsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Characters'**
+  /// **'Achievements'**
   String get achievementsTitle;
 
   /// No description provided for @achievementsHintUnlock.

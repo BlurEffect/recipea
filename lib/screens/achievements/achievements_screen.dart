@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,11 +17,12 @@ class AchievementsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(achievementProvider);
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(l.achievementsTitle),
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
       ),
       body: Padding(
@@ -30,17 +32,17 @@ class AchievementsScreen extends ConsumerWidget {
           children: [
             Text(
               l.achievementsHintUnlock,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               l.achievementsFavoriteHint,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -81,71 +83,73 @@ class AchievementsScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.deepOrange.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.deepOrange.withValues(alpha: 0.3),
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.deepOrange.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.bug_report, size: 14, color: Colors.deepOrange),
+                              SizedBox(width: 4),
+                              Text(
+                                'DEBUG',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepOrange,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.deepOrange,
+                                    side: const BorderSide(color: Colors.deepOrange),
+                                    padding: const EdgeInsets.symmetric(vertical: 6),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  onPressed: () => ref
+                                      .read(achievementProvider.notifier)
+                                      .resetToTestDefaults(),
+                                  child: const Text('Reset to test state'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.deepOrange,
+                                    side: const BorderSide(color: Colors.deepOrange),
+                                    padding: const EdgeInsets.symmetric(vertical: 6),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  onPressed: () => ref
+                                      .read(achievementProvider.notifier)
+                                      .fullReset(),
+                                  child: const Text('Full reset'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.bug_report, size: 14, color: Colors.deepOrange),
-                            SizedBox(width: 4),
-                            Text(
-                              'DEBUG',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepOrange,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.deepOrange,
-                                  side: const BorderSide(color: Colors.deepOrange),
-                                  padding: const EdgeInsets.symmetric(vertical: 6),
-                                  textStyle: const TextStyle(fontSize: 12),
-                                ),
-                                onPressed: () => ref
-                                    .read(achievementProvider.notifier)
-                                    .resetToTestDefaults(),
-                                child: const Text('Reset to test state'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.deepOrange,
-                                  side: const BorderSide(color: Colors.deepOrange),
-                                  padding: const EdgeInsets.symmetric(vertical: 6),
-                                  textStyle: const TextStyle(fontSize: 12),
-                                ),
-                                onPressed: () => ref
-                                    .read(achievementProvider.notifier)
-                                    .fullReset(),
-                                child: const Text('Full reset'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -275,9 +279,10 @@ class _FrontFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: colors.achievementUnlockedBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -292,13 +297,13 @@ class _FrontFace extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.lock_open_outlined, size: 28, color: AppColors.primary),
+            Icon(Icons.lock_open_outlined, size: 28, color: colors.primary),
             const SizedBox(height: 8),
             Text(
               character.unlockCondition,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.3,
               ),
               textAlign: TextAlign.center,
@@ -395,9 +400,10 @@ class _LockedFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEEEEEE),
+        color: colors.achievementLockedBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -412,13 +418,13 @@ class _LockedFace extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.lock_outline, size: 28, color: AppColors.textSecondary),
+            Icon(Icons.lock_outline, size: 28, color: colors.textSecondary),
             const SizedBox(height: 8),
             Text(
               character.unlockCondition,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.3,
               ),
               textAlign: TextAlign.center,

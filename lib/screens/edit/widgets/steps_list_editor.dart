@@ -92,6 +92,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
 
   Future<void> _pickStepImage(int index, BuildContext context) async {
     final l = AppLocalizations.of(context)!;
+    final primary = AppColors.of(context).primary;
     final source = await _showImageSourceSheet(context, l, hasImage: _imagePaths[index] != null);
     if (source == null) return;
     if (source == _ImageAction.remove) {
@@ -117,7 +118,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: l.imagePickCropTitle,
-          toolbarColor: AppColors.primary,
+          toolbarColor: primary,
           toolbarWidgetColor: Colors.white,
           lockAspectRatio: true,
           hideBottomControls: true,
@@ -158,9 +159,9 @@ class _StepsListEditorState extends State<StepsListEditor> {
             ),
             if (hasImage)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                leading: Icon(Icons.delete_outline, color: AppColors.of(context).error),
                 title: Text(l.imagePickRemove,
-                    style: const TextStyle(color: AppColors.error)),
+                    style: TextStyle(color: AppColors.of(context).error)),
                 onTap: () => Navigator.pop(context, _ImageAction.remove),
               ),
             const SizedBox(height: 8),
@@ -173,6 +174,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final hasAnyImage = _imagePaths.any((p) => p != null);
     return Column(
       children: [
@@ -181,17 +183,17 @@ class _StepsListEditorState extends State<StepsListEditor> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                const Icon(Icons.photo_outlined, size: 14, color: AppColors.textSecondary),
+                Icon(Icons.photo_outlined, size: 14, color: colors.textSecondary),
                 const SizedBox(width: 4),
                 Text(
                   l.editStepImagesLabel,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => setState(() => _allImagesVisible = !_allImagesVisible),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
+                    foregroundColor: colors.primary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
                   ),
@@ -234,16 +236,16 @@ class _StepsListEditorState extends State<StepsListEditor> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
+                      color: colors.primary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
                         '${i + 1}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: colors.primary,
                         ),
                       ),
                     ),
@@ -276,17 +278,20 @@ class _StepsListEditorState extends State<StepsListEditor> {
                                     : Icons.visibility_off_outlined,
                                 size: 16,
                               ),
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                               onPressed: () => setState(() => _imageExpanded[i] = !_imageExpanded[i]),
+                              tooltip: _allImagesVisible && _imageExpanded[i]
+                                  ? AppLocalizations.of(context)!.editHideImages
+                                  : AppLocalizations.of(context)!.editShowImages,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             ),
-                            GestureDetector(
-                              onTap: () => _pickStepImage(i, context),
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
-                              ),
+                            IconButton(
+                              icon: Icon(Icons.edit_outlined, size: 16, color: colors.textSecondary),
+                              onPressed: () => _pickStepImage(i, context),
+                              tooltip: AppLocalizations.of(context)!.edit,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                             ),
                           ],
                         ),
@@ -310,7 +315,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
                           icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
                           label: Text(AppLocalizations.of(context)!.editAddPhoto),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textSecondary,
+                            foregroundColor: colors.textSecondary,
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(0, 28),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -326,7 +331,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
                     padding: const EdgeInsets.only(top: 4),
                     child: IconButton(
                       icon: const Icon(Icons.remove_circle_outline, size: 20),
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       onPressed: () => _removeStep(i),
                       padding: const EdgeInsets.only(left: 8),
                       constraints: const BoxConstraints(),
@@ -338,9 +343,9 @@ class _StepsListEditorState extends State<StepsListEditor> {
                       FocusManager.instance.primaryFocus?.unfocus(),
                   child: ReorderableDragStartListener(
                     index: i,
-                    child: const Padding(
-                      padding: EdgeInsets.only(top: 8, left: 4),
-                      child: Icon(Icons.drag_handle, color: AppColors.divider),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8, left: 4),
+                      child: Icon(Icons.drag_handle, color: colors.divider),
                     ),
                   ),
                 ),
@@ -355,7 +360,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
             onPressed: _addStep,
             icon: const Icon(Icons.add, size: 18),
             label: Text(AppLocalizations.of(context)!.editAddStep),
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            style: TextButton.styleFrom(foregroundColor: colors.primary),
           ),
         ),
       ],

@@ -28,6 +28,7 @@ class TagChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final color = ref.watch(categoryMapProvider)[tag.category]?.color
         ?? Colors.grey;
 
@@ -36,17 +37,17 @@ class TagChip extends ConsumerWidget {
     final Color textColor;
 
     if (isExcluded) {
-      bgColor = const Color(0xFFFFEBEE);
+      bgColor = colors.chipExcludedBackground;
       borderColor = color;
       textColor = color;
     } else if (isSelected) {
-      bgColor = AppColors.surface;
+      bgColor = colors.surface;
       borderColor = color;
       textColor = color;
     } else {
-      bgColor = AppColors.surface;
-      borderColor = AppColors.divider;
-      textColor = AppColors.textSecondary;
+      bgColor = colors.surface;
+      borderColor = colors.divider;
+      textColor = colors.textSecondary;
     }
 
     return GestureDetector(
@@ -85,13 +86,15 @@ class TagChip extends ConsumerWidget {
               ),
             ),
             if (showRemove) ...[
-              const SizedBox(width: 4),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onRemove ?? onTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(Icons.close, size: 14, color: textColor),
+              const SizedBox(width: 2),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                child: InkWell(
+                  onTap: onRemove ?? onTap,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Center(
+                    child: Icon(Icons.close, size: 14, color: textColor),
+                  ),
                 ),
               ),
             ],

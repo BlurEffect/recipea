@@ -29,8 +29,9 @@ class ShoppingListScreen extends ConsumerWidget {
       generatedLabel = l.shoppingGeneratedOn(dateStr);
     }
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,10 +44,10 @@ class ShoppingListScreen extends ConsumerWidget {
             if (generatedLabel != null)
               Text(
                 generatedLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
           ],
@@ -89,8 +90,7 @@ class ShoppingListScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             tooltip: l.shoppingGenerateTooltip,
             onPressed: () async {
-              final hasChecked = items.any((i) => i.checked);
-              if (hasChecked) {
+              if (items.isNotEmpty) {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
@@ -152,7 +152,7 @@ class ShoppingListScreen extends ConsumerWidget {
                         value: item.checked,
                         onChanged: (_) =>
                             ref.read(shoppingListProvider.notifier).toggle(index),
-                        activeColor: AppColors.primary,
+                        activeColor: colors.primary,
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -2),
                         title: Text(
@@ -160,8 +160,8 @@ class ShoppingListScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 15,
                             color: item.checked
-                                ? AppColors.textSecondary
-                                : AppColors.textPrimary,
+                                ? colors.textSecondary
+                                : colors.textPrimary,
                             decoration:
                                 item.checked ? TextDecoration.lineThrough : null,
                           ),
@@ -172,9 +172,9 @@ class ShoppingListScreen extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: item.checked
-                                      ? AppColors.textSecondary
+                                      ? colors.textSecondary
                                           .withValues(alpha: 0.6)
-                                      : AppColors.primary,
+                                      : colors.primary,
                                   fontWeight: FontWeight.w500,
                                   decoration: item.checked
                                       ? TextDecoration.lineThrough
@@ -186,9 +186,9 @@ class ShoppingListScreen extends ConsumerWidget {
                     ),
                     ReorderableDragStartListener(
                       index: index,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(Icons.drag_handle, color: AppColors.divider),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(Icons.drag_handle, color: colors.divider),
                       ),
                     ),
                   ],

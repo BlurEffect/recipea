@@ -94,8 +94,9 @@ List<String> ingredientUnits(AppLocalizations l, String languageCode) {
     ];
   }
   return [
-    ...metric,
+    'g', 'ml',
     l.unitTeaspoon, l.unitTablespoon, l.unitCup, 'oz', 'lb',
+    'kg', 'l',
     l.unitPiece, l.unitSlice, l.unitClove, l.unitBunch, l.unitPinch,
     l.unitCan, l.unitSprig, l.unitHead, l.unitStalk, l.unitHandful,
   ];

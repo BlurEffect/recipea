@@ -13,8 +13,9 @@ class MoreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
           l.navMore,
@@ -66,10 +67,11 @@ class _MoreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return ListTile(
-      leading: Icon(icon, color: AppColors.textSecondary, size: 22),
+      leading: Icon(icon, color: colors.textSecondary, size: 22),
       title: Text(label, style: const TextStyle(fontSize: 15)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
       onTap: onTap,
     );
   }

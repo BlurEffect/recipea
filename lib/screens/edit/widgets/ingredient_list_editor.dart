@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/seed_data.dart';
@@ -67,7 +68,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
           final name = r.nameController.text.trim();
           if (name.isEmpty) return null;
           final qtyText = r.quantityController.text.trim();
-          final qty = double.tryParse(qtyText);
+          final qty = _parseQty(qtyText);
           final note = r.noteController.text.trim();
           final rawUnit = r.unitController.text.trim();
           return Ingredient(
@@ -108,7 +109,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
           icon: const Icon(Icons.add, size: 16),
           label: Text(AppLocalizations.of(context)!.editAddIngredient),
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
+            foregroundColor: AppColors.of(context).primary,
             padding: EdgeInsets.zero,
           ),
         ),
@@ -133,12 +134,20 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                 child: TextField(
                   controller: row.quantityController,
                   onChanged: (_) => _notify(),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: false,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                  ],
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context)!.editQtyHint,
                     isDense: true,
                   ),
                   style: const TextStyle(fontSize: 14),
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) => row.unitFocusNode.requestFocus(),
                 ),
               ),
               const SizedBox(width: 6),
@@ -146,6 +155,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
               _UnitField(
                 controller: row.unitController,
                 focusNode: row.unitFocusNode,
+                nextFocusNode: row.nameFocusNode,
                 onChanged: _notify,
               ),
               const SizedBox(width: 6),
@@ -153,6 +163,7 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
               Expanded(
                 child: TextField(
                   controller: row.nameController,
+                  focusNode: row.nameFocusNode,
                   onChanged: (_) => _notify(),
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context)!.editIngredientNameHint,
@@ -160,13 +171,15 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                   ),
                   style: const TextStyle(fontSize: 14),
                   textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) => row.noteFocusNode.requestFocus(),
                 ),
               ),
               // Delete
               if (_rows.length > 1)
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline, size: 20),
-                  color: AppColors.textSecondary,
+                  color: AppColors.of(context).textSecondary,
                   onPressed: () => _removeRow(i),
                   padding: const EdgeInsets.only(left: 4),
                   constraints: const BoxConstraints(),
@@ -177,9 +190,9 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
                     FocusManager.instance.primaryFocus?.unfocus(),
                 child: ReorderableDragStartListener(
                   index: i,
-                  child: const Padding(
-                    padding: EdgeInsets.only(left: 4),
-                    child: Icon(Icons.drag_handle, color: AppColors.divider),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Icon(Icons.drag_handle, color: AppColors.of(context).divider),
                   ),
                 ),
               ),
@@ -190,19 +203,14 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
             padding: const EdgeInsets.only(left: 4, top: 4),
             child: TextField(
               controller: row.noteController,
+              focusNode: row.noteFocusNode,
               onChanged: (_) => _notify(),
+              textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.editNoteHint,
-                hintStyle: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
                 isDense: true,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: const UnderlineInputBorder(),
               ),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 12),
             ),
           ),
         ],
@@ -214,11 +222,13 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
 class _UnitField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+  final FocusNode? nextFocusNode;
   final VoidCallback onChanged;
 
   const _UnitField({
     required this.controller,
     required this.focusNode,
+    this.nextFocusNode,
     required this.onChanged,
   });
 
@@ -230,12 +240,12 @@ class _UnitField extends StatelessWidget {
         textEditingController: controller,
         focusNode: focusNode,
         optionsBuilder: (TextEditingValue value) {
-          if (value.text.isEmpty) return const Iterable.empty();
           final l = AppLocalizations.of(context)!;
           final langCode = Localizations.localeOf(context).languageCode;
           final units = ingredientUnits(l, langCode);
+          if (value.text.isEmpty) return units;
           return units.where(
-            (u) => u.toLowerCase().startsWith(value.text.toLowerCase()),
+            (u) => u.toLowerCase().contains(value.text.toLowerCase()),
           );
         },
         onSelected: (_) => onChanged(),
@@ -247,9 +257,11 @@ class _UnitField extends StatelessWidget {
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.editUnitHint,
-              hintStyle: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              hintStyle: TextStyle(fontSize: 14, color: AppColors.of(context).textSecondary),
               isDense: true,
             ),
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => nextFocusNode?.requestFocus(),
           );
         },
         optionsViewBuilder: (context, onSelected, options) {
@@ -293,6 +305,8 @@ class _IngredientRow {
   final TextEditingController noteController;
   final TextEditingController unitController;
   final FocusNode unitFocusNode;
+  final FocusNode nameFocusNode;
+  final FocusNode noteFocusNode;
 
   _IngredientRow({
     String? id,
@@ -301,8 +315,12 @@ class _IngredientRow {
     required this.noteController,
     required this.unitController,
     FocusNode? unitFocusNode,
+    FocusNode? nameFocusNode,
+    FocusNode? noteFocusNode,
   })  : id = id ?? _rowUuid.v4(),
-        unitFocusNode = unitFocusNode ?? FocusNode();
+        unitFocusNode = unitFocusNode ?? FocusNode(),
+        nameFocusNode = nameFocusNode ?? FocusNode(),
+        noteFocusNode = noteFocusNode ?? FocusNode();
 
   factory _IngredientRow.fromIngredient(Ingredient ing) => _IngredientRow(
         nameController: TextEditingController(text: ing.name),
@@ -326,10 +344,18 @@ class _IngredientRow {
     noteController.dispose();
     unitController.dispose();
     unitFocusNode.dispose();
+    nameFocusNode.dispose();
+    noteFocusNode.dispose();
   }
 }
 
 String _fmtQty(double v) {
   if (v == v.truncateToDouble()) return v.toInt().toString();
   return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+}
+
+// Accepts both dot and comma as decimal separator (e.g. "1,5" on DE locale).
+double? _parseQty(String text) {
+  if (text.isEmpty) return null;
+  return double.tryParse(text.replaceAll(',', '.'));
 }

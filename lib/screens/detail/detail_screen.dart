@@ -70,7 +70,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       body: CustomScrollView(
         slivers: [
           _RecipeAppBar(recipe: recipe),
@@ -83,10 +83,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   // Title
                   Text(
                     recipe.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: AppColors.of(context).textPrimary,
                     ),
                   ),
                   // Recipe image
@@ -139,7 +139,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       const SizedBox(height: 4),
                       Text(
                         l2.detailLastCooked(DateFormat.yMMMd(locale).format(date)),
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(fontSize: 12, color: AppColors.of(context).textSecondary),
                       ),
                     ];
                   }(),
@@ -202,7 +202,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 File(imagePath),
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) =>
-                    Container(color: AppColors.divider),
+                    Container(color: AppColors.of(context).divider),
               ),
             ),
           ),
@@ -224,7 +224,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           TextButton(
             onPressed: () => setState(() => _stepImagesVisible = !_stepImagesVisible),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
+              foregroundColor: AppColors.of(context).primary,
               padding: const EdgeInsets.only(left: 8),
               minimumSize: const Size(0, 32),
             ),
@@ -249,9 +249,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         chips.add(Chip(
           avatar: const Icon(Icons.warning_amber_rounded,
               size: 16, color: Colors.orange),
-          label: const Text(
-            'Deleted component',
-            style: TextStyle(fontSize: 12, color: Colors.orange),
+          label: Text(
+            AppLocalizations.of(context)!.detailDeletedComponent,
+            style: const TextStyle(fontSize: 12, color: Colors.orange),
           ),
           backgroundColor: Colors.orange.shade50,
           side: BorderSide(color: Colors.orange.shade200),
@@ -341,7 +341,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         blocks.add(_IngredientBlock(
           title: l.detailThisRecipe,
           ingredients: recipe.ingredients,
-          color: AppColors.primary,
+          color: AppColors.of(context).primary,
           scaleFactor: scaleFactor,
         ));
       } else {
@@ -467,7 +467,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     for (int i = 0; i < ordered.length; i++) {
       final entry = ordered[i];
       final isOwn = entry.sourceRecipeId == 'self';
-      final color = isOwn ? AppColors.primary : componentColor(entry.sourceRecipeId);
+      final color = isOwn ? AppColors.of(context).primary : componentColor(entry.sourceRecipeId);
       final l = AppLocalizations.of(context)!;
       final sourceTitle = isOwn
           ? null
@@ -510,8 +510,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   margin: const EdgeInsets.only(top: 7),
                   width: 6,
                   height: 6,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                  decoration: BoxDecoration(
+                    color: AppColors.of(context).primary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -519,26 +519,26 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: AppColors.textPrimary,
+                        color: AppColors.of(context).textPrimary,
                       ),
                       children: [
                         if (amountStr.isNotEmpty)
                           TextSpan(
                             text: '$amountStr  ',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+                              color: AppColors.of(context).primary,
                             ),
                           ),
                         TextSpan(text: ing.name),
                         if (ing.note != null && ing.note!.isNotEmpty)
                           TextSpan(
                             text: '  (${ing.note})',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: AppColors.of(context).textSecondary,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -563,10 +563,11 @@ class _RecipeAppBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     return SliverAppBar(
       pinned: true,
-      backgroundColor: AppColors.background,
-      foregroundColor: AppColors.textPrimary,
+      backgroundColor: colors.background,
+      foregroundColor: colors.textPrimary,
       leadingWidth: 96,
       leading: Row(
         children: [
@@ -590,7 +591,7 @@ class _RecipeAppBar extends ConsumerWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                backgroundColor: AppColors.surface,
+                backgroundColor: colors.surface,
                 shape: const RoundedRectangleBorder(
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(16)),
@@ -648,14 +649,14 @@ class _RecipeAppBar extends ConsumerWidget {
             } else if (value == 'duplicate') {
               final newId = generateRecipeId();
               final now = DateTime.now();
+              final l = AppLocalizations.of(context)!;
               final copy = recipe.copyWith(
                 id: newId,
-                title: '${recipe.title} Copy',
+                title: l.detailDuplicateTitleSuffix(recipe.title),
                 createdAt: now,
                 updatedAt: now,
               );
-              await ref.read(recipeListProvider.notifier).save(copy);
-              if (context.mounted) context.go('/recipes/$newId/edit');
+              if (context.mounted) context.push('/recipes/new/edit', extra: copy);
             } else if (value == 'delete') {
               final l = AppLocalizations.of(context)!;
               final confirmed = await showDialog<bool>(
@@ -672,7 +673,7 @@ class _RecipeAppBar extends ConsumerWidget {
                       onPressed: () => Navigator.pop(context, true),
                       child: Text(
                         l.delete,
-                        style: const TextStyle(color: AppColors.error),
+                        style: TextStyle(color: colors.error),
                       ),
                     ),
                   ],
@@ -693,7 +694,7 @@ class _RecipeAppBar extends ConsumerWidget {
               PopupMenuItem(value: 'duplicate', child: Text(l.detailDuplicate)),
               PopupMenuItem(
                 value: 'delete',
-                child: Text(l.detailDeleteMenuLabel, style: const TextStyle(color: AppColors.error)),
+                child: Text(l.detailDeleteMenuLabel, style: TextStyle(color: colors.error)),
               ),
             ];
           },
@@ -712,10 +713,10 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
+        color: AppColors.of(context).textPrimary,
       ),
     );
   }
@@ -743,6 +744,7 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final showImage = widget.imagePath != null &&
         widget.globalImagesVisible &&
         _localExpanded;
@@ -751,8 +753,8 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.06),
-          border: const Border(left: BorderSide(color: AppColors.primary, width: 3)),
+          color: colors.primary.withValues(alpha: 0.06),
+          border: Border(left: BorderSide(color: colors.primary, width: 3)),
           borderRadius: const BorderRadius.only(
             topRight: Radius.circular(4),
             bottomRight: Radius.circular(4),
@@ -767,16 +769,16 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: colors.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text(
                     '${widget.number}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ),
                 ),
@@ -794,10 +796,10 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
                           Expanded(
                             child: Text(
                               widget.instruction,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 height: 1.5,
-                                color: AppColors.textPrimary,
+                                color: colors.textPrimary,
                               ),
                             ),
                           ),
@@ -811,7 +813,7 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
                                   size: 18,
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ),
@@ -869,7 +871,8 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = widget.color ?? AppColors.primary;
+    final colors = AppColors.of(context);
+    final badgeColor = widget.color ?? colors.primary;
     final showImage = widget.imagePath != null &&
         widget.globalImagesVisible &&
         _localExpanded;
@@ -924,10 +927,10 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
                         Expanded(
                           child: Text(
                             widget.instruction,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               height: 1.5,
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                         ),
@@ -941,7 +944,7 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                                 size: 18,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),
@@ -955,7 +958,7 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
                         AppLocalizations.of(context)!.detailFromComponent(widget.sourceTitle!),
                         style: TextStyle(
                           fontSize: 12,
-                          color: widget.color ?? AppColors.textSecondary,
+                          color: widget.color ?? colors.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -999,6 +1002,7 @@ class _IngredientBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1019,7 +1023,7 @@ class _IngredientBlock extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: color != null ? AppColors.textPrimary : AppColors.textSecondary,
+                color: color != null ? colors.textPrimary : colors.textSecondary,
                 fontStyle:
                     color == null ? FontStyle.italic : FontStyle.normal,
               ),
@@ -1040,7 +1044,7 @@ class _IngredientBlock extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: color ?? AppColors.primary,
+                    color: color ?? colors.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -1048,9 +1052,9 @@ class _IngredientBlock extends StatelessWidget {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                       children: [
                         if (amountStr.isNotEmpty)
@@ -1058,16 +1062,16 @@ class _IngredientBlock extends StatelessWidget {
                             text: '$amountStr  ',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: color ?? AppColors.primary,
+                              color: color ?? colors.primary,
                             ),
                           ),
                         TextSpan(text: ing.name),
                         if (ing.note != null && ing.note!.isNotEmpty)
                           TextSpan(
                             text: '  (${ing.note})',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -1100,41 +1104,44 @@ class _ServingScaler extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           AppLocalizations.of(context)!.detailServes,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         const SizedBox(width: 12),
         IconButton(
           icon: const Icon(Icons.remove_circle_outline),
           iconSize: 22,
-          color: onDecrement != null ? AppColors.primary : AppColors.divider,
+          color: onDecrement != null ? colors.primary : colors.divider,
           onPressed: onDecrement,
+          tooltip: AppLocalizations.of(context)!.detailDecrementServings,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 10),
         Text(
           '$target',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(width: 10),
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           iconSize: 22,
-          color: onIncrement != null ? AppColors.primary : AppColors.divider,
+          color: onIncrement != null ? colors.primary : colors.divider,
           onPressed: onIncrement,
+          tooltip: AppLocalizations.of(context)!.detailIncrementServings,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -1150,31 +1157,34 @@ class _DescriptionCard extends StatelessWidget {
   const _DescriptionCard({required this.text});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.info_outline, size: 18, color: AppColors.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                  height: 1.45,
-                ),
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: colors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: colors.textPrimary,
+                height: 1.45,
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── "Part of" back-links ──────────────────────────────────────────────────────
@@ -1184,41 +1194,44 @@ class _UsedInSection extends StatelessWidget {
   const _UsedInSection({required this.recipes});
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.detailPartOf,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-              letterSpacing: 0.8,
-            ),
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.detailPartOf.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: colors.textSecondary,
+            letterSpacing: 0.8,
           ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: recipes
-                .map((r) => ActionChip(
-                      label: Text(r.title),
-                      onPressed: () => context.push('/recipes/${r.id}'),
-                      side: BorderSide(
-                          color: AppColors.primary.withValues(alpha: 0.4)),
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.06),
-                      labelStyle: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.primary,
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6)),
-                    ))
-                .toList(),
-          ),
-        ],
-      );
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: recipes
+              .map((r) => ActionChip(
+                    label: Text(r.title),
+                    onPressed: () => context.push('/recipes/${r.id}'),
+                    side: BorderSide(
+                        color: colors.primary.withValues(alpha: 0.4)),
+                    backgroundColor:
+                        colors.primary.withValues(alpha: 0.06),
+                    labelStyle: TextStyle(
+                      fontSize: 13,
+                      color: colors.primary,
+                    ),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
 }
 
 // ── Top-level helpers ─────────────────────────────────────────────────────────

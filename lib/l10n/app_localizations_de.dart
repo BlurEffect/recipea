@@ -84,9 +84,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navShopping => 'Einkaufen';
 
   @override
-  String get navCharacters => 'Charaktere';
-
-  @override
   String get navMore => 'Mehr';
 
   @override
@@ -106,7 +103,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get browseSearchHint => 'Rezepte durchsuchen…';
 
   @override
-  String get browseFilterHint => 'Nach Tags filtern...';
+  String get browseFilterHint => 'Nach Tags filtern…';
+
+  @override
+  String get browseSortTooltip => 'Sortieren';
+
+  @override
+  String get browseFilterTooltip => 'Filtern';
 
   @override
   String get browseEmptyTitle => 'Noch keine Rezepte';
@@ -211,7 +214,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sortLastCookedDesc => 'Zuletzt gekocht';
 
   @override
-  String get sortLastCookedAsc => 'Als nächstes kochen';
+  String get sortLastCookedAsc => 'Am längsten nicht gekocht';
 
   @override
   String get goToRecipes => 'Zu den Rezepten';
@@ -221,6 +224,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get detailHomeTooltip => 'Alle Rezepte';
+
+  @override
+  String get detailDecrementServings => 'Weniger Portionen';
+
+  @override
+  String get detailIncrementServings => 'Mehr Portionen';
 
   @override
   String get detailAddToMealPlan => 'Zum Essensplan hinzufügen';
@@ -233,6 +242,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get detailDuplicate => 'Duplizieren';
+
+  @override
+  String detailDuplicateTitleSuffix(String title) {
+    return '$title Kopie';
+  }
 
   @override
   String get detailDeleteMenuLabel => 'Löschen';
@@ -256,7 +270,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get detailPartOf => 'TEIL VON';
+  String get detailPartOf => 'Teil von';
 
   @override
   String get detailServes => 'Portionen';
@@ -352,9 +366,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editAddComponent => 'Komponente hinzufügen';
 
   @override
+  String get editRemoveComponentTitle => 'Komponente entfernen?';
+
+  @override
+  String get editRemoveLastComponentBody =>
+      'Dies ist die letzte verknüpfte Komponente. Das Entfernen wandelt dieses Rezept in ein einfaches Rezept um.';
+
+  @override
   String editSaveFailed(String error) {
     return 'Speichern fehlgeschlagen: $error';
   }
+
+  @override
+  String get editDiscardNewTitle => 'Neues Rezept verwerfen?';
+
+  @override
+  String get editDiscardNewBody => 'Dieses Rezept wird nicht gespeichert.';
 
   @override
   String get editUnsavedTitle => 'Ungespeicherte Änderungen';
@@ -382,7 +409,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String editStepHint(int number) {
-    return 'Schritt $number...';
+    return 'Schritt $number…';
   }
 
   @override
@@ -416,6 +443,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editNoRecipesAvailable => 'Keine Rezepte zum Verknüpfen verfügbar';
 
   @override
+  String get editNoNestingHint =>
+      'Zusammengesetzte Rezepte können nicht als Komponenten verwendet werden.';
+
+  @override
   String get editStepsInOrder =>
       'Schritte innerhalb eines Rezepts müssen in Reihenfolge bleiben';
 
@@ -435,13 +466,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editStepImagesLabel => 'Schritt-Bilder';
 
   @override
-  String get editHideImages => 'Ausblenden';
+  String get editHideImages => 'Schrittbilder ausblenden';
 
   @override
-  String get editShowImages => 'Einblenden';
+  String get editShowImages => 'Schrittbilder einblenden';
 
   @override
   String get editPleaseAddTitle => 'Bitte Titel eingeben';
+
+  @override
+  String get editDuplicateTitleTitle => 'Titel bereits vorhanden';
+
+  @override
+  String editDuplicateTitleBody(String title) {
+    return 'Ein Rezept namens \"$title\" existiert bereits. Trotzdem speichern?';
+  }
+
+  @override
+  String get editSaveAnyway => 'Trotzdem speichern';
 
   @override
   String get editMicTitle => 'Mikrofonzugriff';
@@ -482,6 +524,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get mealPlanIncludeInShopping => 'In Einkaufsliste aufnehmen';
+
+  @override
   String get mealPlanSubtitle => 'Tage für die Einkaufsliste auswählen';
 
   @override
@@ -500,13 +545,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealPlanRemoveMeal => 'Mahlzeit entfernen';
 
   @override
+  String get mealPlanRemoveSlotTitle => 'Mahlzeit entfernen?';
+
+  @override
+  String get mealPlanRemoveSlotBody =>
+      'Dieser Slot wird aus deinem Plan entfernt.';
+
+  @override
   String get mealPlanChangeRecipe => 'Rezept ändern';
 
   @override
   String get mealPlanChooseRecipe => 'Rezept auswählen';
 
   @override
-  String get mealPlanSearchRecipes => 'Rezepte durchsuchen...';
+  String get mealPlanSearchRecipes => 'Rezepte durchsuchen…';
 
   @override
   String get mealPlanNoRecipes => 'Noch keine Rezepte';
@@ -558,7 +610,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shoppingClearCheckedBody =>
-      'Alle abgehakten Artikel werden gelöscht.';
+      'Alle abgehakten Artikel werden entfernt.';
 
   @override
   String get shoppingShareCheckedOff => 'Alles wurde abgehakt!';
@@ -571,7 +623,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shoppingRegenerateBody =>
-      'Deine erledigten Artikel gehen verloren.';
+      'Deine aktuelle Liste und die manuelle Reihenfolge werden ersetzt.';
 
   @override
   String get shoppingRegenerateAction => 'Neu erstellen';
@@ -594,7 +646,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einmal tippen zum Einschließen, zweimal zum Ausschließen';
 
   @override
-  String get tagSelectorSearchHint => 'Tags durchsuchen...';
+  String get tagSelectorSearchHint => 'Tags durchsuchen…';
 
   @override
   String get tagSelectorManage => 'Kategorien verwalten';
@@ -777,10 +829,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsLanguageDe => 'Deutsch';
 
   @override
-  String get browseCharacters => 'Charaktere';
+  String get settingsAppearanceLabel => 'Erscheinungsbild';
 
   @override
-  String get achievementsTitle => 'Charaktere';
+  String get settingsThemeSystem => 'Systemstandard';
+
+  @override
+  String get settingsThemeLight => 'Hell';
+
+  @override
+  String get settingsThemeDark => 'Dunkel';
+
+  @override
+  String get splashTapToSkip => 'Tippen zum Überspringen';
+
+  @override
+  String get achievementsTitle => 'Erfolge';
 
   @override
   String get achievementsHintUnlock =>

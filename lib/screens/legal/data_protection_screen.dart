@@ -10,16 +10,17 @@ class DataProtectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(title: Text(l.moreDataProtection)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Text(
           l.legalDataProtectionPlaceholder,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             height: 1.6,
           ),
         ),

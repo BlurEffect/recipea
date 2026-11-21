@@ -24,7 +24,7 @@ void showTagSelectorSheet({
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.background,
+    backgroundColor: AppColors.of(context).background,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -109,9 +109,9 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     l.tagSelectorCategoryLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(ctx).textSecondary,
                     ),
                   ),
                 ),
@@ -162,6 +162,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final allTags = ref.watch(allTagsProvider);
     final categoryMap = ref.watch(categoryMapProvider);
 
@@ -196,7 +197,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.divider,
+                color: colors.divider,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -222,9 +223,9 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                         if (widget.allowExclusion)
                           Text(
                             l.tagSelectorTapHint,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                       ],
@@ -269,10 +270,10 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                       padding: const EdgeInsets.only(top: 16, bottom: 8),
                       child: Text(
                         categoryMap[entry.key]?.name ?? entry.key,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -300,7 +301,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           icon: const Icon(Icons.add, size: 16),
                           label: Text(l.tagSelectorNewTag),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
+                            foregroundColor: colors.primary,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -311,7 +312,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           icon: const Icon(Icons.category_outlined, size: 16),
                           label: Text(l.tagSelectorManage),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textSecondary,
+                            foregroundColor: colors.textSecondary,
                           ),
                         ),
                       ],

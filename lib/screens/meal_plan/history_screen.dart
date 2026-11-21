@@ -22,8 +22,9 @@ class MealPlanHistoryScreen extends ConsumerWidget {
     final allRecipes = ref.watch(recipeListProvider);
     final recipeMap = {for (final r in allRecipes) r.id: r};
 
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(title: Text(l.mealPlanHistoryTitle)),
       body: history.isEmpty
           ? EmptyState(
@@ -186,9 +187,9 @@ class _HistoryListState extends State<_HistoryList> {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
               '${item.year}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -213,25 +214,25 @@ class _HistoryListState extends State<_HistoryList> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: AppColors.of(context).textPrimary,
                 ),
               ),
             ),
             Text(
               '$dayCount',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
               ),
             ),
             const SizedBox(width: 6),
             Icon(
               item.expanded ? Icons.expand_less : Icons.expand_more,
               size: 20,
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textSecondary,
             ),
           ]),
         ),
@@ -248,10 +249,10 @@ class _HistoryListState extends State<_HistoryList> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
           child: Text(
             dayLabel,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textSecondary,
             ),
           ),
         ),
@@ -285,9 +286,9 @@ class _HistoryListState extends State<_HistoryList> {
         chips.add(Center(
           child: Text(
             '$year',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -308,10 +309,10 @@ class _HistoryListState extends State<_HistoryList> {
             margin: const EdgeInsets.only(right: 4),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : Colors.transparent,
+              color: isSelected ? AppColors.of(context).primary : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.divider,
+                color: isSelected ? AppColors.of(context).primary : AppColors.of(context).divider,
               ),
             ),
             child: Text(
@@ -320,7 +321,7 @@ class _HistoryListState extends State<_HistoryList> {
                 fontSize: 12,
                 fontWeight:
                     isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+                color: isSelected ? Colors.white : AppColors.of(context).textSecondary,
               ),
             ),
           ),
@@ -377,6 +378,7 @@ class _HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final recipe = recipeMap[slot.recipeId];
 
     final String title;
@@ -408,8 +410,8 @@ class _HistoryTile extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               color: recipe == null
-                  ? AppColors.textSecondary
-                  : AppColors.textPrimary,
+                  ? colors.textSecondary
+                  : colors.textPrimary,
             ),
           ),
         ),
@@ -418,14 +420,14 @@ class _HistoryTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.textSecondary.withValues(alpha: 0.12),
+              color: colors.textSecondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               badge,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),

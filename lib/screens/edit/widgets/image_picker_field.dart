@@ -20,6 +20,7 @@ class ImagePickerField extends StatelessWidget {
 
   Future<void> _pick(BuildContext context, ImageSource source) async {
     final l = AppLocalizations.of(context)!;
+    final primary = AppColors.of(context).primary;
     final picker = ImagePicker();
     final xFile = await picker.pickImage(
       source: source,
@@ -35,7 +36,7 @@ class ImagePickerField extends StatelessWidget {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: l.imagePickCropTitle,
-          toolbarColor: AppColors.primary,
+          toolbarColor: primary,
           toolbarWidgetColor: Colors.white,
           lockAspectRatio: true,
           hideBottomControls: true,
@@ -82,8 +83,8 @@ class ImagePickerField extends StatelessWidget {
             ),
             if (imagePath != null)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.error),
-                title: Text(l.imagePickRemove, style: const TextStyle(color: AppColors.error)),
+                leading: Icon(Icons.delete_outline, color: AppColors.of(context).error),
+                title: Text(l.imagePickRemove, style: TextStyle(color: AppColors.of(context).error)),
                 onTap: () {
                   Navigator.pop(context);
                   onRemove?.call();
@@ -99,6 +100,7 @@ class ImagePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: () => _showOptions(context),
       child: LayoutBuilder(
@@ -109,9 +111,9 @@ class ImagePickerField extends StatelessWidget {
               width: size,
               height: size,
               decoration: BoxDecoration(
-                color: AppColors.divider.withValues(alpha: 0.5),
+                color: colors.divider.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.divider),
+                border: Border.all(color: colors.divider),
               ),
               clipBehavior: Clip.antiAlias,
               child: imagePath != null
@@ -121,7 +123,7 @@ class ImagePickerField extends StatelessWidget {
                         Image.file(
                           File(imagePath!),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _emptyState(l),
+                          errorBuilder: (_, _, _) => _emptyState(l, colors),
                         ),
                         Positioned(
                           bottom: 8,
@@ -141,7 +143,7 @@ class ImagePickerField extends StatelessWidget {
                         ),
                       ],
                     )
-                  : _emptyState(l),
+                  : _emptyState(l, colors),
             ),
           );
         },
@@ -149,15 +151,15 @@ class ImagePickerField extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(AppLocalizations l) => Column(
+  Widget _emptyState(AppLocalizations l, AppColors colors) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.add_photo_alternate_outlined,
-              size: 40, color: AppColors.textSecondary),
+          Icon(Icons.add_photo_alternate_outlined,
+              size: 40, color: colors.textSecondary),
           const SizedBox(height: 8),
           Text(
             l.editAddPhoto,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            style: TextStyle(color: colors.textSecondary, fontSize: 14),
           ),
         ],
       );

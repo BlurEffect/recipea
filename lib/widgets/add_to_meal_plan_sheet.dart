@@ -19,6 +19,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    final colors = AppColors.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final plan = ref.watch(mealPlanProvider);
 
@@ -42,7 +43,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: colors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -53,10 +54,10 @@ class AddToMealPlanSheet extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l.addToMealPlanTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -67,9 +68,9 @@ class AddToMealPlanSheet extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l.addToMealPlanChooseDay(recipeTitle),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
@@ -94,35 +95,33 @@ class AddToMealPlanSheet extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: isToday
-                            ? AppColors.primary
-                            : AppColors.textPrimary,
+                        color: isToday ? colors.primary : colors.textPrimary,
                       ),
                     ),
                     subtitle: existingCount > 0
                         ? Text(
                             l.addToMealPlanPlanned(existingCount),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           )
                         : null,
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.add_circle_outline,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                     onTap: () {
                       ref
                           .read(mealPlanProvider.notifier)
                           .addRecipeToDay(day, recipeId, recipeTitle: recipeTitle);
-                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(l.addToMealPlanAdded(dayLabel)),
                           duration: const Duration(seconds: 2),
                         ),
                       );
+                      Navigator.pop(context);
                     },
                   );
                 },

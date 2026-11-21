@@ -76,9 +76,6 @@
   "navShopping": "Shopping",
   "@navShopping": {},
 
-  "navCharacters": "Characters",
-  "@navCharacters": {},
-
   "navMore": "More",
   "@navMore": {},
 
@@ -97,8 +94,14 @@
   "browseSearchHint": "Search recipes…",
   "@browseSearchHint": {},
 
-  "browseFilterHint": "Filter by tags...",
+  "browseFilterHint": "Filter by tags…",
   "@browseFilterHint": {},
+
+  "browseSortTooltip": "Sort",
+  "@browseSortTooltip": {},
+
+  "browseFilterTooltip": "Filter",
+  "@browseFilterTooltip": {},
 
   "browseEmptyTitle": "No recipes yet",
   "@browseEmptyTitle": {},
@@ -194,7 +197,7 @@
   "sortLastCookedDesc": "Recently cooked",
   "@sortLastCookedDesc": {},
 
-  "sortLastCookedAsc": "Cook next",
+  "sortLastCookedAsc": "Least recently cooked",
   "@sortLastCookedAsc": {},
 
   "goToRecipes": "Go to Recipes",
@@ -205,6 +208,12 @@
 
   "detailHomeTooltip": "All recipes",
   "@detailHomeTooltip": {},
+
+  "detailDecrementServings": "Fewer servings",
+  "@detailDecrementServings": {},
+
+  "detailIncrementServings": "More servings",
+  "@detailIncrementServings": {},
 
   "detailAddToMealPlan": "Add to Meal Plan",
   "@detailAddToMealPlan": {},
@@ -217,6 +226,13 @@
 
   "detailDuplicate": "Duplicate",
   "@detailDuplicate": {},
+
+  "detailDuplicateTitleSuffix": "{title} Copy",
+  "@detailDuplicateTitleSuffix": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
 
   "detailDeleteMenuLabel": "Delete",
   "@detailDeleteMenuLabel": {},
@@ -245,7 +261,7 @@
     }
   },
 
-  "detailPartOf": "PART OF",
+  "detailPartOf": "Part of",
   "@detailPartOf": {},
 
   "detailServes": "Serves",
@@ -337,12 +353,24 @@
   "editAddComponent": "Add component recipe",
   "@editAddComponent": {},
 
+  "editRemoveComponentTitle": "Remove component?",
+  "@editRemoveComponentTitle": {},
+
+  "editRemoveLastComponentBody": "This is the last linked component. Removing it will convert this back to a simple recipe.",
+  "@editRemoveLastComponentBody": {},
+
   "editSaveFailed": "Failed to save: {error}",
   "@editSaveFailed": {
     "placeholders": {
       "error": { "type": "String" }
     }
   },
+
+  "editDiscardNewTitle": "Discard new recipe?",
+  "@editDiscardNewTitle": {},
+
+  "editDiscardNewBody": "This recipe won't be saved.",
+  "@editDiscardNewBody": {},
 
   "editUnsavedTitle": "Unsaved changes",
   "@editUnsavedTitle": {},
@@ -353,7 +381,7 @@
   "editDiscard": "Discard",
   "@editDiscard": {},
 
-  "editQtyHint": "Qty",
+  "editQtyHint": "Amount",
   "@editQtyHint": {},
 
   "editUnitHint": "Unit",
@@ -368,7 +396,7 @@
   "editAddIngredient": "Add ingredient",
   "@editAddIngredient": {},
 
-  "editStepHint": "Step {number}...",
+  "editStepHint": "Step {number}…",
   "@editStepHint": {
     "placeholders": {
       "number": { "type": "int" }
@@ -405,6 +433,9 @@
   "editNoRecipesAvailable": "No recipes available to link",
   "@editNoRecipesAvailable": {},
 
+  "editNoNestingHint": "Composite recipes cannot be used as components.",
+  "@editNoNestingHint": {},
+
   "editStepsInOrder": "Steps within a recipe must stay in order",
   "@editStepsInOrder": {},
 
@@ -423,14 +454,27 @@
   "editStepImagesLabel": "Step images",
   "@editStepImagesLabel": {},
 
-  "editHideImages": "Hide",
+  "editHideImages": "Hide step images",
   "@editHideImages": {},
 
-  "editShowImages": "Show",
+  "editShowImages": "Show step images",
   "@editShowImages": {},
 
   "editPleaseAddTitle": "Please add a title",
   "@editPleaseAddTitle": {},
+
+  "editDuplicateTitleTitle": "Duplicate title",
+  "@editDuplicateTitleTitle": {},
+
+  "editDuplicateTitleBody": "A recipe named \"{title}\" already exists. Save anyway?",
+  "@editDuplicateTitleBody": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+
+  "editSaveAnyway": "Save anyway",
+  "@editSaveAnyway": {},
 
   "editMicTitle": "Microphone access",
   "@editMicTitle": {},
@@ -469,6 +513,9 @@
     }
   },
 
+  "mealPlanIncludeInShopping": "Include in shopping list",
+  "@mealPlanIncludeInShopping": {},
+
   "mealPlanSubtitle": "Check days to include in shopping list",
   "@mealPlanSubtitle": {},
 
@@ -487,13 +534,19 @@
   "mealPlanRemoveMeal": "Remove meal",
   "@mealPlanRemoveMeal": {},
 
+  "mealPlanRemoveSlotTitle": "Remove meal?",
+  "@mealPlanRemoveSlotTitle": {},
+
+  "mealPlanRemoveSlotBody": "This slot will be removed from your plan.",
+  "@mealPlanRemoveSlotBody": {},
+
   "mealPlanChangeRecipe": "Change recipe",
   "@mealPlanChangeRecipe": {},
 
   "mealPlanChooseRecipe": "Choose a recipe",
   "@mealPlanChooseRecipe": {},
 
-  "mealPlanSearchRecipes": "Search recipes...",
+  "mealPlanSearchRecipes": "Search recipes…",
   "@mealPlanSearchRecipes": {},
 
   "mealPlanNoRecipes": "No recipes yet",
@@ -546,7 +599,7 @@
   "shoppingClearCheckedTitle": "Remove checked items?",
   "@shoppingClearCheckedTitle": {},
 
-  "shoppingClearCheckedBody": "All ticked items will be deleted.",
+  "shoppingClearCheckedBody": "All ticked items will be removed.",
   "@shoppingClearCheckedBody": {},
 
   "shoppingShareCheckedOff": "Everything has been checked off!",
@@ -558,7 +611,7 @@
   "shoppingRegenerateTitle": "Regenerate list?",
   "@shoppingRegenerateTitle": {},
 
-  "shoppingRegenerateBody": "Your checked-off items will be lost.",
+  "shoppingRegenerateBody": "Your current list and any manual ordering will be replaced.",
   "@shoppingRegenerateBody": {},
 
   "shoppingRegenerateAction": "Regenerate",
@@ -573,13 +626,13 @@
   "shoppingEmptyGeneratedSubtitle": "Your meal plan has no ingredients to list",
   "@shoppingEmptyGeneratedSubtitle": {},
 
-  "tagSelectorTitle": "Select Tags",
+  "tagSelectorTitle": "Select tags",
   "@tagSelectorTitle": {},
 
   "tagSelectorTapHint": "Tap once to include · tap twice to exclude",
   "@tagSelectorTapHint": {},
 
-  "tagSelectorSearchHint": "Search tags...",
+  "tagSelectorSearchHint": "Search tags…",
   "@tagSelectorSearchHint": {},
 
   "tagSelectorManage": "Manage categories",
@@ -597,7 +650,7 @@
   "tagSelectorCategoryLabel": "Category",
   "@tagSelectorCategoryLabel": {},
 
-  "categoryManagerTitle": "Manage Categories",
+  "categoryManagerTitle": "Manage categories",
   "@categoryManagerTitle": {},
 
   "categoryManagerAddCategory": "Add category",
@@ -754,10 +807,22 @@
   "settingsLanguageDe": "German",
   "@settingsLanguageDe": {},
 
-  "browseCharacters": "Characters",
-  "@browseCharacters": {},
+  "settingsAppearanceLabel": "Appearance",
+  "@settingsAppearanceLabel": {},
 
-  "achievementsTitle": "Characters",
+  "settingsThemeSystem": "System default",
+  "@settingsThemeSystem": {},
+
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {},
+
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {},
+
+  "splashTapToSkip": "Tap to skip",
+  "@splashTapToSkip": {},
+
+  "achievementsTitle": "Achievements",
   "@achievementsTitle": {},
 
   "achievementsHintUnlock": "Complete challenges to unlock additional characters",
