@@ -40,16 +40,20 @@ class ShoppingItem {
 
   /// Returns the display amount, localizing the unit via [unitLocalizer].
   /// Falls back to [amount] for legacy items (where [unitKey] is null).
-  String localizedAmount(String Function(String) unitLocalizer) {
+  /// Pass [decimalSep] to use a locale-specific decimal separator.
+  String localizedAmount(String Function(String) unitLocalizer,
+      {String decimalSep = '.'}) {
     if (unitKey == null) return amount;
 
     if (quantity == null) {
       return note ?? '';
     }
 
-    final s = quantity! == quantity!.truncateToDouble()
-        ? quantity!.toInt().toString()
-        : quantity!.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+    final q = quantity!;
+    final s = q == q.truncateToDouble()
+        ? q.toInt().toString()
+        : (q.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), ''))
+            .replaceAll('.', decimalSep);
 
     final unitStr = unitKey!.isEmpty ? '' : unitLocalizer(unitKey!);
     final amountStr = unitStr.isEmpty ? s : '$s $unitStr';

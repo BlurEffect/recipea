@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../models/ingredient.dart';
 import '../models/recipe.dart';
+import '../utils/quantity_format.dart';
 import '../utils/recipe_graph.dart';
 
 // ── Color constants ───────────────────────────────────────────────────────────
@@ -450,10 +451,7 @@ pw.Widget _buildFooter(pw.Context context, AppLocalizations l) {
 
 String _formatAmount(Ingredient ing, AppLocalizations l) {
   if (ing.quantity == null) return '';
-  final v = ing.quantity!;
-  final s = v == v.truncateToDouble()
-      ? v.toInt().toString()
-      : v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+  final s = fmtQty(ing.quantity!);
   return ing.unit != null ? '$s ${localizeUnit(ing.unit!, l)}' : s;
 }
 

@@ -19,6 +19,7 @@ import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../services/pdf_export_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/quantity_format.dart';
 import '../../utils/recipe_graph.dart';
 import '../../widgets/add_to_meal_plan_sheet.dart';
 import '../../widgets/tag_chip.dart';
@@ -498,9 +499,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   List<Widget> _ingredientRows(List<Ingredient> ingredients,
       {double scaleFactor = 1.0}) {
     final l = AppLocalizations.of(context)!;
+    final sep = decimalSepForLocale(
+        Localizations.localeOf(context).languageCode);
     return ingredients
         .map((ing) {
-          final amountStr = _buildAmountStr(ing, scaleFactor, l);
+          final amountStr = _buildAmountStr(ing, scaleFactor, l, sep);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -1033,7 +1036,9 @@ class _IngredientBlock extends StatelessWidget {
         const SizedBox(height: 8),
         ...ingredients.map((ing) {
           final l = AppLocalizations.of(context)!;
-          final amountStr = _buildAmountStr(ing, scaleFactor, l);
+          final sep = decimalSepForLocale(
+              Localizations.localeOf(context).languageCode);
+          final amountStr = _buildAmountStr(ing, scaleFactor, l, sep);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -1236,15 +1241,12 @@ class _UsedInSection extends StatelessWidget {
 
 // ── Top-level helpers ─────────────────────────────────────────────────────────
 
-String _fmtQty(double v) {
-  if (v == v.truncateToDouble()) return v.toInt().toString();
-  return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-}
-
-String _buildAmountStr(Ingredient ing, double scaleFactor, AppLocalizations l) {
+String _buildAmountStr(
+    Ingredient ing, double scaleFactor, AppLocalizations l,
+    [String decimalSep = '.']) {
   if (ing.quantity != null) {
     final scaled = ing.quantity! * scaleFactor;
-    final qtyStr = _fmtQty(scaled);
+    final qtyStr = fmtQty(scaled, decimalSep: decimalSep);
     if (ing.unit != null) {
       return '$qtyStr ${localizeUnit(ing.unit!, l)}';
     }

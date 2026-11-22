@@ -383,21 +383,31 @@ class _HistoryTile extends StatelessWidget {
 
     final String title;
     final String? badge;
+    final Color? badgeBg;
+    final Color? badgeFg;
     final bool tappable;
 
     if (recipe == null) {
       title = slot.recipeTitle ?? '?';
       badge = l.mealPlanHistoryDeleted;
+      badgeBg = colors.chipExcludedBackground;
+      badgeFg = colors.error;
       tappable = false;
     } else {
       title = recipe.title;
       tappable = true;
       if (slot.recipeTitle != null && slot.recipeTitle != recipe.title) {
         badge = l.mealPlanHistoryRenamed;
+        badgeBg = colors.textSecondary.withValues(alpha: 0.12);
+        badgeFg = colors.textSecondary;
       } else if (recipe.updatedAt.isAfter(slotDate)) {
         badge = l.mealPlanHistoryUpdated;
+        badgeBg = colors.successContainer;
+        badgeFg = colors.success;
       } else {
         badge = null;
+        badgeBg = null;
+        badgeFg = null;
       }
     }
 
@@ -420,14 +430,14 @@ class _HistoryTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: colors.textSecondary.withValues(alpha: 0.12),
+              color: badgeBg,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               badge,
               style: TextStyle(
                 fontSize: 10,
-                color: colors.textSecondary,
+                color: badgeFg,
               ),
             ),
           ),

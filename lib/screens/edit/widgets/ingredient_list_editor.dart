@@ -6,6 +6,7 @@ import '../../../data/seed_data.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/ingredient.dart';
 import '../../../theme/app_colors.dart';
+import '../../../utils/quantity_format.dart';
 
 const _rowUuid = Uuid();
 
@@ -35,11 +36,20 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final l = AppLocalizations.of(context)!;
+      final sep = decimalSepForLocale(
+          Localizations.localeOf(context).languageCode);
       for (final row in _rows) {
-        final raw = row.unitController.text;
-        if (raw.isEmpty) continue;
-        final localized = localizeUnit(raw, l);
-        if (localized != raw) row.unitController.text = localized;
+        final rawUnit = row.unitController.text;
+        if (rawUnit.isNotEmpty) {
+          final localized = localizeUnit(rawUnit, l);
+          if (localized != rawUnit) row.unitController.text = localized;
+        }
+        if (sep != '.') {
+          final rawQty = row.quantityController.text;
+          if (rawQty.contains('.')) {
+            row.quantityController.text = rawQty.replaceAll('.', sep);
+          }
+        }
       }
     });
   }
@@ -325,7 +335,7 @@ class _IngredientRow {
   factory _IngredientRow.fromIngredient(Ingredient ing) => _IngredientRow(
         nameController: TextEditingController(text: ing.name),
         quantityController: TextEditingController(
-          text: ing.quantity != null ? _fmtQty(ing.quantity!) : '',
+          text: ing.quantity != null ? fmtQty(ing.quantity!) : '',
         ),
         noteController: TextEditingController(text: ing.note ?? ''),
         unitController: TextEditingController(text: ing.unit ?? ''),
@@ -347,11 +357,6 @@ class _IngredientRow {
     nameFocusNode.dispose();
     noteFocusNode.dispose();
   }
-}
-
-String _fmtQty(double v) {
-  if (v == v.truncateToDouble()) return v.toInt().toString();
-  return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 }
 
 // Accepts both dot and comma as decimal separator (e.g. "1,5" on DE locale).

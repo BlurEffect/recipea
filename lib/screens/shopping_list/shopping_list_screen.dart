@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/seed_data.dart';
+import '../../utils/quantity_format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/shopping_item.dart';
 import '../../providers/meal_plan_providers.dart';
@@ -142,8 +143,10 @@ class ShoppingListScreen extends ConsumerWidget {
                   .reorder(oldIndex, newIndex),
               itemBuilder: (context, index) {
                 final item = items[index];
-                final displayAmount =
-                    item.localizedAmount((key) => localizeUnit(key, l));
+                final sep = decimalSepForLocale(locale);
+                final displayAmount = item.localizedAmount(
+                    (key) => localizeUnit(key, l),
+                    decimalSep: sep);
                 return Row(
                   key: ValueKey('${item.name}_${item.unitKey ?? item.amount}_$index'),
                   children: [
@@ -201,13 +204,16 @@ class ShoppingListScreen extends ConsumerWidget {
 
 void _shareList(BuildContext context, ShoppingList list) {
   final l = AppLocalizations.of(context)!;
+  final locale = Localizations.localeOf(context).languageCode;
+  final sep = decimalSepForLocale(locale);
   final pending = list.items.where((i) => !i.checked).toList();
   final String body;
   if (pending.isEmpty) {
     body = l.shoppingShareCheckedOff;
   } else {
     body = pending.map((i) {
-      final amount = i.localizedAmount((key) => localizeUnit(key, l));
+      final amount = i.localizedAmount(
+          (key) => localizeUnit(key, l), decimalSep: sep);
       return '• ${amount.isNotEmpty ? '$amount  ' : ''}${i.name}';
     }).join('\n');
   }

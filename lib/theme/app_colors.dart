@@ -10,6 +10,8 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.textSecondary,
     required this.divider,
     required this.error,
+    required this.success,
+    required this.successContainer,
     required this.chipExcludedBackground,
     required this.achievementUnlockedBackground,
     required this.achievementLockedBackground,
@@ -23,6 +25,8 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color textSecondary;
   final Color divider;
   final Color error;
+  final Color success;
+  final Color successContainer;
   final Color chipExcludedBackground;
   final Color achievementUnlockedBackground;
   final Color achievementLockedBackground;
@@ -39,6 +43,8 @@ class AppColors extends ThemeExtension<AppColors> {
     textSecondary: Color(0xFF757575),
     divider: Color(0xFFE0E0E0),
     error: Color(0xFFD32F2F),
+    success: Color(0xFF2E7D32),
+    successContainer: Color(0xFFE8F5E9),
     chipExcludedBackground: Color(0xFFFFEBEE),
     achievementUnlockedBackground: Color(0xFFE8F5E9),
     achievementLockedBackground: Color(0xFFEEEEEE),
@@ -53,6 +59,8 @@ class AppColors extends ThemeExtension<AppColors> {
     textSecondary: Color(0xFF9E9E9E),
     divider: Color(0xFF2C2C2C),
     error: Color(0xFFEF5350),
+    success: Color(0xFF4CAF50),
+    successContainer: Color(0xFF1E3320),
     chipExcludedBackground: Color(0xFF3E1E1E),
     achievementUnlockedBackground: Color(0xFF1E3320),
     achievementLockedBackground: Color(0xFF2A2A2A),
@@ -68,6 +76,8 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? textSecondary,
     Color? divider,
     Color? error,
+    Color? success,
+    Color? successContainer,
     Color? chipExcludedBackground,
     Color? achievementUnlockedBackground,
     Color? achievementLockedBackground,
@@ -81,6 +91,8 @@ class AppColors extends ThemeExtension<AppColors> {
         textSecondary: textSecondary ?? this.textSecondary,
         divider: divider ?? this.divider,
         error: error ?? this.error,
+        success: success ?? this.success,
+        successContainer: successContainer ?? this.successContainer,
         chipExcludedBackground:
             chipExcludedBackground ?? this.chipExcludedBackground,
         achievementUnlockedBackground:
@@ -101,6 +113,8 @@ class AppColors extends ThemeExtension<AppColors> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
       error: Color.lerp(error, other.error, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      successContainer: Color.lerp(successContainer, other.successContainer, t)!,
       chipExcludedBackground:
           Color.lerp(chipExcludedBackground, other.chipExcludedBackground, t)!,
       achievementUnlockedBackground: Color.lerp(

@@ -18,6 +18,7 @@ import '../../models/recipe_step.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/quantity_format.dart';
 import '../../utils/recipe_graph.dart';
 import '../../widgets/tag_chip.dart';
 import '../../widgets/tag_selector_sheet.dart';
@@ -975,8 +976,10 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       );
       widgets.add(const SizedBox(height: 8));
       for (final ing in comp.ingredients) {
+        final sep = decimalSepForLocale(
+            Localizations.localeOf(context).languageCode);
         final amountStr = ing.quantity != null
-            ? '${_fmtQty(ing.quantity!)}${ing.unit != null ? ' ${ing.unit}' : ''}'
+            ? '${fmtQty(ing.quantity!, decimalSep: sep)}${ing.unit != null ? ' ${ing.unit}' : ''}'
             : (ing.note ?? '');
         widgets.add(
           Padding(
@@ -1383,11 +1386,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       );
     }
   }
-}
-
-String _fmtQty(double v) {
-  if (v == v.truncateToDouble()) return v.toInt().toString();
-  return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 }
 
 enum _StepImageAction { gallery, camera, remove }

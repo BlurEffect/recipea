@@ -10,6 +10,7 @@ import '../providers/category_providers.dart';
 import '../providers/custom_tag_providers.dart';
 import '../providers/recipe_providers.dart';
 import '../theme/app_colors.dart';
+import 'tag_chip.dart';
 
 void showCategoryManagerSheet({required BuildContext context}) {
   showModalBottomSheet<void>(
@@ -371,16 +372,10 @@ class _CategorySection extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: tags.map((tag) {
-                return InputChip(
-                  label: Text(
-                    tag.label,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  onDeleted: () => onDeleteTag(tag),
-                  deleteIconColor: colors.textSecondary,
-                  visualDensity: VisualDensity.compact,
-                  backgroundColor: colors.surface,
-                  side: BorderSide(color: colors.divider),
+                return TagChip(
+                  tag: tag,
+                  showRemove: true,
+                  onRemove: () => onDeleteTag(tag),
                 );
               }).toList(),
             ),
