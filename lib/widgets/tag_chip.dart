@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/tag_definitions.dart';
+import '../l10n/app_localizations.dart';
+import '../theme/app_radius.dart';
 import '../providers/category_providers.dart';
 import '../theme/app_colors.dart';
 
@@ -50,55 +52,73 @@ class TagChip extends ConsumerWidget {
       textColor = colors.textSecondary;
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.only(
-          left: 10,
-          top: 6,
-          bottom: 6,
-          right: showRemove ? 6 : 10,
-        ),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Placeholder icon — colored dot, replace with real icons later
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              tag.label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: textColor,
-              ),
-            ),
-            if (showRemove) ...[
-              const SizedBox(width: 2),
-              ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                child: InkWell(
-                  onTap: onRemove ?? onTap,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Center(
-                    child: Icon(Icons.close, size: 14, color: textColor),
+    final l = AppLocalizations.of(context)!;
+    final chipLabel =
+        isExcluded ? '${tag.label}, ${l.tagChipExcluded}' : tag.label;
+
+    return Semantics(
+      label: chipLabel,
+      selected: isSelected,
+      button: onTap != null,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.only(
+            left: 10,
+            top: 6,
+            bottom: 6,
+            right: showRemove ? 6 : 10,
+          ),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+            border: Border.all(color: borderColor, width: 1.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Placeholder icon — colored dot, replace with real icons later
+              ExcludeSemantics(
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
+              const SizedBox(width: 6),
+              ExcludeSemantics(
+                child: Text(
+                  tag.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              if (showRemove) ...[
+                const SizedBox(width: 2),
+                Semantics(
+                  label: l.tagChipRemove(tag.label),
+                  button: true,
+                  child: ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(minWidth: 48, minHeight: 48),
+                    child: InkWell(
+                      onTap: onRemove ?? onTap,
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      child: Center(
+                        child: Icon(Icons.close, size: 14, color: textColor),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

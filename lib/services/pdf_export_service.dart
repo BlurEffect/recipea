@@ -27,8 +27,10 @@ Future<File> exportRecipeToPdf(
   List<Recipe> allRecipes,
   List<TagDefinition> allTags,
   List<CategoryDefinition> allCategories,
-  AppLocalizations l,
-) async {
+  AppLocalizations l, {
+  PdfPageFormat pageFormat = PdfPageFormat.a4,
+  double scaleFactor = 1.0,
+}) async {
   final doc = pw.Document();
 
   final categoryColorMap = {for (final c in allCategories) c.id: c.color};
@@ -66,12 +68,12 @@ Future<File> exportRecipeToPdf(
     pw.SizedBox(height: 12),
     pw.Divider(color: _green, thickness: 0.5),
     pw.SizedBox(height: 12),
-    ..._buildIngredients(recipe, allRecipes, l),
+    ..._buildIngredients(recipe, allRecipes, l, scaleFactor),
     ..._buildSteps(recipe, allRecipes, recipeMap, stepImages, l),
   ];
 
   doc.addPage(pw.MultiPage(
-    pageFormat: PdfPageFormat.a4,
+    pageFormat: pageFormat,
     margin: const pw.EdgeInsets.fromLTRB(40, 40, 40, 60),
     footer: (ctx) => _buildFooter(ctx, l),
     build: (_) => content,
@@ -119,9 +121,10 @@ List<pw.Widget> _buildComponentChips(
   final linkedIds = recipe.linkedRecipeIds;
   final chips = <pw.Widget>[];
   for (int i = 0; i < linkedIds.length; i++) {
-    final linked = recipeMap[linkedIds[i]];
+    final id = linkedIds[i];
+    final linked = recipeMap[id];
     if (linked == null) continue;
-    final color = _toPdfColor(componentColors[i % componentColors.length]);
+    final color = _toPdfColor(componentColor(id));
     chips.add(pw.Container(
       margin: const pw.EdgeInsets.only(right: 6, bottom: 4),
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -189,10 +192,9 @@ pw.Widget _buildServings(Recipe recipe, AppLocalizations l) => pw.Text(
       style: pw.TextStyle(fontSize: 11, color: _textGray),
     );
 
-List<pw.Widget> _buildIngredients(Recipe recipe, List<Recipe> allRecipes, AppLocalizations l) {
-  final ingredients = recipe.isComposite
-      ? allIngredients(recipe, allRecipes)
-      : recipe.ingredients;
+List<pw.Widget> _buildIngredients(
+    Recipe recipe, List<Recipe> allRecipes, AppLocalizations l, double scaleFactor) {
+  final ingredients = _scaledIngredients(recipe, allRecipes, scaleFactor);
   if (ingredients.isEmpty) return [];
 
   return [
@@ -356,10 +358,8 @@ pw.Widget _buildCompositeStepRow(
   AppLocalizations l,
 ) {
   final isOwn = sourceRecipeId == 'self';
-  final colorIdx = isOwn ? -1 : linkedIds.indexOf(sourceRecipeId);
-  final stepColor = colorIdx >= 0
-      ? _toPdfColor(componentColors[colorIdx % componentColors.length])
-      : _green;
+  final stepColor =
+      isOwn ? _green : _toPdfColor(componentColor(sourceRecipeId));
   final sourceTitle = isOwn ? null : recipeMap[sourceRecipeId]?.title;
 
   return pw.Padding(
@@ -448,6 +448,85 @@ pw.Widget _buildFooter(pw.Context context, AppLocalizations l) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+List<Ingredient> _applyScale(List<Ingredient> ingredients, double factor) {
+  if (factor == 1.0) return ingredients;
+  return ingredients
+      .map((ing) => ing.quantity != null
+          ? Ingredient(
+              name: ing.name,
+              quantity: ing.quantity! * factor,
+              unit: ing.unit,
+              note: ing.note,
+            )
+          : ing)
+      .toList();
+}
+
+List<Ingredient> _scaledIngredients(
+    Recipe recipe, List<Recipe> allRecipes, double scaleFactor) {
+  final recipeMap = {for (final r in allRecipes) r.id: r};
+
+  if (!recipe.isComposite) {
+    return _applyScale(recipe.ingredients, scaleFactor);
+  }
+
+  // Collect ingredients in component order with per-component scaling.
+  final raw = <Ingredient>[];
+  for (final entry in recipe.componentOrder) {
+    if (entry == 'self') {
+      raw.addAll(_applyScale(recipe.ingredients, scaleFactor));
+    } else {
+      final linked = recipeMap[entry];
+      if (linked == null) continue;
+      final compScale = linked.servings > 0
+          ? scaleFactor * (recipe.servings / linked.servings)
+          : scaleFactor;
+      raw.addAll(_applyScale(linked.ingredients, compScale));
+    }
+  }
+  if (raw.isEmpty) raw.addAll(_applyScale(recipe.ingredients, scaleFactor));
+
+  // Aggregate same (name, unit, note) by summing quantities.
+  final sums = <(String, String, String), double>{};
+  final templates = <(String, String, String), Ingredient>{};
+  for (final ing in raw) {
+    if (ing.quantity == null) continue;
+    final key = (
+      ing.name.trim().toLowerCase(),
+      (ing.unit ?? '').trim().toLowerCase(),
+      (ing.note ?? '').trim().toLowerCase(),
+    );
+    templates.putIfAbsent(key, () => ing);
+    sums[key] = (sums[key] ?? 0) + ing.quantity!;
+  }
+
+  final result = <Ingredient>[];
+  final seen = <(String, String, String)>{};
+  for (final ing in raw) {
+    if (ing.quantity == null) continue;
+    final key = (
+      ing.name.trim().toLowerCase(),
+      (ing.unit ?? '').trim().toLowerCase(),
+      (ing.note ?? '').trim().toLowerCase(),
+    );
+    if (seen.add(key)) {
+      final t = templates[key]!;
+      result.add(
+          Ingredient(name: t.name, quantity: sums[key], unit: t.unit, note: t.note));
+    }
+  }
+  final noQtySeen = <(String, String)>{};
+  for (final ing in raw) {
+    if (ing.quantity != null) continue;
+    final key = (
+      ing.name.trim().toLowerCase(),
+      (ing.note ?? '').trim().toLowerCase(),
+    );
+    if (noQtySeen.add(key)) result.add(ing);
+  }
+  return result;
+}
 
 String _formatAmount(Ingredient ing, AppLocalizations l) {
   if (ing.quantity == null) return '';

@@ -17,8 +17,11 @@ import '../../providers/category_providers.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
+import 'package:pdf/pdf.dart';
+
 import '../../services/pdf_export_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../utils/quantity_format.dart';
 import '../../utils/recipe_graph.dart';
 import '../../widgets/add_to_meal_plan_sheet.dart';
@@ -74,7 +77,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       backgroundColor: AppColors.of(context).background,
       body: CustomScrollView(
         slivers: [
-          _RecipeAppBar(recipe: recipe),
+          _RecipeAppBar(recipe: recipe, scaleFactor: scaleFactor),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -195,7 +198,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         final size = (constraints.maxWidth * 0.5).clamp(120.0, 280.0);
         return Center(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             child: SizedBox(
               width: size,
               height: size,
@@ -225,7 +228,6 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           TextButton(
             onPressed: () => setState(() => _stepImagesVisible = !_stepImagesVisible),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.of(context).primary,
               padding: const EdgeInsets.only(left: 8),
               minimumSize: const Size(0, 32),
             ),
@@ -257,7 +259,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           backgroundColor: Colors.orange.shade50,
           side: BorderSide(color: Colors.orange.shade200),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6)),
+              borderRadius: BorderRadius.circular(AppRadius.componentChip)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ));
@@ -276,7 +278,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           backgroundColor: color.withValues(alpha: 0.12),
           side: BorderSide(color: color.withValues(alpha: 0.6)),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6)),
+              borderRadius: BorderRadius.circular(AppRadius.componentChip)),
           padding: EdgeInsets.zero,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           onPressed: () => context.push('/recipes/${linked.id}'),
@@ -561,8 +563,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
 class _RecipeAppBar extends ConsumerWidget {
   final Recipe recipe;
+  final double scaleFactor;
 
-  const _RecipeAppBar({required this.recipe});
+  const _RecipeAppBar({required this.recipe, this.scaleFactor = 1.0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -597,7 +600,7 @@ class _RecipeAppBar extends ConsumerWidget {
                 backgroundColor: colors.surface,
                 shape: const RoundedRectangleBorder(
                   borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(16)),
+                      BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
                 ),
                 builder: (_) => AddToMealPlanSheet(
                   recipeId: recipe.id,
@@ -605,6 +608,7 @@ class _RecipeAppBar extends ConsumerWidget {
                 ),
               );
             } else if (value == 'export') {
+              final dismiss = _showExportLoading(context);
               try {
                 final repo = ref.read(recipeRepositoryProvider);
                 final allTags = ref.read(allTagsProvider);
@@ -618,12 +622,14 @@ class _RecipeAppBar extends ConsumerWidget {
                     .replaceAll(RegExp(r'^_|_$'), '');
                 final file = File('${dir.path}/$slug.recipea');
                 await file.writeAsString(json);
+                dismiss();
                 if (context.mounted) {
                   await Share.shareXFiles(
                     [XFile(file.path, mimeType: 'application/json')],
                   );
                 }
               } catch (e) {
+                dismiss();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(AppLocalizations.of(context)!.detailExportFailed(e.toString()))),
@@ -631,18 +637,66 @@ class _RecipeAppBar extends ConsumerWidget {
                 }
               }
             } else if (value == 'export_pdf') {
+              final l = AppLocalizations.of(context)!;
+              // Show format picker dialog first.
+              PdfPageFormat selectedFormat = PdfPageFormat.a4;
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => StatefulBuilder(
+                  builder: (ctx, setDialogState) => AlertDialog(
+                    title: Text(l.detailExportPdf),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.pdfFormatLabel,
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.of(ctx).textSecondary)),
+                        const SizedBox(height: 10),
+                        SegmentedButton<PdfPageFormat>(
+                          segments: [
+                            ButtonSegment(
+                                value: PdfPageFormat.a4,
+                                label: Text(l.pdfFormatA4)),
+                            ButtonSegment(
+                                value: PdfPageFormat.letter,
+                                label: Text(l.pdfFormatLetter)),
+                          ],
+                          selected: {selectedFormat},
+                          onSelectionChanged: (s) => setDialogState(
+                              () => selectedFormat = s.first),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: Text(l.cancel)),
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: Text(l.export)),
+                    ],
+                  ),
+                ),
+              );
+              if (confirmed != true || !context.mounted) return;
+              final dismiss = _showExportLoading(context);
               try {
                 final allTags = ref.read(allTagsProvider);
                 final allCategories = ref.read(categoryProvider);
                 final allRecipes = ref.read(recipeListProvider);
-                final l = AppLocalizations.of(context)!;
                 final file = await exportRecipeToPdf(
-                    recipe, allRecipes, allTags, allCategories, l);
+                    recipe, allRecipes, allTags, allCategories, l,
+                    pageFormat: selectedFormat,
+                    scaleFactor: scaleFactor);
+                dismiss();
                 if (context.mounted) {
                   await Share.shareXFiles(
                       [XFile(file.path, mimeType: 'application/pdf')]);
                 }
               } catch (e) {
+                dismiss();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(AppLocalizations.of(context)!.detailPdfFailed(e.toString()))),
@@ -759,8 +813,8 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
           color: colors.primary.withValues(alpha: 0.06),
           border: Border(left: BorderSide(color: colors.primary, width: 3)),
           borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(4),
-            bottomRight: Radius.circular(4),
+            topRight: Radius.circular(AppRadius.strip),
+            bottomRight: Radius.circular(AppRadius.strip),
           ),
         ),
         child: Padding(
@@ -825,7 +879,7 @@ class _StandalonStepTileState extends State<_StandalonStepTile> {
                       if (showImage) ...[
                         const SizedBox(height: 8),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.button),
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Image.file(
@@ -890,8 +944,8 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
               : null,
           borderRadius: widget.color != null
               ? const BorderRadius.only(
-                  topRight: Radius.circular(4),
-                  bottomRight: Radius.circular(4),
+                  topRight: Radius.circular(AppRadius.strip),
+                  bottomRight: Radius.circular(AppRadius.strip),
                 )
               : null,
         ),
@@ -969,7 +1023,7 @@ class _CompositeStepTileState extends State<_CompositeStepTile> {
                   if (showImage) ...[
                     const SizedBox(height: 8),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.button),
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: Image.file(
@@ -1168,7 +1222,7 @@ class _DescriptionCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
@@ -1230,7 +1284,7 @@ class _UsedInSection extends StatelessWidget {
                       color: colors.primary,
                     ),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
+                        borderRadius: BorderRadius.circular(AppRadius.componentChip)),
                   ))
               .toList(),
         ),
@@ -1240,6 +1294,22 @@ class _UsedInSection extends StatelessWidget {
 }
 
 // ── Top-level helpers ─────────────────────────────────────────────────────────
+
+VoidCallback _showExportLoading(BuildContext context) {
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const PopScope(
+      canPop: false,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
+  return () {
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  };
+}
 
 String _buildAmountStr(
     Ingredient ing, double scaleFactor, AppLocalizations l,

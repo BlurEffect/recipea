@@ -13,6 +13,7 @@ import '../../models/recipe.dart';
 import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
 
@@ -288,7 +289,7 @@ class MealPlanScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: AppColors.of(context).surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
       builder: (_) => _RecipePickerSheet(
         currentRecipeId: currentSlot?.recipeId,
@@ -346,7 +347,7 @@ class MealPlanScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: AppColors.of(context).surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
       builder: (_) => _RecipePickerSheet(
         currentRecipeId: null,
@@ -416,7 +417,7 @@ class _SlotRow extends StatelessWidget {
           children: [
             if (hasImage) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadius.componentChip),
                 child: Image.file(
                   File(recipe.imagePath!),
                   width: 40,
@@ -611,7 +612,7 @@ class _RecipePickerSheetState extends State<_RecipePickerSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: colors.divider,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppRadius.dot),
                 ),
               ),
             ),

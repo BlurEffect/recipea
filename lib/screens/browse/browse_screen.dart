@@ -15,6 +15,7 @@ import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../repositories/recipe_repository.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/tag_chip.dart';
@@ -200,6 +201,22 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   }
 }
 
+VoidCallback _showExportLoading(BuildContext context) {
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const PopScope(
+      canPop: false,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
+  return () {
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  };
+}
+
 Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
   final l = AppLocalizations.of(context)!;
   final confirmed = await showDialog<bool>(
@@ -221,6 +238,7 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
   );
   if (confirmed != true || !context.mounted) return;
 
+  final dismiss = _showExportLoading(context);
   try {
     final repo = ref.read(recipeRepositoryProvider);
     final allTags = ref.read(allTagsProvider);
@@ -235,12 +253,14 @@ Future<void> _exportAll(BuildContext context, WidgetRef ref) async {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/database.recipea');
     await file.writeAsString(json);
+    dismiss();
     if (context.mounted) {
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/json')],
       );
     }
   } catch (e) {
+    dismiss();
     if (context.mounted) {
       final l2 = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -387,15 +407,15 @@ class _SearchField extends StatelessWidget {
           filled: true,
           fillColor: colors.background,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.input),
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.input),
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.input),
             borderSide: BorderSide(color: colors.primary, width: 1.5),
           ),
         ),
@@ -499,7 +519,7 @@ class _TagFilterBar extends StatelessWidget {
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: colors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.button),
               ),
               child: Icon(Icons.sort, size: 18, color: colors.primary),
             ),
@@ -513,7 +533,7 @@ class _TagFilterBar extends StatelessWidget {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.button),
                 ),
                 child: Icon(Icons.tune, size: 18, color: colors.primary),
               ),

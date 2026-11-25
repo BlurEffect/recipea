@@ -5,6 +5,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_radius.dart';
 
 class ImagePickerField extends StatelessWidget {
   final String? imagePath;
@@ -58,7 +59,7 @@ class ImagePickerField extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.chip)),
       ),
       builder: (_) => SafeArea(
         child: Column(
@@ -112,7 +113,7 @@ class ImagePickerField extends StatelessWidget {
               height: size,
               decoration: BoxDecoration(
                 color: colors.divider.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(color: colors.divider),
               ),
               clipBehavior: Clip.antiAlias,
@@ -133,7 +134,7 @@ class ImagePickerField extends StatelessWidget {
                                 horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.black54,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(AppRadius.button),
                             ),
                             child: Text(
                               l.editChangePhoto,

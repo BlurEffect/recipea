@@ -6,6 +6,7 @@ import '../../../data/seed_data.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/ingredient.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_radius.dart';
 import '../../../utils/quantity_format.dart';
 
 const _rowUuid = Uuid();
@@ -119,7 +120,6 @@ class _IngredientListEditorState extends State<IngredientListEditor> {
           icon: const Icon(Icons.add, size: 16),
           label: Text(AppLocalizations.of(context)!.editAddIngredient),
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.of(context).primary,
             padding: EdgeInsets.zero,
           ),
         ),
@@ -279,7 +279,7 @@ class _UnitField extends StatelessWidget {
             alignment: Alignment.topLeft,
             child: Material(
               elevation: 4,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppRadius.strip),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 200, maxWidth: 120),
                 child: ListView.builder(
@@ -359,8 +359,23 @@ class _IngredientRow {
   }
 }
 
-// Accepts both dot and comma as decimal separator (e.g. "1,5" on DE locale).
+// Accepts decimals (dot or comma), simple fractions ("1/2"), and mixed numbers ("1 1/2").
 double? _parseQty(String text) {
   if (text.isEmpty) return null;
-  return double.tryParse(text.replaceAll(',', '.'));
+  final s = text.trim().replaceAll(',', '.');
+  final decimal = double.tryParse(s);
+  if (decimal != null) return decimal;
+  final mixed = RegExp(r'^(\d+)\s+(\d+)/(\d+)$').firstMatch(s);
+  if (mixed != null) {
+    final den = int.parse(mixed.group(3)!);
+    if (den == 0) return null;
+    return int.parse(mixed.group(1)!) + int.parse(mixed.group(2)!) / den;
+  }
+  final frac = RegExp(r'^(\d+)/(\d+)$').firstMatch(s);
+  if (frac != null) {
+    final den = int.parse(frac.group(2)!);
+    if (den == 0) return null;
+    return int.parse(frac.group(1)!) / den;
+  }
+  return null;
 }

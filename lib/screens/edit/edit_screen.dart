@@ -18,6 +18,7 @@ import '../../models/recipe_step.dart';
 import '../../providers/custom_tag_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../utils/quantity_format.dart';
 import '../../utils/recipe_graph.dart';
 import '../../widgets/tag_chip.dart';
@@ -347,7 +348,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
     final source = await showModalBottomSheet<_StepImageAction>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.chip)),
       ),
       builder: (_) => SafeArea(
         child: Column(
@@ -828,7 +829,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                     icon: const Icon(Icons.add, size: 16),
                     label: Text(l.editAddTagsButton),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.of(context).primary,
                       padding: EdgeInsets.zero,
                     ),
                   ),
@@ -936,7 +936,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.of(context).primary,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadius.componentChip),
             ),
             child: Text(
               l.editComponentSelf,
@@ -963,7 +963,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppRadius.componentChip),
           ),
           child: Text(
             comp.title,
@@ -1112,7 +1112,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             onPressed: () => _showAddComponentDialog(allRecipes),
             icon: const Icon(Icons.add_link, size: 18),
             label: Text(l.editAddComponent),
-            style: TextButton.styleFrom(foregroundColor: AppColors.of(context).primary),
           ),
         ),
       ],
@@ -1155,7 +1154,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                 TextButton(
                   onPressed: () => setState(() => _compositeStepOrder = []),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.of(context).primary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
                   ),
@@ -1202,7 +1200,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
             onPressed: _addOwnStep,
             icon: const Icon(Icons.add, size: 18),
             label: Text(l.editAddStepToRecipe),
-            style: TextButton.styleFrom(foregroundColor: AppColors.of(context).primary),
           ),
         ),
       ],
@@ -1297,7 +1294,7 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       ],
                     ),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.button),
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: Image.file(

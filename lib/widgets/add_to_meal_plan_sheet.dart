@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
+import '../theme/app_radius.dart';
 import '../providers/meal_plan_providers.dart';
 import '../theme/app_colors.dart';
 
@@ -44,7 +45,7 @@ class AddToMealPlanSheet extends ConsumerWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: colors.divider,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppRadius.dot),
                 ),
               ),
             ),

@@ -9,6 +9,7 @@ import '../../models/recipe.dart';
 import '../../providers/meal_plan_providers.dart';
 import '../../providers/recipe_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 import '../../widgets/empty_state.dart';
 
 class MealPlanHistoryScreen extends ConsumerWidget {
@@ -431,7 +432,7 @@ class _HistoryTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: badgeBg,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppRadius.strip),
             ),
             child: Text(
               badge,

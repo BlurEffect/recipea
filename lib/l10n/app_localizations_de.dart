@@ -652,6 +652,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tagSelectorManage => 'Kategorien verwalten';
 
   @override
+  String get tagChipExcluded => 'ausgeschlossen';
+
+  @override
+  String tagChipRemove(String label) {
+    return '$label entfernen';
+  }
+
+  @override
   String get tagSelectorNewTag => 'Neues Tag';
 
   @override
@@ -785,6 +793,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get imagePickCropTitle => 'Foto zuschneiden';
+
+  @override
+  String get pdfFormatLabel => 'Papierformat';
+
+  @override
+  String get pdfFormatA4 => 'A4';
+
+  @override
+  String get pdfFormatLetter => 'US Letter';
 
   @override
   String get pdfIngredients => 'Zutaten';

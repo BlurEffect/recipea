@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/recipe_step.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_radius.dart';
 
 class StepsListEditor extends StatefulWidget {
   final List<RecipeStep> steps;
@@ -140,7 +141,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
     return showModalBottomSheet<_ImageAction>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.chip)),
       ),
       builder: (_) => SafeArea(
         child: Column(
@@ -193,7 +194,6 @@ class _StepsListEditorState extends State<StepsListEditor> {
                 TextButton(
                   onPressed: () => setState(() => _allImagesVisible = !_allImagesVisible),
                   style: TextButton.styleFrom(
-                    foregroundColor: colors.primary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
                   ),
@@ -297,7 +297,7 @@ class _StepsListEditorState extends State<StepsListEditor> {
                         ),
                         if (_allImagesVisible && _imageExpanded[i]) ...[
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.button),
                             child: AspectRatio(
                               aspectRatio: 1,
                               child: Image.file(
@@ -360,7 +360,6 @@ class _StepsListEditorState extends State<StepsListEditor> {
             onPressed: _addStep,
             icon: const Icon(Icons.add, size: 18),
             label: Text(AppLocalizations.of(context)!.editAddStep),
-            style: TextButton.styleFrom(foregroundColor: colors.primary),
           ),
         ),
       ],

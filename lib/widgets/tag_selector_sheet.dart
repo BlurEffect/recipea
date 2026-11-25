@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/tag_definitions.dart';
+import '../theme/app_radius.dart';
 import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
 import '../providers/category_providers.dart';
@@ -26,7 +27,7 @@ void showTagSelectorSheet({
     isScrollControlled: true,
     backgroundColor: AppColors.of(context).background,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
     ),
     builder: (_) => _TagSelectorSheet(
       currentFilter: currentFilter,
@@ -198,7 +199,7 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: colors.divider,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppRadius.dot),
               ),
             ),
             const SizedBox(height: 16),
@@ -300,9 +301,6 @@ class _TagSelectorSheetState extends ConsumerState<_TagSelectorSheet> {
                           onPressed: () => _showCreateDialog(sheetContext),
                           icon: const Icon(Icons.add, size: 16),
                           label: Text(l.tagSelectorNewTag),
-                          style: TextButton.styleFrom(
-                            foregroundColor: colors.primary,
-                          ),
                         ),
                         const SizedBox(width: 8),
                         TextButton.icon(

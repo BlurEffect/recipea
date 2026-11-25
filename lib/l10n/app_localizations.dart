@@ -1244,6 +1244,18 @@ abstract class AppLocalizations {
   /// **'Manage categories'**
   String get tagSelectorManage;
 
+  /// No description provided for @tagChipExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'excluded'**
+  String get tagChipExcluded;
+
+  /// No description provided for @tagChipRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {label}'**
+  String tagChipRemove(String label);
+
   /// No description provided for @tagSelectorNewTag.
   ///
   /// In en, this message translates to:
@@ -1423,6 +1435,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Crop photo'**
   String get imagePickCropTitle;
+
+  /// No description provided for @pdfFormatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page format'**
+  String get pdfFormatLabel;
+
+  /// No description provided for @pdfFormatA4.
+  ///
+  /// In en, this message translates to:
+  /// **'A4'**
+  String get pdfFormatA4;
+
+  /// No description provided for @pdfFormatLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'US Letter'**
+  String get pdfFormatLetter;
 
   /// No description provided for @pdfIngredients.
   ///

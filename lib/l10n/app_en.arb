@@ -638,6 +638,16 @@
   "tagSelectorManage": "Manage categories",
   "@tagSelectorManage": {},
 
+  "tagChipExcluded": "excluded",
+  "@tagChipExcluded": {},
+
+  "tagChipRemove": "Remove {label}",
+  "@tagChipRemove": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+
   "tagSelectorNewTag": "New tag",
   "@tagSelectorNewTag": {},
 
@@ -763,6 +773,15 @@
 
   "imagePickCropTitle": "Crop photo",
   "@imagePickCropTitle": {},
+
+  "pdfFormatLabel": "Page format",
+  "@pdfFormatLabel": {},
+
+  "pdfFormatA4": "A4",
+  "@pdfFormatA4": {},
+
+  "pdfFormatLetter": "US Letter",
+  "@pdfFormatLetter": {},
 
   "pdfIngredients": "Ingredients",
   "@pdfIngredients": {},

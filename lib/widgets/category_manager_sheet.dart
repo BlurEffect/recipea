@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/seed_data.dart';
+import '../theme/app_radius.dart';
 import '../data/tag_definitions.dart';
 import '../l10n/app_localizations.dart';
 import '../models/category_definition.dart';
@@ -18,7 +19,7 @@ void showCategoryManagerSheet({required BuildContext context}) {
     isScrollControlled: true,
     backgroundColor: AppColors.of(context).background,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
     ),
     builder: (_) => const _CategoryManagerSheet(),
   );
@@ -251,7 +252,7 @@ class _CategoryManagerSheetState extends ConsumerState<_CategoryManagerSheet> {
               height: 4,
               decoration: BoxDecoration(
                 color: colors.divider,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppRadius.dot),
               ),
             ),
             const SizedBox(height: 16),

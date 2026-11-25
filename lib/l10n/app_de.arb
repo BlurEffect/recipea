@@ -638,6 +638,16 @@
   "tagSelectorManage": "Kategorien verwalten",
   "@tagSelectorManage": {},
 
+  "tagChipExcluded": "ausgeschlossen",
+  "@tagChipExcluded": {},
+
+  "tagChipRemove": "{label} entfernen",
+  "@tagChipRemove": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+
   "tagSelectorNewTag": "Neues Tag",
   "@tagSelectorNewTag": {},
 
@@ -763,6 +773,15 @@
 
   "imagePickCropTitle": "Foto zuschneiden",
   "@imagePickCropTitle": {},
+
+  "pdfFormatLabel": "Papierformat",
+  "@pdfFormatLabel": {},
+
+  "pdfFormatA4": "A4",
+  "@pdfFormatA4": {},
+
+  "pdfFormatLetter": "US Letter",
+  "@pdfFormatLetter": {},
 
   "pdfIngredients": "Zutaten",
   "@pdfIngredients": {},

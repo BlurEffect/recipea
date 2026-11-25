@@ -8,6 +8,7 @@ import '../../data/character_definitions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/achievement_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radius.dart';
 
 class AchievementsScreen extends ConsumerWidget {
   const AchievementsScreen({super.key});
@@ -283,7 +284,7 @@ class _FrontFace extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.achievementUnlockedBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -330,7 +331,7 @@ class _RevealedFace extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: character.color,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: isFavorite
                 ? Border.all(color: Colors.amber, width: 3)
                 : null,
@@ -404,7 +405,7 @@ class _LockedFace extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.achievementLockedBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),

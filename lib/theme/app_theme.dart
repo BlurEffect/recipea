@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_radius.dart';
 
 abstract class AppTheme {
   static ThemeData light() => _build(AppColors.light, Brightness.light);
@@ -24,7 +25,7 @@ abstract class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: colors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -32,15 +33,15 @@ abstract class AppTheme {
         fillColor: colors.surface,
         hintStyle: TextStyle(color: colors.textSecondary),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(color: colors.divider),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(color: colors.divider),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(color: colors.primary, width: 2),
         ),
         contentPadding:
@@ -48,8 +49,29 @@ abstract class AppTheme {
       ),
       chipTheme: const ChipThemeData(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20))),
+            borderRadius: BorderRadius.all(Radius.circular(AppRadius.chip))),
         side: BorderSide.none,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colors.primary,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.primary,
+          side: BorderSide(color: colors.primary),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+          minimumSize: const Size(0, 48),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+          minimumSize: const Size(0, 48),
+        ),
       ),
       textTheme: TextTheme(
         headlineLarge: TextStyle(
